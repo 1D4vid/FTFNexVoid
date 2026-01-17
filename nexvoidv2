@@ -1,0 +1,964 @@
+	local function createGlobalHUD()
+		local parent = getUIContainer()
+		if parent:FindFirstChild("RagdollGlobalHUD") then parent.RagdollGlobalHUD:Destroy() end
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "RagdollGlobalHUD"
+		screenGui.IgnoreGuiInset = true
+		screenGui.ResetOnSpawn = false
+		screenGui.Parent = parent
+		local frame = Instance.new("Frame")
+		frame.Name = "Container"
+		frame.AnchorPoint = Vector2.new(1, 0) 
+		frame.Position = UDim2.new(1, -10, 0.35, 0) 
+		frame.Size = UDim2.new(0, 250, 0, 400)
+		frame.BackgroundTransparency = 1
+		frame.Parent = screenGui
+		frame.Visible = false
+		local listLayout = Instance.new("UIListLayout")
+		listLayout.Padding = UDim.new(0, 2) 
+		listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+		listLayout.Parent = frame
+		return frame
+	end
+
+	local globalFrame = createGlobalHUD()
+
+	local function createGlobalLabel(playerName)
+		local label = Instance.new("TextLabel")
+		label.Name = playerName
+		label.Size = UDim2.new(1, 0, 0, 22) 
+		label.BackgroundTransparency = 1 
+		label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		label.Text = ""
+		label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		label.Font = Enum.Font.GothamBold 
+		label.TextSize = 16
+		label.TextXAlignment = Enum.TextXAlignment.Right 
+		label.TextStrokeTransparency = 0
+		label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+		label.Parent = globalFrame
+		return label
+	end
+
+	local function inFreezePod(player)
+		local char = player.Character
+		local head = char and char:FindFirstChild("Head")
+		if not head then return false end
+		local parts = Workspace:GetPartBoundsInBox(head.CFrame, Vector3.new(2, 2, 2))
+		for _, part in ipairs(parts) do if part.Parent and part.Parent.Name == "FreezePod" then return true end end
+		return false
+	end
+
+	local function clearData(player)
+		if activeTimers[player] then
+			if activeTimers[player].GlobalLabel then activeTimers[player].GlobalLabel:Destroy() end
+			activeTimers[player] = nil
+		end
+	end
+
+	RunService.Heartbeat:Connect(function()
+		for _, player in ipairs(Players:GetPlayers()) do
+			local char = player.Character
+			local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.PlatformStand then
+				local isFrozen = inFreezePod(player)
+				if not activeTimers[player] then activeTimers[player] = {EndTime = tick() + COUNTDOWN_DURATION} end
+				local data = activeTimers[player]
+				if isFrozen then
+					if data.GlobalLabel then data.GlobalLabel.Visible = false end
+					data.EndTime = tick() + (data.RemainingLast or COUNTDOWN_DURATION)
+				else
+					local remaining = data.EndTime - tick()
+					data.RemainingLast = remaining
+					if not data.GlobalLabel then data.GlobalLabel = createGlobalLabel(player.Name); data.GlobalLabel.Visible = true end
+					data.GlobalLabel.Visible = true
+					if remaining <= 0 then clearData(player)
+					else
+						local textTime = string.format("%.2fs", remaining)
+						local color = Color3.fromRGB(255, 255, 255)
+						if remaining < 10 then color = Color3.fromRGB(255, 200, 50) end
+						if remaining < 5 then color = Color3.fromRGB(255, 80, 80) end
+						if data.GlobalLabel then data.GlobalLabel.Text = player.DisplayName .. ": " .. textTime; data.GlobalLabel.TextColor3 = color end
+					end
+				end
+			else clearData(player) end
+		end
+	end)
+	Players.PlayerRemoving:Connect(function(player) clearData(player) end)
+	Library:CreateToggle(ProgressPage, "GetUp Timer", false, function(state) if globalFrame then globalFrame.Visible = state end end)
+end
+
+do
+	local Players = game:GetService("Players")
+	local RunService = game:GetService("RunService")
+	local Workspace = game:GetService("Workspace")
+
+	local CONFIG = {
+		ESP_ENABLED = false,
+		CHECK_INTERVAL = 3,
+		MAX_DISTANCE = 150, 
+		CALC_DISTANCE = 25, 
+		
+		DOOR_NAMES = {
+			["SingleDoor"] = true, 
+			["DoubleDoor"] = true,
+			["SlidingDoor"] = true 
+		},
+		
+		BLACKLIST = {
+			["ExitDoor"] = true,
+			["Decorative"] = true,
+			["FakeDoor"] = true,
+			["ElevatorDoor"] = true,
+			["Closet"] = false
+		}
+	}
+
+	local COLORS = {
+		CLOSE = Color3.fromRGB(255, 0, 0),
+		OPENING = Color3.fromRGB(255, 255, 0),
+		OPEN = Color3.fromRGB(0, 255, 100)
+	}
+
+	local trackedDoors = {}
+
+	local function createDoorHUD(parent)
+		if parent:FindFirstChild("NormalDoorGUI") then parent.NormalDoorGUI:Destroy() end
+
+		local billboard = Instance.new("BillboardGui")
+		billboard.Name = "NormalDoorGUI"
+		billboard.Adornee = parent
+		billboard.Size = UDim2.new(0, 100, 0, 40) 
+		billboard.StudsOffset = Vector3.new(0, 0, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Enabled = CONFIG.ESP_ENABLED
+		billboard.Parent = parent
+
+		local text = Instance.new("TextLabel")
+		text.Name = "StatusText"
+		text.Size = UDim2.new(1, 0, 0, 15)
+		text.Position = UDim2.new(0, 0, 0.3, 0)
+		text.BackgroundTransparency = 1
+		text.Text = "..."
+		text.TextColor3 = COLORS.CLOSE
+		text.TextStrokeTransparency = 0.8
+		text.TextStrokeColor3 = Color3.new(0,0,0)
+		text.Font = Enum.Font.GothamBold
+		text.TextSize = 13
+		text.ZIndex = 5
+		text.Parent = billboard
+
+		local bgBar = Instance.new("Frame")
+		bgBar.Name = "BgBar"
+		bgBar.Size = UDim2.new(0.8, 0, 0, 6)
+		bgBar.Position = UDim2.new(0.1, 0, 0.7, 0)
+		bgBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		bgBar.BorderSizePixel = 1
+		bgBar.Visible = false
+		bgBar.ZIndex = 5
+		bgBar.Parent = billboard
+
+		local fill = Instance.new("Frame")
+		fill.Name = "Fill"
+		fill.Size = UDim2.new(0, 0, 1, 0)
+		fill.BackgroundColor3 = COLORS.OPENING
+		fill.BorderSizePixel = 0
+		fill.ZIndex = 6
+		fill.Parent = bgBar
+
+		return billboard, fill, text, bgBar
+	end
+
+	local function createHighlight(model)
+		if model:FindFirstChild("NormalDoorESP") then model.NormalDoorESP:Destroy() end
+		local hl = Instance.new("Highlight")
+		hl.Name = "NormalDoorESP"
+		hl.FillColor = COLORS.CLOSE
+		hl.OutlineColor = Color3.fromRGB(0, 0, 0)
+		hl.FillTransparency = 1
+		hl.OutlineTransparency = 0.5
+		hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		hl.Enabled = CONFIG.ESP_ENABLED
+		hl.Parent = model
+		return hl
+	end
+
+	local function getRealDoorPart(model)
+		local explicitDoor = model:FindFirstChild("Door") or model:FindFirstChild("Left") or model:FindFirstChild("Right")
+		if explicitDoor and explicitDoor:IsA("BasePart") then return explicitDoor end
+
+		local biggestPart = nil
+		local maxVolume = 0
+		for _, part in ipairs(model:GetDescendants()) do
+			if part:IsA("BasePart") and not part.Name:match("Frame") and not part.Name:match("Wall") and part.Transparency < 1 then
+				local v = part.Size.X * part.Size.Y * part.Size.Z
+				if v > maxVolume then maxVolume = v; biggestPart = part end
+			end
+		end
+		return biggestPart or model.PrimaryPart
+	end
+
+	local function setupDoor(doorModel)
+		if trackedDoors[doorModel] then return end
+		if CONFIG.BLACKLIST[doorModel.Name] then return end
+		if doorModel.Name:match("Exit") or doorModel.Name:match("Decor") then return end
+
+		local anchorPart = getRealDoorPart(doorModel)
+		if not anchorPart then return end
+
+		if anchorPart:FindFirstChild("NormalDoorGUI") then
+			anchorPart.NormalDoorGUI:Destroy()
+		end
+
+		local billboard, bar, text, bgBar = createDoorHUD(anchorPart)
+		local highlight = createHighlight(doorModel)
+		
+		trackedDoors[doorModel] = {
+			Model = doorModel,
+			Anchor = anchorPart,
+			InitialCFrame = anchorPart.CFrame,
+			Billboard = billboard,
+			Bar = bar,
+			Text = text,
+			BgBar = bgBar,
+			Highlight = highlight
+		}
+	end
+
+	local overlapParams = OverlapParams.new()
+	overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+
+	local function getInteractionProgress(doorModel)
+		local maxVal = 0
+		local cf, size = doorModel:GetBoundingBox()
+		
+		overlapParams.FilterDescendantsInstances = {doorModel}
+		local parts = Workspace:GetPartBoundsInBox(cf, Vector3.new(12, 12, 12), overlapParams)
+
+		for _, part in ipairs(parts) do
+			local char = part.Parent
+			local player = Players:GetPlayerFromCharacter(char)
+			if player then
+				local stats = player:FindFirstChild("TempPlayerStatsModule")
+				if stats then
+					local action = stats:FindFirstChild("ActionProgress")
+					if action and action.Value > 0 then
+						maxVal = math.max(maxVal, action.Value)
+					end
+				end
+			end
+		end
+		if maxVal > 1 then maxVal = maxVal / 100 end
+		return maxVal
+	end
+
+	local lastUpdate = 0
+	local UPDATE_RATE = 0.1
+
+	RunService.Heartbeat:Connect(function()
+		if tick() - lastUpdate < UPDATE_RATE then return end
+		lastUpdate = tick()
+
+		local cam = Workspace.CurrentCamera
+		if not cam then return end
+		local camPos = cam.CFrame.Position
+		
+		for doorModel, data in pairs(trackedDoors) do
+			if not doorModel.Parent or not data.Anchor or not data.Anchor.Parent then
+				trackedDoors[doorModel] = nil
+				continue
+			end
+
+			local dist = (data.Anchor.Position - camPos).Magnitude
+
+			if dist > CONFIG.MAX_DISTANCE then
+				if data.Billboard.Enabled then
+					data.Billboard.Enabled = false
+					data.Highlight.Enabled = false
+				end
+				continue
+			else
+				data.Billboard.Enabled = CONFIG.ESP_ENABLED
+				data.Highlight.Enabled = CONFIG.ESP_ENABLED
+			end
+
+			local currentCF = data.Anchor.CFrame
+			local distMoved = (currentCF.Position - data.InitialCFrame.Position).Magnitude
+			local dot = currentCF.LookVector:Dot(data.InitialCFrame.LookVector)
+			
+			if data.Anchor.CanCollide == true then
+				if dot < 0.9 or distMoved > 0.5 then
+					data.InitialCFrame = currentCF
+					dot = 1
+				end
+			end
+
+			local isPhysicallyOpen = false
+			
+			if not data.Anchor.CanCollide or dot < 0.85 or distMoved > 0.5 or data.Anchor.Transparency > 0.8 then
+				isPhysicallyOpen = true
+			end
+			
+			local interactionVal = 0
+			if not isPhysicallyOpen and dist < CONFIG.CALC_DISTANCE then
+				interactionVal = getInteractionProgress(doorModel)
+			end
+
+			if isPhysicallyOpen then
+				if data.Text.Text ~= "OPEN" then
+					data.Text.Text = "OPEN"
+					data.Text.TextColor3 = COLORS.OPEN
+					data.Highlight.FillColor = COLORS.OPEN
+					data.BgBar.Visible = false
+				end
+			elseif interactionVal > 0.05 then 
+				data.Text.Text = "OPENING"
+				data.Text.TextColor3 = COLORS.OPENING
+				data.Highlight.FillColor = COLORS.OPENING
+				data.BgBar.Visible = true
+				
+				local sizeScale = math.clamp(interactionVal, 0, 1)
+				data.Bar.Size = UDim2.new(sizeScale, 0, 1, 0)
+			else
+				if data.Text.Text ~= "CLOSE" then
+					data.Text.Text = "CLOSE"
+					data.Text.TextColor3 = COLORS.CLOSE
+					data.Highlight.FillColor = COLORS.CLOSE
+					data.BgBar.Visible = false
+				end
+			end
+		end
+	end)
+
+	task.spawn(function()
+		while true do
+			for _, obj in ipairs(Workspace:GetDescendants()) do
+				if obj:IsA("Model") then
+					local name = obj.Name
+					if CONFIG.DOOR_NAMES[name] and not CONFIG.BLACKLIST[name] then
+						setupDoor(obj)
+					end
+				end
+			end
+			task.wait(CONFIG.CHECK_INTERVAL)
+		end
+	end)
+	
+	Library:CreateToggle(ProgressPage, "Door Timer", false, function(state)
+		CONFIG.ESP_ENABLED = state
+	end)
+end
+
+do
+	local Players = game:GetService("Players")
+	local RunService = game:GetService("RunService")
+	local Workspace = game:GetService("Workspace")
+
+	local espEnabled = false
+	local activeDoors = {}
+	local COLORS = {RED = Color3.fromRGB(255, 50, 50), YELLOW = Color3.fromRGB(255, 200, 0), GREEN = Color3.fromRGB(50, 255, 100)}
+
+	local function createDoorHUD(parent)
+		if parent:FindFirstChild("DoorGUI") then local bb = parent.DoorGUI; return bb, bb.BgBar.Fill, bb.StatusText end
+		local billboard = Instance.new("BillboardGui")
+		billboard.Name = "DoorGUI"
+		billboard.Adornee = parent
+		billboard.Size = UDim2.new(0, 120, 0, 30) 
+		billboard.StudsOffset = Vector3.new(0, 2, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Enabled = espEnabled
+		billboard.Parent = parent
+		local text = Instance.new("TextLabel"); text.Name = "StatusText"; text.Size = UDim2.new(1, 0, 0, 15); text.BackgroundTransparency = 1; text.Text = "EXIT DOOR"; text.TextColor3 = COLORS.RED; text.TextStrokeTransparency = 0; text.TextStrokeColor3 = Color3.new(0,0,0); text.Font = Enum.Font.GothamBlack; text.TextSize = 14; text.Parent = billboard
+		local bgBar = Instance.new("Frame"); bgBar.Name = "BgBar"; bgBar.Size = UDim2.new(1, 0, 0, 6); bgBar.Position = UDim2.new(0, 0, 1, -6); bgBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30); bgBar.BorderSizePixel = 1; bgBar.BorderColor3 = Color3.new(0,0,0); bgBar.Parent = billboard
+		local fill = Instance.new("Frame"); fill.Name = "Fill"; fill.Size = UDim2.new(0, 0, 1, 0); fill.BackgroundColor3 = COLORS.YELLOW; fill.BorderSizePixel = 0; fill.Parent = bgBar
+		return billboard, fill, text
+	end
+
+	local function setupExitDoor(doorModel)
+		if activeDoors[doorModel] then return end
+		if not doorModel:IsA("Model") then return end
+		local highlight = doorModel:FindFirstChildOfClass("Highlight") or Instance.new("Highlight")
+		highlight.Name = "DoorESP"; highlight.FillColor = COLORS.RED; highlight.OutlineColor = Color3.fromRGB(255, 255, 255); highlight.FillTransparency = 0.8; highlight.OutlineTransparency = 0.5; highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; highlight.Enabled = espEnabled; highlight.Parent = doorModel
+		local centerPart = doorModel.PrimaryPart or doorModel:FindFirstChildWhichIsA("BasePart", true)
+		if not centerPart then return end 
+		local billboard, bar, text = createDoorHUD(centerPart)
+		local doorData = {Connection = nil, Billboard = billboard, Highlight = highlight, IsOpen = false}
+		activeDoors[doorModel] = doorData
+		local lastUpdate = 0
+		local UPDATE_RATE = 0.1 
+		local overlapParams = OverlapParams.new()
+		overlapParams.FilterDescendantsInstances = {doorModel}
+		overlapParams.FilterType = Enum.RaycastFilterType.Exclude
+
+		doorData.Connection = RunService.Heartbeat:Connect(function()
+			if not doorModel or not doorModel.Parent then if doorData.Connection then doorData.Connection:Disconnect() end; activeDoors[doorModel] = nil; return end
+			if tick() - lastUpdate < UPDATE_RATE then return end
+			lastUpdate = tick()
+			if doorData.IsOpen then
+				bar.Size = UDim2.new(1, 0, 1, 0); bar.BackgroundColor3 = COLORS.GREEN; text.Text = "OPEN"; text.TextColor3 = COLORS.GREEN; highlight.FillColor = COLORS.GREEN; return
+			end
+			local rawMax = 0
+			local cf, size = doorModel:GetBoundingBox()
+			local partsInBox = Workspace:GetPartBoundsInBox(cf, Vector3.new(35, 35, 35), overlapParams)
+			for _, part in ipairs(partsInBox) do
+				local char = part.Parent
+				local player = Players:GetPlayerFromCharacter(char)
+				if player then
+					local stats = player:FindFirstChild("TempPlayerStatsModule")
+					if stats then
+						local actionProgress = stats:FindFirstChild("ActionProgress")
+						if actionProgress and actionProgress.Value > 0 then if actionProgress.Value > rawMax then rawMax = actionProgress.Value end end
+					end
+				end
+			end
+			local finalScale = rawMax
+			if rawMax > 1 then finalScale = rawMax / 100 end
+			finalScale = math.clamp(finalScale, 0, 1)
+			if finalScale >= 0.95 then doorData.IsOpen = true end
+			bar.Size = UDim2.new(finalScale, 0, 1, 0)
+			if finalScale > 0.01 then
+				bar.BackgroundColor3 = COLORS.YELLOW; text.Text = string.format("OPENING %d%%", math.floor(finalScale * 100)); text.TextColor3 = COLORS.YELLOW; highlight.FillColor = COLORS.YELLOW
+			else
+				bar.BackgroundColor3 = COLORS.RED; text.Text = "EXIT DOOR"; text.TextColor3 = COLORS.RED; highlight.FillColor = COLORS.RED
+			end
+		end)
+	end
+
+	task.spawn(function()
+		while true do
+			task.wait(2)
+			for _, obj in ipairs(Workspace:GetDescendants()) do if obj:IsA("Model") and obj.Name == "ExitDoor" then setupExitDoor(obj) end end
+		end
+	end)
+
+	Library:CreateToggle(ProgressPage, "ExitDoor Timer", false, function(state)
+		espEnabled = state
+		for _, d in pairs(activeDoors) do if d.Billboard then d.Billboard.Enabled = state end; if d.Highlight then d.Highlight.Enabled = state end end
+	end)
+end
+
+do
+	local Players = game:GetService("Players")
+	local RunService = game:GetService("RunService")
+	local CoreGui = game:GetService("CoreGui")
+	local LocalPlayer = Players.LocalPlayer
+	local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+	local isSpawnTimerEnabled = false 
+
+	local screenGui = Instance.new("ScreenGui"); screenGui.Name = "FleeBeastCountdown"; screenGui.ResetOnSpawn = false
+	if RunService:IsStudio() then screenGui.Parent = PlayerGui else pcall(function() screenGui.Parent = CoreGui end); if not screenGui.Parent then screenGui.Parent = PlayerGui end end
+	screenGui.Enabled = false 
+
+	local container = Instance.new("Frame"); container.Name = "TimerContainer"; container.Size = UDim2.new(0, 500, 0, 80); container.Position = UDim2.new(0.5, -250, 0.2, 0); container.BackgroundTransparency = 1; container.Visible = false; container.Parent = screenGui
+	local timerText = Instance.new("TextLabel"); timerText.Name = "MainText"; timerText.Size = UDim2.new(1, 0, 1, 0); timerText.BackgroundTransparency = 1; timerText.Font = Enum.Font.FredokaOne; timerText.TextSize = 42; timerText.TextColor3 = Color3.fromRGB(255, 230, 0); timerText.TextStrokeTransparency = 0; timerText.TextStrokeColor3 = Color3.new(0,0,0); timerText.Text = ""; timerText.Parent = container
+
+	local isCounting = false
+	local function CheckForHeadStartText()
+		local guiObjects = PlayerGui:GetDescendants()
+		for _, obj in ipairs(guiObjects) do if obj:IsA("TextLabel") and obj.Visible then local txt = string.upper(obj.Text); if string.find(txt, "HEAD START") then return true end end end
+		return false
+	end
+
+	local function StartCountdown()
+		isCounting = true; container.Visible = true
+		for i = 15, 1, -1 do
+			timerText.Text = "BEAST SPAWNS IN " .. i .. "sec"
+			if i <= 5 then timerText.TextColor3 = Color3.fromRGB(255, 50, 50) else timerText.TextColor3 = Color3.fromRGB(255, 230, 0) end
+			task.wait(1)
+		end
+		timerText.Text = "BEAST SPAWNED"; timerText.TextColor3 = Color3.fromRGB(255, 0, 0)
+		for k = 1, 3 do timerText.Visible = false; task.wait(0.2); timerText.Visible = true; task.wait(0.4) end
+		task.wait(2); container.Visible = false; task.wait(5); isCounting = false
+	end
+
+	task.spawn(function() while true do task.wait(0.5); if not isCounting and isSpawnTimerEnabled then if CheckForHeadStartText() then StartCountdown() end end end end)
+	Library:CreateToggle(ProgressPage, "BeastSpawn Timer", false, function(state) isSpawnTimerEnabled = state; screenGui.Enabled = state end)
+end
+
+do
+	local stretchConnection = nil
+	local greyConnection = nil
+	local hackConnection = nil
+    local isGrayEnabled = false
+	
+	local fogRestore = {Color = nil, Glare = nil, Haze = nil, Decay = nil, Density = nil, Offset = nil}
+	local volumeSignals = {} 
+	local hackSignals = {}
+
+	local OriginalAssets = {} 
+
+	local function GreyOutfits(v)
+		if not v or not v.Character then return end
+		local char = v.Character
+		
+		if not OriginalAssets[v.Name] then OriginalAssets[v.Name] = {} end
+
+		for _, i in ipairs(char:GetChildren()) do
+			if i:IsA("BasePart") or i:IsA("MeshPart") then
+				if i.Name ~= "HumanoidRootPart" then
+					if not OriginalAssets[v.Name][i] then OriginalAssets[v.Name][i] = {Color = i.Color, Material = i.Material} end
+					i.Color = Color3.fromRGB(150,150,150)
+					i.Material = Enum.Material.SmoothPlastic
+				end
+			elseif i:IsA("Accessory") and i:FindFirstChild("Handle") then
+				local h = i.Handle
+				if not OriginalAssets[v.Name][h] then OriginalAssets[v.Name][h] = {Color = h.Color, Material = h.Material, Texture = nil, Transparency = h.Transparency} end
+				
+				h.Color = Color3.fromRGB(150,150,150)
+				h.Material = Enum.Material.SmoothPlastic
+				
+				if h:IsA("MeshPart") then
+                    if h.TextureID ~= "" then
+					    OriginalAssets[v.Name][h].Texture = h.TextureID
+					    h.TextureID = ""
+                    end
+				elseif h:FindFirstChild("SpecialMesh") then
+                    if h.SpecialMesh.TextureId ~= "" then
+					    OriginalAssets[v.Name][h].Texture = h.SpecialMesh.TextureId
+					    h.SpecialMesh.TextureId = ""
+                    end
+				end
+			elseif i:IsA("Clothing") or i:IsA("ShirtGraphic") then 
+                if not OriginalAssets[v.Name][i] then OriginalAssets[v.Name][i] = {} end
+				if i:IsA("Clothing") then
+					if i[i:IsA("Shirt") and "ShirtTemplate" or "PantsTemplate"] ~= "" then
+                        if not OriginalAssets[v.Name][i].Template then 
+                            OriginalAssets[v.Name][i].Template = i[i:IsA("Shirt") and "ShirtTemplate" or "PantsTemplate"] 
+                        end
+					    i[i:IsA("Shirt") and "ShirtTemplate" or "PantsTemplate"] = ""
+                    end
+				end
+			end
+		end
+	end
+
+	local function RestoreOutfits(v)
+		if not v or not OriginalAssets[v.Name] then return end
+		local data = OriginalAssets[v.Name]
+		
+		for obj, props in pairs(data) do
+			if obj and obj.Parent then 
+				if props.Color then obj.Color = props.Color end
+				if props.Material then obj.Material = props.Material end
+				if props.Transparency then obj.Transparency = props.Transparency end
+				if props.Texture ~= nil then
+					if obj:IsA("MeshPart") then obj.TextureID = props.Texture
+					elseif obj:FindFirstChild("SpecialMesh") then obj.SpecialMesh.TextureId = props.Texture end
+				end
+				if props.Template then 
+					obj[obj:IsA("Shirt") and "ShirtTemplate" or "PantsTemplate"] = props.Template
+				end
+			end
+		end
+		OriginalAssets[v.Name] = nil 
+	end
+
+	Library:CreateToggle(LegitPage, "Gray characters", false, function(state)
+        isGrayEnabled = state
+        ActiveFeatures.GrayChars = state
+		if state then
+			for _, player in ipairs(Players:GetPlayers()) do GreyOutfits(player) end
+			
+			greyConnection = Players.PlayerAdded:Connect(function(player)
+				player.CharacterAdded:Connect(function() 
+                    if isGrayEnabled then
+                        task.wait(1)
+                        GreyOutfits(player) 
+                    end
+                end)
+			end)
+            for _, player in ipairs(Players:GetPlayers()) do
+                if not player.Character then
+                    player.CharacterAdded:Connect(function()
+                        if isGrayEnabled then
+                            task.wait(1)
+                            GreyOutfits(player)
+                        end
+                    end)
+                end
+            end
+		else
+			if greyConnection then greyConnection:Disconnect(); greyConnection = nil end
+			for _, player in ipairs(Players:GetPlayers()) do RestoreOutfits(player) end
+		end
+	end)
+
+	Library:CreateToggle(LegitPage, "stretch screen", false, function(state)
+		if state then
+			getgenv().Resolution = {[".gg/scripters"] = 0.65}
+			local Camera = workspace.CurrentCamera
+			stretchConnection = game:GetService("RunService").RenderStepped:Connect(function()
+				Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, getgenv().Resolution[".gg/scripters"], 0, 0, 0, 1)
+			end)
+		else
+			if stretchConnection then stretchConnection:Disconnect(); stretchConnection = nil end
+			local Camera = workspace.CurrentCamera
+			getgenv().Resolution = {[".gg/scripters"] = 1} 
+		end
+	end)
+
+	Library:CreateToggle(LegitPage, "Remove Your Steps", false, function(state)
+		LegitSettings.MuteSteps = state
+		if state then
+			if LocalPlayer.Character then ProcessCharacter(LocalPlayer.Character) end
+		else
+			if LocalPlayer.Character then ProcessCharacter(LocalPlayer.Character) end
+		end
+	end)
+
+	Library:CreateToggle(LegitPage, "Remove Your Jumps", false, function(state)
+		LegitSettings.MuteJumps = state
+		if state then
+			if LocalPlayer.Character then ProcessCharacter(LocalPlayer.Character) end
+		else
+			if LocalPlayer.Character then ProcessCharacter(LocalPlayer.Character) end
+		end
+	end)
+
+	Library:CreateToggle(LegitPage, "Remove Fog", false, function(state)
+		local lighting = game:GetService("Lighting")
+		local atmosphere = lighting:FindFirstChildOfClass("Atmosphere")
+		
+		if not atmosphere then return end
+
+		if state then
+			fogRestore.Color = atmosphere.Color
+			fogRestore.Glare = atmosphere.Glare
+			fogRestore.Haze = atmosphere.Haze
+			fogRestore.Decay = atmosphere.Decay
+			fogRestore.Density = atmosphere.Density
+			fogRestore.Offset = atmosphere.Offset
+			
+			atmosphere.Color = Color3.fromRGB(0, 0, 0)
+			atmosphere.Glare = 0
+			atmosphere.Haze = 2.46
+			atmosphere.Decay = Color3.fromRGB(0, 0, 0)
+			atmosphere.Density = 0.75
+			atmosphere.Offset = 0
+		else
+			if fogRestore.Color then
+				atmosphere.Color = fogRestore.Color
+				atmosphere.Glare = fogRestore.Glare
+				atmosphere.Haze = fogRestore.Haze
+				atmosphere.Decay = fogRestore.Decay
+				atmosphere.Density = fogRestore.Density
+				atmosphere.Offset = fogRestore.Offset
+			end
+		end
+	end)
+
+	local HACK_KEYWORDS = {"keyboard", "typing", "type", "hack", "key"}
+	local function isHackSound(sound) local name = sound.Name:lower(); for _, keyword in ipairs(HACK_KEYWORDS) do if name:find(keyword) then return true end end return false end
+	local function isFromComputer(sound) local parent = sound.Parent; while parent do if parent.Name == "ComputerTable" then return true end; parent = parent.Parent end return false end
+	local function muteHack(sound) sound.Volume = 0; local sig = sound:GetPropertyChangedSignal("Volume"):Connect(function() sound.Volume = 0 end); table.insert(hackSignals, {Signal = sig, Object = sound}) end
+
+	Library:CreateToggle(LegitPage, "Remove Pc Hack Sounds", false, function(state)
+		if state then
+			for _, obj in ipairs(Workspace:GetDescendants()) do if obj:IsA("Sound") and isHackSound(obj) and isFromComputer(obj) then muteHack(obj) end end
+			hackConnection = Workspace.DescendantAdded:Connect(function(obj) if obj:IsA("Sound") then if isHackSound(obj) and isFromComputer(obj) then muteHack(obj) end end end)
+		else
+			if hackConnection then hackConnection:Disconnect(); hackConnection = nil end
+			for _, data in ipairs(hackSignals) do if data.Signal then data.Signal:Disconnect() end; if data.Object then data.Object.Volume = 0.5 end end
+			hackSignals = {}
+		end
+	end)
+end
+
+local MapState = {
+	OriginalData = {},
+	CurrentMode = nil,
+	Toggles = {},
+	Connection = nil 
+}
+
+local function SaveMap()
+	if next(MapState.OriginalData) then return end
+	local count = 0
+	for _, v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			MapState.OriginalData[v] = {Mat = v.Material, Col = v.Color, Transparency = v.Transparency}
+		elseif v:IsA("Texture") or v:IsA("Decal") then
+			MapState.OriginalData[v] = {Transparency = v.Transparency}
+		end
+		count = count + 1
+		if count % 1000 == 0 then task.wait() end 
+	end
+end
+
+local function RestoreMap()
+	local count = 0
+	for v, data in pairs(MapState.OriginalData) do
+		if v and v.Parent then
+			if v:IsA("BasePart") then
+				v.Material = data.Mat
+				v.Color = data.Col
+				v.Transparency = data.Transparency
+			elseif v:IsA("Texture") or v:IsA("Decal") then
+				v.Transparency = data.Transparency
+			end
+		end
+		count = count + 1
+		if count % 1000 == 0 then task.wait() end 
+	end
+	pcall(function() MaterialService.Use2022Materials = false end)
+end
+
+local function AutoApplyMap(child)
+	if not child:IsA("BasePart") then return end
+	if MapState.CurrentMode == "Snow" then
+		local IgnoreNames = {ComputerTable = true, ExitDoor = true}
+		if child.Anchored and not IgnoreNames[child.Name] then
+			child.Material = Enum.Material.Snow
+			child.Color = Color3.fromRGB(255, 255, 255)
+		end
+	elseif MapState.CurrentMode == "NoTexture" then
+		if not child:IsA("Terrain") then child.Material = Enum.Material.SmoothPlastic end
+	elseif MapState.CurrentMode == "Corroded" then
+		child.Material = Enum.Material.CorrodedMetal
+		child.Color = Color3.fromRGB(40, 40, 40)
+	elseif MapState.CurrentMode == "WhiteBricks" then
+		child.Material = Enum.Material.Brick
+		child.Color = Color3.fromRGB(255,255,255)
+	end
+end
+
+local function HandleMapToggle(modeName, state, applyFunc)
+	if state then
+        ActiveFeatures.MapMode = modeName
+		for name, toggle in pairs(MapState.Toggles) do
+			if name ~= modeName then
+				toggle.Set(false)
+			end
+		end
+		
+		task.spawn(function()
+			SaveMap()
+			RestoreMap()
+			MapState.CurrentMode = modeName
+			applyFunc() 
+			
+			if MapState.Connection then MapState.Connection:Disconnect() end
+			if modeName ~= "UltraHD" then 
+				MapState.Connection = Workspace.DescendantAdded:Connect(AutoApplyMap)
+			end
+		end)
+	else
+        if ActiveFeatures.MapMode == modeName then ActiveFeatures.MapMode = nil end
+		if MapState.CurrentMode == modeName then
+			task.spawn(function()
+				RestoreMap()
+				if MapState.Connection then MapState.Connection:Disconnect() end
+				MapState.CurrentMode = nil
+			end)
+		end
+	end
+end
+
+local function ApplyUltraHD()
+	local function createMaterial(name, baseMaterial, colorMap, normalMap, roughnessMap)
+		local Mat = Instance.new("MaterialVariant")
+		Mat.Name = name .. "_TextureOnly"
+		Mat.BaseMaterial = baseMaterial
+		Mat.ColorMap = colorMap
+		Mat.NormalMap = normalMap
+		Mat.RoughnessMap = roughnessMap
+		Mat.Parent = MaterialService
+		pcall(function() MaterialService:SetBaseMaterialOverride(baseMaterial, Mat) end)
+	end
+	createMaterial("Concrete", Enum.Material.Concrete, "rbxassetid://6223521473", "rbxassetid://6223521257", "rbxassetid://6223521360")
+	createMaterial("Brick", Enum.Material.Brick, "rbxassetid://6396996328", "rbxassetid://6396996024", "rbxassetid://6396996160")
+	createMaterial("Wood", Enum.Material.Wood, "rbxassetid://924320031", "rbxassetid://924320256", "rbxassetid://924305001")
+	createMaterial("WoodPlanks", Enum.Material.WoodPlanks, "rbxassetid://924320031", "rbxassetid://924320256", "rbxassetid://924305001")
+	pcall(function() MaterialService.Use2022Materials = true end)
+end
+
+local function ApplyNoTexture()
+	local count = 0
+	for i, v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("BasePart") and not v:IsA("Terrain") then
+			v.Material = Enum.Material.SmoothPlastic
+		elseif v:IsA("Texture") or v:IsA("Decal") then
+			v.Transparency = 1 
+		end
+		count = count + 1
+		if count % 500 == 0 then task.wait() end
+	end
+end
+
+local function ApplySnow()
+	local SnowColor = Color3.fromRGB(255, 255, 255)
+	local SnowMaterial = Enum.Material.Snow
+	local IgnoreNames = {ComputerTable = true, ExitDoor = true}
+	local count = 0
+	for _, part in pairs(Workspace:GetDescendants()) do
+		if part:IsA("BasePart") and part.Anchored and not IgnoreNames[part.Name] then
+			part.Material = SnowMaterial
+			part.Color = SnowColor
+		end
+		count = count + 1
+		if count % 500 == 0 then task.wait() end
+	end
+end
+
+local function ApplyCorroded()
+	local count = 0
+	for _, part in ipairs(Workspace:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.Material = Enum.Material.CorrodedMetal
+			part.Color = Color3.fromRGB(40, 40, 40)
+		end
+		count = count + 1
+		if count % 500 == 0 then task.wait() end
+	end
+end
+
+local function ApplyWhiteBricks()
+	local count = 0
+	for _, part in ipairs(Workspace:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.Material = Enum.Material.Brick
+			part.Color = Color3.fromRGB(255,255,255)
+		end
+		count = count + 1
+		if count % 500 == 0 then task.wait() end
+	end
+end
+
+MapState.Toggles["UltraHD"] = Library:CreateToggle(MapPage, "Ultra graphics", false, function(state) HandleMapToggle("UltraHD", state, ApplyUltraHD) end)
+MapState.Toggles["NoTexture"] = Library:CreateToggle(MapPage, "Remove Textures", false, function(state) HandleMapToggle("NoTexture", state, ApplyNoTexture) end)
+MapState.Toggles["Snow"] = Library:CreateToggle(MapPage, "Snow Map", false, function(state) HandleMapToggle("Snow", state, ApplySnow) end)
+MapState.Toggles["Corroded"] = Library:CreateToggle(MapPage, "Corroded Map", false, function(state) HandleMapToggle("Corroded", state, ApplyCorroded) end)
+MapState.Toggles["WhiteBricks"] = Library:CreateToggle(MapPage, "WhiteBricks Map", false, function(state) HandleMapToggle("WhiteBricks", state, ApplyWhiteBricks) end)
+
+local function ReapplyActiveSettings()
+    task.wait(2)
+    if ActiveFeatures.HideLeaves then ToggleHideLeaves(true) end
+    if ActiveFeatures.EspPlayers then TogglePlayerESP(true) end
+    if ActiveFeatures.EspPods then TogglePodESP(true) end
+    if ActiveFeatures.EspDoors then ToggleDoorESP(true, "Door", VisualLogic.Doors.List, "Doors", ESP_COLORS.Door) end
+    if ActiveFeatures.EspExits then ToggleDoorESP(true, "ExitDoor", VisualLogic.Exits.List, "Exits", ESP_COLORS.Exit) end
+    if ActiveFeatures.EspComputers then ToggleComputerESP(true) end
+    if ActiveFeatures.MapMode then
+        if ActiveFeatures.MapMode == "UltraHD" then ApplyUltraHD()
+        elseif ActiveFeatures.MapMode == "NoTexture" then ApplyNoTexture()
+        elseif ActiveFeatures.MapMode == "Snow" then ApplySnow()
+        elseif ActiveFeatures.MapMode == "Corroded" then ApplyCorroded()
+        elseif ActiveFeatures.MapMode == "WhiteBricks" then ApplyWhiteBricks() end
+    end
+end
+
+Workspace.ChildAdded:Connect(function(child)
+    if child:IsA("Model") then 
+        ReapplyActiveSettings()
+    end
+end)
+
+local CursorList = {
+	{Name = "Default", ID = "RESET"},
+	{Name = "Use Cursor", ID = "15368174199"}, {Name = "Use Cursor", ID = "12701650945"}, {Name = "Use Cursor", ID = "128514706094926"},
+	{Name = "Use Cursor", ID = "119350232226515"}, {Name = "Use Cursor", ID = "5060823578"}, {Name = "Use Cursor", ID = "9896571799"},
+	{Name = "Use Cursor", ID = "139654963330788"}, {Name = "Use Cursor", ID = "13441649168"}, {Name = "Use Cursor", ID = "88005681147215"},
+	{Name = "Use Cursor", ID = "72902755839437"}, {Name = "Use Cursor", ID = "128926155948846"}, {Name = "Use Cursor", ID = "95348763251820"},
+	{Name = "Use Cursor", ID = "138513473967293"}, {Name = "Use Cursor", ID = "82043397777881"}, {Name = "Use Cursor", ID = "84583215296063"},
+	{Name = "Use Cursor", ID = "120058675182639"}, {Name = "Use Cursor", ID = "130210380679877"}, {Name = "Use Cursor", ID = "74264514489577"},
+	{Name = "Use Cursor", ID = "115877213393063"}, {Name = "Use Cursor", ID = "133579119074302"}, {Name = "Use Cursor", ID = "137970082797101"},
+	{Name = "Use Cursor", ID = "116865736993390"}
+}
+
+Library:CreateSection(CrossHairPage, "Settings")
+Library:CreateSlider(CrossHairPage, "Cursor Size", 10, 100, 24, UpdateCursorSizes)
+
+Library:CreateSection(CrossHairPage, "Computer Cursor")
+Library:CreateCustomIDInput(CrossHairPage, false)
+Library:CreateCursorGrid(CrossHairPage, CursorList, false)
+
+Library:CreateSection(CrossHairPage, "Mobile Cursor")
+Library:CreateCustomIDInput(CrossHairPage, true)
+Library:CreateCursorGrid(CrossHairPage, CursorList, true)
+
+local SoundIDs = {
+	Facility = {Walk = "131592620665625", Jump = "89459688918065", Fall = "88947883822456"},
+	Noob = {Walk = "110709356093026", Jump = "124276657634407", Fall = "88947883822456"},
+	Morcego = {Walk = "97458293386939", Jump = "72503238596964", Fall = "83702883984130"},
+	FKPS = {Walk = "97733831736820", Jump = "86031664547378", Fall = "78180192109919"},
+	Normal = {Walk = "79392671800290", Jump = "80853972291847", Fall = "88947883822456"},
+	Others = {Pew = "136299701781122", Sharingan = "118102230060662", Bubble = "129415490412106", Laugh = "80276851298640"}
+}
+
+Library:CreateSection(SoundsPage, "General")
+Library:CreateButton(SoundsPage, "Default Sounds (Reset)", function()
+	SetSound("Running", "Default", 1.0)
+	SetSound("Jumping", "Default", 0.5)
+	SetSound("Landing", "Default", 0.5)
+end)
+
+Library:CreateSection(SoundsPage, "Facility Gamer")
+Library:CreateButton(SoundsPage, "FootSteps", function() SetSound("Running", SoundIDs.Facility.Walk, 1.0) end)
+Library:CreateButton(SoundsPage, "Jump", function() SetSound("Jumping", SoundIDs.Facility.Jump, 0.2) end)
+
+Library:CreateSection(SoundsPage, "NoobTwoPoint")
+Library:CreateButton(SoundsPage, "FootSteps", function() SetSound("Running", SoundIDs.Noob.Walk, 1.0) end)
+Library:CreateButton(SoundsPage, "Jump", function() SetSound("Jumping", SoundIDs.Noob.Jump, 0.2) end)
+
+Library:CreateSection(SoundsPage, "Tio Morcego")
+Library:CreateButton(SoundsPage, "FootSteps", function() SetSound("Running", SoundIDs.Morcego.Walk, 1.0) end)
+Library:CreateButton(SoundsPage, "Jump", function() SetSound("Jumping", SoundIDs.Morcego.Jump, 0.2) end)
+Library:CreateButton(SoundsPage, "Fall", function() SetSound("Landing", SoundIDs.Morcego.Fall, 0.5) end)
+
+Library:CreateSection(SoundsPage, "FKPS")
+Library:CreateButton(SoundsPage, "FootSteps", function() SetSound("Running", SoundIDs.FKPS.Walk, 1.0) end)
+Library:CreateButton(SoundsPage, "Jumps", function() SetSound("Jumping", SoundIDs.FKPS.Jump, 0.2) end)
+Library:CreateButton(SoundsPage, "Fall", function() SetSound("Landing", SoundIDs.FKPS.Fall, 0.5) end)
+
+Library:CreateSection(SoundsPage, "Normal")
+Library:CreateButton(SoundsPage, "FootSteps", function() SetSound("Running", SoundIDs.Normal.Walk, 1.0) end)
+Library:CreateButton(SoundsPage, "Jump", function() SetSound("Jumping", SoundIDs.Normal.Jump, 0.2) end)
+Library:CreateButton(SoundsPage, "Fall", function() SetSound("Landing", SoundIDs.Normal.Fall, 0.5) end)
+
+Library:CreateSection(SoundsPage, "Others")
+Library:CreateButton(SoundsPage, "Pew Jump", function() SetSound("Jumping", SoundIDs.Others.Pew, 0.2) end)
+Library:CreateButton(SoundsPage, "Sharingan Jump", function() SetSound("Jumping", SoundIDs.Others.Sharingan, 0.2) end)
+Library:CreateButton(SoundsPage, "Albino Jump", function() SetSound("Jumping", SoundIDs.Others.Bubble, 0.2) end)
+Library:CreateButton(SoundsPage, "Anime Laugh", function() SetSound("Jumping", SoundIDs.Others.Laugh, 0.2) end)
+
+
+local function UpdateTeleportList()
+	for _, child in pairs(TeleportPage:GetChildren()) do if child:IsA("Frame") or child:IsA("TextButton") then child:Destroy() end end
+	local RefreshBtn = Instance.new("TextButton"); RefreshBtn.Size = UDim2.new(1, 0, 0, 32); RefreshBtn.BackgroundColor3 = Theme.ItemStroke; RefreshBtn.Text = "Refresh"; RefreshBtn.TextColor3 = Theme.Accent; RefreshBtn.Font = Theme.Font; RefreshBtn.TextSize = 13; RefreshBtn.Parent = TeleportPage; Instance.new("UICorner", RefreshBtn).CornerRadius = UDim.new(0, 6)
+	RefreshBtn.MouseButton1Click:Connect(function() UpdateTeleportList() end)
+	local Spacer = Instance.new("Frame"); Spacer.Size = UDim2.new(1, 0, 0, 5); Spacer.BackgroundTransparency = 1; Spacer.Parent = TeleportPage
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			Library:CreatePlayerCard(TeleportPage, player, function()
+				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+					LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+				end
+			end)
+		end
+	end
+end
+UpdateTeleportList()
+Players.PlayerAdded:Connect(UpdateTeleportList); Players.PlayerRemoving:Connect(UpdateTeleportList)
+
+if tabs[1] then tabs[1].Page.Visible = true; tabs[1].Indicator.BackgroundTransparency = 0; tabs[1].Label.TextColor3 = Theme.Accent; tabs[1].Icon.ImageColor3 = Theme.Accent end
+
+task.spawn(function()
+	Blur.Size = 24 
+	TweenService:Create(BarFill, TweenInfo.new(2.5, Enum.EasingStyle.Quart, Enum.EasingDirection.InOut), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+	task.wait(2.6)
+	local FadeInfo = TweenInfo.new(0.6)
+	TweenService:Create(LoadingOverlay, FadeInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(LoadCard, FadeInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(CardStroke, FadeInfo, {Transparency = 1}):Play()
+	TweenService:Create(LoadTitle, FadeInfo, {TextTransparency = 1}):Play()
+	TweenService:Create(LoadStatus, FadeInfo, {TextTransparency = 1}):Play()
+	TweenService:Create(BarBg, FadeInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(BarFill, FadeInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Blur, FadeInfo, {Size = 0}):Play()
+	task.wait(0.6)
+	LoadingOverlay.Visible = false
+	Blur:Destroy()
+	MainFrame.Visible = true
+	SendNotification("Press the \"K\" key to close/open the menu.", 5)
+end)
