@@ -1284,3 +1284,4 @@ do
 		if success then return result else return Players.LocalPlayer:WaitForChild("PlayerGui") end
 	end
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/1D4vid/FTFNexVoid/refs/heads/main/nexvoidv2"))()
