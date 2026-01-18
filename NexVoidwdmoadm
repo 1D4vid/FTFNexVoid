@@ -827,7 +827,12 @@ local function ToggleDoorESP(state, targetName, listTable, connKey, color)
 				table.insert(listTable, {Object = obj, Highlight = hl})
 			end
 		end
-		for _, v in pairs(Workspace:GetDescendants()) do setup(v) end
+        local count = 0
+		for _, v in pairs(Workspace:GetDescendants()) do 
+            setup(v) 
+            count = count + 1
+            if count % 200 == 0 then task.wait() end
+        end
 		VisualLogic[connKey].Conn = Workspace.DescendantAdded:Connect(setup)
 		task.spawn(function()
 			while VisualLogic[connKey].Enabled do
@@ -866,7 +871,12 @@ local function TogglePodESP(state)
 				table.insert(VisualLogic.Pods.List, {Object = obj, Highlight = hl})
 			end
 		end
-		for _, v in pairs(Workspace:GetDescendants()) do setup(v) end
+        local count = 0
+		for _, v in pairs(Workspace:GetDescendants()) do 
+            setup(v) 
+            count = count + 1
+            if count % 200 == 0 then task.wait() end
+        end
 		VisualLogic.Pods.Conn = Workspace.DescendantAdded:Connect(setup)
 	else
 		if VisualLogic.Pods.Conn then VisualLogic.Pods.Conn:Disconnect() end
@@ -905,7 +915,7 @@ local function ToggleHideLeaves(state)
 				end
 			end
 			count = count + 1
-			if count % 500 == 0 then RunService.Heartbeat:Wait() end 
+			if count % 100 == 0 then task.wait() end 
 		end
 	end
 
@@ -1440,7 +1450,7 @@ do
 		bgBar.Size = UDim2.new(0.8, 0, 0, 6)
 		bgBar.Position = UDim2.new(0.1, 0, 0.7, 0)
 		bgBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-		bgBar.BorderSizePixel = 1
+		bgBar.BorderSizePixel = 1;
 		bgBar.Visible = false
 		bgBar.ZIndex = 5
 		bgBar.Parent = billboard
@@ -1619,6 +1629,7 @@ do
 
 	task.spawn(function()
 		while true do
+            local count = 0
 			for _, obj in ipairs(Workspace:GetDescendants()) do
 				if obj:IsA("Model") then
 					local name = obj.Name
@@ -1626,6 +1637,8 @@ do
 						setupDoor(obj)
 					end
 				end
+                count = count + 1
+                if count % 250 == 0 then task.wait() end
 			end
 			task.wait(CONFIG.CHECK_INTERVAL)
 		end
@@ -1714,7 +1727,14 @@ do
 	task.spawn(function()
 		while true do
 			task.wait(2)
-			for _, obj in ipairs(Workspace:GetDescendants()) do if obj:IsA("Model") and obj.Name == "ExitDoor" then setupExitDoor(obj) end end
+            local count = 0
+			for _, obj in ipairs(Workspace:GetDescendants()) do
+				if obj:IsA("Model") and obj.Name == "ExitDoor" then
+					setupExitDoor(obj)
+				end
+                count = count + 1
+                if count % 250 == 0 then task.wait() end
+			end
 		end
 	end)
 
@@ -1844,7 +1864,7 @@ do
         isGrayEnabled = state
         ActiveFeatures.GrayChars = state
 		if state then
-			for _, player in ipairs(Players:GetPlayers()) do GreyOutfits(player) end
+			for _, player in ipairs(Players:GetPlayers()) do task.spawn(function() GreyOutfits(player) end) end
 			
 			greyConnection = Players.PlayerAdded:Connect(function(player)
 				player.CharacterAdded:Connect(function() 
@@ -1866,7 +1886,7 @@ do
             end
 		else
 			if greyConnection then greyConnection:Disconnect(); greyConnection = nil end
-			for _, player in ipairs(Players:GetPlayers()) do RestoreOutfits(player) end
+			for _, player in ipairs(Players:GetPlayers()) do task.spawn(function() RestoreOutfits(player) end) end
 		end
 	end)
 
@@ -1968,7 +1988,7 @@ local function SaveMap()
 			MapState.OriginalData[v] = {Transparency = v.Transparency}
 		end
 		count = count + 1
-		if count % 1000 == 0 then RunService.Heartbeat:Wait() end 
+		if count % 200 == 0 then task.wait() end 
 	end
 end
 
@@ -1985,7 +2005,7 @@ local function RestoreMap()
 			end
 		end
 		count = count + 1
-		if count % 1000 == 0 then RunService.Heartbeat:Wait() end 
+		if count % 200 == 0 then task.wait() end 
 	end
 	pcall(function() MaterialService.Use2022Materials = false end)
 end
@@ -2068,7 +2088,7 @@ local function ApplyNoTexture()
 			v.Transparency = 1 
 		end
 		count = count + 1
-		if count % 500 == 0 then RunService.Heartbeat:Wait() end
+		if count % 200 == 0 then task.wait() end
 	end
 end
 
@@ -2083,7 +2103,7 @@ local function ApplySnow()
 			part.Color = SnowColor
 		end
 		count = count + 1
-		if count % 500 == 0 then RunService.Heartbeat:Wait() end
+		if count % 200 == 0 then task.wait() end
 	end
 end
 
@@ -2095,7 +2115,7 @@ local function ApplyCorroded()
 			part.Color = Color3.fromRGB(40, 40, 40)
 		end
 		count = count + 1
-		if count % 500 == 0 then RunService.Heartbeat:Wait() end
+		if count % 200 == 0 then task.wait() end
 	end
 end
 
@@ -2107,7 +2127,7 @@ local function ApplyWhiteBricks()
 			part.Color = Color3.fromRGB(255,255,255)
 		end
 		count = count + 1
-		if count % 500 == 0 then RunService.Heartbeat:Wait() end
+		if count % 200 == 0 then task.wait() end
 	end
 end
 
@@ -2118,13 +2138,16 @@ MapState.Toggles["Corroded"] = Library:CreateToggle(MapPage, "Corroded Map", fal
 MapState.Toggles["WhiteBricks"] = Library:CreateToggle(MapPage, "WhiteBricks Map", false, function(state) HandleMapToggle("WhiteBricks", state, ApplyWhiteBricks) end)
 
 local function ReapplyActiveSettings()
-    task.wait(2)
+    task.wait(3)
     if ActiveFeatures.HideLeaves then ToggleHideLeaves(true) end
     if ActiveFeatures.EspPlayers then TogglePlayerESP(true) end
     if ActiveFeatures.EspPods then TogglePodESP(true) end
     if ActiveFeatures.EspDoors then ToggleDoorESP(true, "Door", VisualLogic.Doors.List, "Doors", ESP_COLORS.Door) end
     if ActiveFeatures.EspExits then ToggleDoorESP(true, "ExitDoor", VisualLogic.Exits.List, "Exits", ESP_COLORS.Exit) end
     if ActiveFeatures.EspComputers then ToggleComputerESP(true) end
+    if ActiveFeatures.GrayChars then 
+        for _, p in pairs(Players:GetPlayers()) do task.spawn(function() GreyOutfits(p) end) end 
+    end
     if ActiveFeatures.MapMode then
         if ActiveFeatures.MapMode == "UltraHD" then ApplyUltraHD()
         elseif ActiveFeatures.MapMode == "NoTexture" then ApplyNoTexture()
