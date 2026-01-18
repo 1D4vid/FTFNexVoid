@@ -87,6 +87,47 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.IgnoreGuiInset = true
 
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = Config.MainSize
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.6, 0)
+MainFrame.BackgroundColor3 = Theme.FrameColor
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = false
+MainFrame.ClipsDescendants = true
+MainFrame.Visible = true
+MainFrame.Parent = ScreenGui
+
+local CurrentCursorSize = 24
+local PCCursorActive = false
+local MobileCrosshair = Instance.new("ImageLabel"); MobileCrosshair.Name = "MobileCrosshair"; MobileCrosshair.Size = UDim2.new(0, CurrentCursorSize, 0, CurrentCursorSize); MobileCrosshair.AnchorPoint = Vector2.new(0.5, 0.5); MobileCrosshair.Position = UDim2.new(0.5, 0, 0.5, 0); MobileCrosshair.BackgroundTransparency = 1; MobileCrosshair.Image = ""; MobileCrosshair.Visible = false; MobileCrosshair.ZIndex = 99; MobileCrosshair.Parent = ScreenGui 
+local PCSoftwareCursor = Instance.new("ImageLabel"); PCSoftwareCursor.Name = "PCCursor"; PCSoftwareCursor.Size = UDim2.new(0, CurrentCursorSize, 0, CurrentCursorSize); PCSoftwareCursor.AnchorPoint = Vector2.new(0.5, 0.5); PCSoftwareCursor.BackgroundTransparency = 1; PCSoftwareCursor.Image = ""; PCSoftwareCursor.Visible = false; PCSoftwareCursor.ZIndex = 10000; PCSoftwareCursor.Parent = ScreenGui
+
+local function UpdateCursorSizes(val) 
+    CurrentCursorSize = val; 
+    MobileCrosshair.Size = UDim2.new(0, val, 0, val); 
+    PCSoftwareCursor.Size = UDim2.new(0, val, 0, val) 
+end
+
+RunService.RenderStepped:Connect(function() 
+    if MainFrame.Visible then
+        if UserInputService.MouseIconEnabled == false then UserInputService.MouseIconEnabled = true end
+        if PCCursorActive and PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = false end 
+    else
+        if PCCursorActive then 
+            if UserInputService.MouseIconEnabled == true then UserInputService.MouseIconEnabled = false end
+            local mousePos = UserInputService:GetMouseLocation(); 
+            PCSoftwareCursor.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+            if not PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = true end
+        else 
+            if UserInputService.MouseIconEnabled == false then UserInputService.MouseIconEnabled = true end
+            if PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = false end
+        end 
+    end
+end)
+
 local function MakeDraggable(triggerObject, frameObject)
 	local dragging = false
 	local dragInput, dragStart, startPos
@@ -231,64 +272,6 @@ local function SetSound(Type, ID, Vol)
     for _, p in pairs(Players:GetPlayers()) do if p.Character then ProcessCharacter(p.Character) end end
 end
 
-local CurrentCursorSize = 24
-local PCCursorActive = false
-local MobileCrosshair = Instance.new("ImageLabel"); MobileCrosshair.Name = "MobileCrosshair"; MobileCrosshair.Size = UDim2.new(0, CurrentCursorSize, 0, CurrentCursorSize); MobileCrosshair.AnchorPoint = Vector2.new(0.5, 0.5); MobileCrosshair.Position = UDim2.new(0.5, 0, 0.5, 0); MobileCrosshair.BackgroundTransparency = 1; MobileCrosshair.Image = ""; MobileCrosshair.Visible = false; MobileCrosshair.ZIndex = 99; MobileCrosshair.Parent = ScreenGui 
-local PCSoftwareCursor = Instance.new("ImageLabel"); PCSoftwareCursor.Name = "PCCursor"; PCSoftwareCursor.Size = UDim2.new(0, CurrentCursorSize, 0, CurrentCursorSize); PCSoftwareCursor.AnchorPoint = Vector2.new(0.5, 0.5); PCSoftwareCursor.BackgroundTransparency = 1; PCSoftwareCursor.Image = ""; PCSoftwareCursor.Visible = false; PCSoftwareCursor.ZIndex = 10000; PCSoftwareCursor.Parent = ScreenGui
-
-local function UpdateCursorSizes(val) 
-    CurrentCursorSize = val; 
-    MobileCrosshair.Size = UDim2.new(0, val, 0, val); 
-    PCSoftwareCursor.Size = UDim2.new(0, val, 0, val) 
-end
-
-local MainFrame = Instance.new("Frame")
-
-RunService.RenderStepped:Connect(function() 
-    if MainFrame.Visible then
-        if UserInputService.MouseIconEnabled == false then UserInputService.MouseIconEnabled = true end
-        if PCCursorActive and PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = false end 
-    else
-        if PCCursorActive then 
-            if UserInputService.MouseIconEnabled == true then UserInputService.MouseIconEnabled = false end
-            local mousePos = UserInputService:GetMouseLocation(); 
-            PCSoftwareCursor.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
-            if not PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = true end
-        else 
-            if UserInputService.MouseIconEnabled == false then UserInputService.MouseIconEnabled = true end
-            if PCSoftwareCursor.Visible then PCSoftwareCursor.Visible = false end
-        end 
-    end
-end)
-
-MainFrame.Name = "MainFrame"
-MainFrame.Size = Config.MainSize
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.Position = UDim2.new(0.5, 0, 0.6, 0)
-MainFrame.BackgroundColor3 = Theme.FrameColor
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = false
-MainFrame.ClipsDescendants = true
-MainFrame.Visible = true
-MainFrame.Parent = ScreenGui
-
-local function SendNotification(text, duration)
-	local NotifyFrame = Instance.new("Frame")
-	NotifyFrame.Size = UDim2.new(0, 320, 0, 34)
-	NotifyFrame.AnchorPoint = Vector2.new(0.5, 0)
-	NotifyFrame.Position = UDim2.new(0.5, 0, 0, -50)
-	NotifyFrame.BackgroundColor3 = Theme.FrameColor
-	NotifyFrame.BorderSizePixel = 0
-	NotifyFrame.ZIndex = 200
-	NotifyFrame.Parent = ScreenGui
-	local NC = Instance.new("UICorner"); NC.CornerRadius = UDim.new(0, 8); NC.Parent = NotifyFrame
-	local NS = Instance.new("UIStroke"); NS.Color = Theme.Accent; NS.Thickness = 1.2; NS.Parent = NotifyFrame
-	local NLabel = Instance.new("TextLabel"); NLabel.Size = UDim2.new(1, 0, 1, 0); NLabel.BackgroundTransparency = 1; NLabel.Text = text; NLabel.TextColor3 = Theme.Text; NLabel.Font = Enum.Font.Gotham; NLabel.TextSize = 12; NLabel.TextWrapped = true; NLabel.Parent = NotifyFrame
-	TweenService:Create(NotifyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
-	task.spawn(function() task.wait(duration or 4); local Out = TweenService:Create(NotifyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0.5, 0, 0, -50)}); Out:Play(); Out.Completed:Wait(); NotifyFrame:Destroy() end)
-end
-
 local TopBar = Instance.new("Frame"); TopBar.Size = UDim2.new(1, 0, 0, 40); TopBar.BackgroundColor3 = Theme.FrameColor; TopBar.BorderSizePixel = 0; TopBar.Parent = MainFrame
 MakeDraggable(TopBar, MainFrame)
 
@@ -398,7 +381,6 @@ end)
 
 UserInputService.InputBegan:Connect(function(input, gp)
 	if not gp and input.KeyCode == CurrentKey then
-		if LoadingOverlay.Visible then return end
 		MainFrame.Visible = not MainFrame.Visible
 		OpenButton.Visible = false 
 	end
@@ -907,7 +889,7 @@ local function ToggleHideLeaves(state)
 				end
 			end
 			count = count + 1
-			if count % 100 == 0 then task.wait() end 
+			if count % 100 == 0 then RunService.Heartbeat:Wait() end 
 		end
 	end
 
@@ -1980,7 +1962,7 @@ local function SaveMap()
 			MapState.OriginalData[v] = {Transparency = v.Transparency}
 		end
 		count = count + 1
-		if count % 100 == 0 then task.wait() end 
+		if count % 200 == 0 then RunService.Heartbeat:Wait() end 
 	end
 end
 
@@ -1997,7 +1979,7 @@ local function RestoreMap()
 			end
 		end
 		count = count + 1
-		if count % 100 == 0 then task.wait() end 
+		if count % 200 == 0 then RunService.Heartbeat:Wait() end 
 	end
 	pcall(function() MaterialService.Use2022Materials = false end)
 end
@@ -2243,8 +2225,3 @@ UpdateTeleportList()
 Players.PlayerAdded:Connect(UpdateTeleportList); Players.PlayerRemoving:Connect(UpdateTeleportList)
 
 if tabs[1] then tabs[1].Page.Visible = true; tabs[1].Indicator.BackgroundTransparency = 0; tabs[1].Label.TextColor3 = Theme.Accent; tabs[1].Icon.ImageColor3 = Theme.Accent end
-
-task.spawn(function()
-	MainFrame.Visible = true
-	SendNotification("Press the \"K\" key to close/open the menu.", 5)
-end)
