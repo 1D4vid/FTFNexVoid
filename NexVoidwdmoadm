@@ -1,171 +1,211 @@
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
+-- Seleciona o local correto para injetar a UI
 local viewport = (gethui and gethui()) or (getgenv and getgenv().gethui and getgenv().gethui()) or CoreGui
 
+-- Limpa a UI antiga se existir
 if viewport:FindFirstChild("NexVoidMaintenance") then
     viewport.NexVoidMaintenance:Destroy()
 end
 
+-- ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexVoidMaintenance"
 ScreenGui.Parent = viewport
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.IgnoreGuiInset = true
 
+-- Frame Principal
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.Size = UDim2.new(0, 0, 0, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.Size = UDim2.new(0, 420, 0, 320) -- Tamanho fixo, o conteúdo se adapta
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22) -- Fundo escuro moderno
 MainFrame.BorderSizePixel = 0
-MainFrame.ZIndex = 1
+MainFrame.ClipsDescendants = true
 
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.CornerRadius = UDim.new(0, 14)
 UICorner.Parent = MainFrame
 
+-- Usando UIScale para uma animação perfeita (não estica as letras)
+local UIScale = Instance.new("UIScale")
+UIScale.Parent = MainFrame
+UIScale.Scale = 0 -- Começa invisível
+
+-- Borda Animada (Glow)
 local UIStroke = Instance.new("UIStroke")
 UIStroke.Parent = MainFrame
-UIStroke.Thickness = 3
+UIStroke.Thickness = 2
 UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Transparency = 0.2
 
 local StrokeGradient = Instance.new("UIGradient")
 StrokeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(50, 50, 50)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 40)),
     ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))
 }
-StrokeGradient.Rotation = 45
 StrokeGradient.Parent = UIStroke
 
-local Background = Instance.new("ImageLabel")
-Background.Parent = MainFrame
-Background.Size = UDim2.new(1, 0, 1, 0)
-Background.Image = "rbxassetid://98571821923947"
-Background.ScaleType = Enum.ScaleType.Crop
-Background.BackgroundTransparency = 1
-Background.ImageTransparency = 0.9
-Background.ImageColor3 = Color3.fromRGB(200, 200, 200)
-Background.ZIndex = 1
+-- Sistema de Organização Automática (Evita que o texto bugue)
+local Padding = Instance.new("UIPadding")
+Padding.Parent = MainFrame
+Padding.PaddingTop = UDim.new(0, 25)
+Padding.PaddingBottom = UDim.new(0, 20)
+Padding.PaddingLeft = UDim.new(0, 25)
+Padding.PaddingRight = UDim.new(0, 25)
 
-local BgCorner = Instance.new("UICorner")
-BgCorner.CornerRadius = UDim.new(0, 12)
-BgCorner.Parent = Background
+local Layout = Instance.new("UIListLayout")
+Layout.Parent = MainFrame
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.Padding = UDim.new(0, 15) -- Espaçamento entre os textos
 
+-- Título
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 0, 0.1, 0)
-Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Font = Enum.Font.GothamBlack
 Title.Text = "MAINTENANCE"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 26
-Title.TextTransparency = 1
-Title.TextStrokeTransparency = 0
-Title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-Title.ZIndex = 2
+Title.TextSize = 24
+Title.LayoutOrder = 1
 
-local TextGradient = Instance.new("UIGradient")
-TextGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(100, 100, 100))
-}
-TextGradient.Rotation = 90
-TextGradient.Parent = Title
-
+-- Descrição Principal
 local Description = Instance.new("TextLabel")
 Description.Parent = MainFrame
 Description.BackgroundTransparency = 1
-Description.Position = UDim2.new(0.1, 0, 0.35, 0)
-Description.Size = UDim2.new(0.8, 0, 0, 40)
-Description.Font = Enum.Font.Gotham
+Description.Size = UDim2.new(1, 0, 0, 0)
+Description.AutomaticSize = Enum.AutomaticSize.Y -- Cresce automaticamente
+Description.Font = Enum.Font.GothamMedium
 Description.Text = "NexVoid is currently under maintenance.\nPlease wait for the next few hours."
-Description.TextColor3 = Color3.fromRGB(200, 200, 200)
-Description.TextSize = 14
-Description.TextStrokeTransparency = 0.5
-Description.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+Description.TextColor3 = Color3.fromRGB(180, 180, 180)
+Description.TextSize = 15
 Description.TextWrapped = true
-Description.TextTransparency = 1
-Description.ZIndex = 2
+Description.LayoutOrder = 2
 
+-- Linha Divisória
+local Divider = Instance.new("Frame")
+Divider.Parent = MainFrame
+Divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Divider.BackgroundTransparency = 0.85
+Divider.Size = UDim2.new(0.8, 0, 0, 1)
+Divider.BorderSizePixel = 0
+Divider.LayoutOrder = 3
+
+-- Informações Extras (Aviso sobre Bugs)
+local ExtraInfo = Instance.new("TextLabel")
+ExtraInfo.Parent = MainFrame
+ExtraInfo.BackgroundTransparency = 1
+ExtraInfo.Size = UDim2.new(1, 0, 0, 0)
+ExtraInfo.AutomaticSize = Enum.AutomaticSize.Y -- A MÁGICA AQUI: Cresce conforme o tamanho do texto, nunca corta!
+ExtraInfo.Font = Enum.Font.Gotham
+ExtraInfo.Text = "🇧🇷 - Houve um atraso na atualização por bugs inesperados, em breve NexVoid estará de volta!!\n\n🇺🇸 - There was a delay in the update due to unexpected bugs, NexVoid will be back soon!!"
+ExtraInfo.TextColor3 = Color3.fromRGB(200, 200, 200)
+ExtraInfo.TextSize = 13
+ExtraInfo.TextWrapped = true
+ExtraInfo.LayoutOrder = 4
+
+-- Espaçador invisível para empurrar o botão
+local Spacer = Instance.new("Frame")
+Spacer.Parent = MainFrame
+Spacer.BackgroundTransparency = 1
+Spacer.Size = UDim2.new(1, 0, 0, 5)
+Spacer.LayoutOrder = 5
+
+-- Botão de Fechar
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseBtn"
 CloseButton.Parent = MainFrame
-CloseButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Position = UDim2.new(0.25, 0, 0.7, 0)
-CloseButton.Size = UDim2.new(0.5, 0, 0, 35)
-CloseButton.Font = Enum.Font.GothamBlack
+CloseButton.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+CloseButton.Size = UDim2.new(0.6, 0, 0, 38)
+CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Text = "CLOSE"
-CloseButton.TextColor3 = Color3.fromRGB(10, 10, 10)
+CloseButton.TextColor3 = Color3.fromRGB(20, 20, 20)
 CloseButton.TextSize = 14
 CloseButton.AutoButtonColor = false
-CloseButton.BackgroundTransparency = 0
-CloseButton.TextTransparency = 1
-CloseButton.ZIndex = 10
+CloseButton.LayoutOrder = 6
 
 local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.CornerRadius = UDim.new(0, 6)
 BtnCorner.Parent = CloseButton
 
-local BtnGradient = Instance.new("UIGradient")
-BtnGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(150, 150, 150))
-}
-BtnGradient.Rotation = 90
-BtnGradient.Parent = CloseButton
+-- ================= LOGICA DE ARRASTAR (DRAGGABLE) ================= --
+local dragging, dragInput, dragStart, startPos
 
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ================= ANIMAÇÕES ================= --
+
+-- Gira o degradê da borda
 local rot = 0
 local connection
-connection = RunService.RenderStepped:Connect(function()
+connection = RunService.RenderStepped:Connect(function(deltaTime)
     if not MainFrame.Parent then 
         if connection then connection:Disconnect() end
         return 
     end
-    rot = rot + 2
+    rot = (rot + (60 * deltaTime)) % 360
     StrokeGradient.Rotation = rot
 end)
 
-local PopUpInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-TweenService:Create(MainFrame, PopUpInfo, {Size = UDim2.new(0, 350, 0, 200)}):Play()
+-- Animação de entrada (Pop-up suave)
+local PopInTween = TweenService:Create(UIScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
+PopInTween:Play()
 
-task.wait(0.4)
-
-local function FadeIn(obj)
-    TweenService:Create(obj, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
-end
-
-FadeIn(Title)
-task.wait(0.1)
-FadeIn(Description)
-task.wait(0.1)
-FadeIn(CloseButton)
-
-CloseButton.MouseButton1Click:Connect(function()
-    if connection then connection:Disconnect() end
-    
-    local ClickInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-    TweenService:Create(Title, ClickInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(Description, ClickInfo, {TextTransparency = 1}):Play()
-    TweenService:Create(CloseButton, ClickInfo, {TextTransparency = 1, BackgroundTransparency = 1}):Play()
-    
-    local CloseTween = TweenService:Create(MainFrame, ClickInfo, {Size = UDim2.new(0, 0, 0, 0)})
-    CloseTween:Play()
-    TweenService:Create(UIStroke, ClickInfo, {Transparency = 1}):Play()
-    
-    CloseTween.Completed:Wait()
-    ScreenGui:Destroy()
-end)
-
+-- Efeitos Hover no Botão
 CloseButton.MouseEnter:Connect(function() 
-    TweenService:Create(CloseButton, TweenInfo.new(0.2), {Size = UDim2.new(0.52, 0, 0, 37)}):Play() 
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play() 
 end)
 
 CloseButton.MouseLeave:Connect(function() 
-    TweenService:Create(CloseButton, TweenInfo.new(0.2), {Size = UDim2.new(0.5, 0, 0, 35)}):Play() 
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(240, 240, 240)}):Play() 
+end)
+
+-- Fechar a UI
+CloseButton.MouseButton1Click:Connect(function()
+    if connection then connection:Disconnect() end
+    
+    -- Animação de saída (Encolhe)
+    local CloseTween = TweenService:Create(UIScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Scale = 0})
+    CloseTween:Play()
+    
+    -- Some com o frame junto
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(UIStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+    
+    CloseTween.Completed:Wait()
+    ScreenGui:Destroy()
 end)
