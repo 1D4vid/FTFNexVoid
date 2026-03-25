@@ -7,14 +7,12 @@ return function(Library, Page, UserConfigs)
     local LocalPlayer = Players.LocalPlayer
     local Camera = Workspace.CurrentCamera
 
-    -- Vars de Client Modifications
     local stretchConnection = nil
     local BlackFogLoop = nil
     local OriginalAtmosphereData = nil
     local grayConns = {}
-    local grayCache = {} -- Cache criado para salvar roupas e texturas antigas
+    local grayCache = {} 
 
-    -- Vars de Visual Environment
     local HideLeavesConnection = nil
     local hiddenParts = {} 
     local currentFont = "Default"
@@ -23,12 +21,11 @@ return function(Library, Page, UserConfigs)
     local originalDisplayName = LocalPlayer.DisplayName
     local originalLevel = "1"
     local spoofName = LocalPlayer.Name
-    local spoofLevel = 100
+    local spoofLevel = 67
     local spoofIconId = "rbxassetid://1188562340"
     local spoofVisualsEnabled = false
     local spoofVisualsLoop
 
-    -- Ícones Atualizados
     local meusIcones = {
         VIP = "rbxassetid://1188562340",
         QA = "rbxassetid://105177418407648",
@@ -43,7 +40,6 @@ return function(Library, Page, UserConfigs)
     local originalTexts = setmetatable({}, {__mode = "k"})
     local trackersInitialized = false
 
-    -- Client Modifications no topo de Visual
     Library:CreateSection(Page, "Client Modifications")
     Library:CreateToggle(Page, "FpsBooster", false, function(state) 
         if not getgenv().NexOptimization then
@@ -59,18 +55,15 @@ return function(Library, Page, UserConfigs)
             local function cleanObject(obj, char)
                 if obj:FindFirstAncestorWhichIsA("Tool") then return end
                 
-                -- Ignoramos o CharacterMesh para manter o formato original do corpo e não deixá-lo quadrado
                 if obj:IsA("CharacterMesh") then return end
 
                 if not grayCache[char] then grayCache[char] = { instances = {}, props = {} } end
                 local cache = grayCache[char]
 
-                -- Esconde roupas e rostos temporariamente salvando-os no cache
                 if obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") or obj:IsA("BodyColors") or obj:IsA("Decal") then
                     table.insert(cache.instances, {obj = obj, parent = obj.Parent})
                     obj.Parent = nil
                 elseif obj:IsA("BasePart") then
-                    -- Salva cores e materiais antigos antes de pintar de cinza
                     table.insert(cache.props, {obj = obj, prop = "Color", val = obj.Color})
                     table.insert(cache.props, {obj = obj, prop = "Material", val = obj.Material})
                     obj.Color = GRAY_COLOR
@@ -120,11 +113,9 @@ return function(Library, Page, UserConfigs)
             local c3 = Players.PlayerAdded:Connect(onPlayerAdded)
             table.insert(grayConns, c3)
         else
-            -- Para as atualizações do loop de cinza
             for _, c in ipairs(grayConns) do if c then c:Disconnect() end end
             table.clear(grayConns)
 
-            -- Restaura todas as cores, texturas e roupas de volta aos avatares usando o Cache
             for char, cache in pairs(grayCache) do
                 for _, item in ipairs(cache.instances) do
                     if item.obj then item.obj.Parent = item.parent end
@@ -201,7 +192,6 @@ return function(Library, Page, UserConfigs)
         end 
     end)
 
-    -- Visual Environment
     local function patchElement(e)
         if not e or not e:IsA("GuiObject") then return end
         if not (e:IsA("TextLabel") or e:IsA("TextButton") or e:IsA("TextBox")) then return end
@@ -457,15 +447,7 @@ return function(Library, Page, UserConfigs)
                         fakeIcon.Image = spoofIconId
                         fakeIcon.Visible = true
                         
-                        -- Lista de ícones que precisam de escala (1.35)
-                        local iconesGrandes = {
-                            [meusIcones.QA] = true,
-                            [meusIcones.CON] = true,[meusIcones.Mod] = true,
-                            [meusIcones.Dev] = true,[meusIcones.Manager] = true,
-                            [meusIcones.MrWindy] = true
-                        }
-                        
-                        if iconesGrandes[spoofIconId] then
+                        if spoofIconId == meusIcones.QA or spoofIconId == meusIcones.CON then
                             fakeIcon.Size = UDim2.new(1.35, 0, 1.35, 0) 
                         else
                             fakeIcon.Size = UDim2.new(1.0, 0, 1.0, 0)
@@ -511,7 +493,6 @@ return function(Library, Page, UserConfigs)
     Library:CreateInput(Page, "Fake Name", LocalPlayer.Name, function(val) spoofName = val end)
     Library:CreateInput(Page, "Fake Level", "100", function(val) spoofLevel = tonumber(val) or 100 end)
     
-    -- Opções de Ícones Atualizadas com os novos que você enviou
     local opcoesIcones = {"VIP", "QA", "CON", "Mod", "Dev", "Manager", "MrWindy", "Nenhum"}
     Library:CreateDropdown(Page, "Select Icon", opcoesIcones, "VIP", function(val) 
         spoofIconId = meusIcones[val] or "" 
