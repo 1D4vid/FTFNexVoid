@@ -46,10 +46,23 @@ local Translations = {
         ["Select Icon"] = "Ícone Falso",
         ["Visual Environment"] = "Ambiente Visual",
         ["Hide Leaves (Only Homestead)"] = "Sem Folhas (Mapa Homestead)",
-        ["No fog"] = "Sem Neblina",
-        ["Black Fog"] = "Neblina Escura",
         ["Gray characters"] = "Personagens Cinzas",
         ["Floorbang"] = "Atirar pelo Chão",
+
+        -- Aba: Fog & Calibrator
+        ["Fog Settings"] = "Configurações de Neblina",
+        ["No fog"] = "Sem Neblina",
+        ["Black Fog"] = "Neblina Escura",
+        ["FlashLight"] = "Lanterna",
+        ["Advanced Color Calibrator"] = "Calibrador de Cores Avançado",
+        ["Enable Calibrator"] = "Ativar Calibrador",
+        ["Enable FullBright"] = "Ativar Brilho (FullBright)",
+        ["Contrast"] = "Contraste",
+        ["Brightness"] = "Brilho",
+        ["Saturation"] = "Saturação",
+        ["Hue Filter"] = "Filtro de Matiz (Cor)",
+        ["Filter Opacity"] = "Opacidade do Filtro",
+        ["Reset Configurations"] = "Redefinir Configurações",
 
         -- Aba: Advanced
         ["Survivor"] = "Sobrevivente",
@@ -82,6 +95,23 @@ local Translations = {
         ["Jump Power Val"] = "Ajustar Pulo",
         ["Walkspeed"] = "Velocidade (Walkspeed)",
         ["Speed Value"] = "Ajustar Velocidade",
+
+        -- Menus Extras (Exit, Settings, Player Card)
+        ["SETTINGS"] = "CONFIGURAÇÕES",
+        ["Menu Keybind:"] = "Tecla do Menu:",
+        ["Sets the key to Open and Close this menu."] = "Define a tecla para Abrir e Fechar o menu.",
+        ["Save Configurations"] = "Salvar Configurações",
+        ["Saves ALL your enabled options (Toggles, Sliders, Inputs) and your Keybind so they load automatically on your next execution."] = "Salva TODAS as suas opções ativas e atalhos para carregar na próxima vez.",
+        ["Deletes all saved data and restores the script to its default state."] = "Exclui todos os dados salvos e restaura o script para o padrão.",
+        ["Close"] = "Fechar",
+        ["Exit NexVoidHub"] = "Sair do NexVoidHub",
+        ["Are you absolutely sure you want to close the script? You will need to re-execute to open it again."] = "Tem certeza absoluta que deseja fechar o script? Você precisará reexecutar para abri-lo novamente.",
+        ["Cancel"] = "Cancelar",
+        ["Yes, Exit"] = "Sim, Sair",
+        ["Set Key"] = "Definir Tecla",
+        ["Reset"] = "Resetar",
+        ["Saved Successfully!"] = "Salvo com Sucesso!",
+        ["Reset Successfully!"] = "Redefinido com Sucesso!",
 
         -- Dropdowns
         ["Inferior"] = "Embaixo",
@@ -137,10 +167,23 @@ local Translations = {
         ["Select Icon"] = "Ícono Falso",
         ["Visual Environment"] = "Entorno Visual",
         ["Hide Leaves (Only Homestead)"] = "Sin Hojas (Solo Homestead)",
-        ["No fog"] = "Sin Niebla",
-        ["Black Fog"] = "Niebla Oscura",
         ["Gray characters"] = "Personajes Grises",
         ["Floorbang"] = "Atravesar Suelo",
+
+        -- Aba: Fog & Calibrator
+        ["Fog Settings"] = "Ajustes de Niebla",
+        ["No fog"] = "Sin Niebla",
+        ["Black Fog"] = "Niebla Oscura",
+        ["FlashLight"] = "Linterna",
+        ["Advanced Color Calibrator"] = "Calibrador de Color Avanzado",
+        ["Enable Calibrator"] = "Activar Calibrador",
+        ["Enable FullBright"] = "Activar FullBright",
+        ["Contrast"] = "Contraste",
+        ["Brightness"] = "Brillo",
+        ["Saturation"] = "Saturación",
+        ["Hue Filter"] = "Filtro de Matiz (Color)",
+        ["Filter Opacity"] = "Opacidad del Filtro",
+        ["Reset Configurations"] = "Restablecer Configuraciones",
 
         -- Aba: Advanced
         ["Survivor"] = "Superviviente",
@@ -172,49 +215,86 @@ local Translations = {
         ["Jump Power"] = "Poder de Salto",
         ["Jump Power Val"] = "Valor de Salto",
         ["Walkspeed"] = "Velocidad de Caminata",
-        ["Speed Value"] = "Valor de Velocidad"
+        ["Speed Value"] = "Valor de Velocidad",
+
+        -- Menus Extras (Exit, Settings, Player Card)
+        ["SETTINGS"] = "CONFIGURACIONES",
+        ["Menu Keybind:"] = "Tecla del Menú:",
+        ["Sets the key to Open and Close this menu."] = "Establece la tecla para Abrir y Cerrar este menú.",
+        ["Save Configurations"] = "Guardar Configuraciones",
+        ["Saves ALL your enabled options (Toggles, Sliders, Inputs) and your Keybind so they load automatically on your next execution."] = "Guarda TODAS tus opciones activas y atajos para cargar la próxima vez.",
+        ["Deletes all saved data and restores the script to its default state."] = "Borra todos los datos guardados y restaura el script por defecto.",
+        ["Close"] = "Cerrar",
+        ["Exit NexVoidHub"] = "Salir de NexVoidHub",
+        ["Are you absolutely sure you want to close the script? You will need to re-execute to open it again."] = "¿Estás absolutamente seguro de que quieres cerrar el script? Necesitarás volver a ejecutarlo para abrirlo.",
+        ["Cancel"] = "Cancelar",
+        ["Yes, Exit"] = "Sí, Salir",
+        ["Set Key"] = "Fijar Tecla",
+        ["Reset"] = "Reiniciar",
+        ["Saved Successfully!"] = "¡Guardado con Éxito!",
+        ["Reset Successfully!"] = "¡Restablecido con Éxito!"
     }
 }
 
 local TranslationModule = {}
 
+-- Função auxiliar para procurar reverso do Dropdown caso volte pro Inglês (EN)
+local function GetEnglishKey(value)
+    for key, translatedVal in pairs(Translations["PT"]) do
+        if value == translatedVal then return key end
+    end
+    for key, translatedVal in pairs(Translations["ES"]) do
+        if value == translatedVal then return key end
+    end
+    return value
+end
+
 function TranslationModule.Translate(gui, lang)
     if not gui then return end
 
-    if lang == "EN" then
-        for _, element in pairs(gui:GetDescendants()) do
-            if element:IsA("TextLabel") or element:IsA("TextButton") then
-                local original = element:GetAttribute("OriginalText")
-                if original then
-                    local currentText = element.Text
-                    if string.find(currentText, ": ") then
-                        local parts = string.split(currentText, ": ")
-                        element.Text = original .. ": " .. parts[2]
-                    else
-                        element.Text = original
-                    end
-                end
-            end
-        end
-        return
-    end
-
+    -- Carrega o Dicionário selecionado (PT, ES ou nulo se for EN)
     local dict = Translations[lang]
-    if not dict then return end
 
     for _, element in pairs(gui:GetDescendants()) do
         if element:IsA("TextLabel") or element:IsA("TextButton") then
+            local currentText = element.Text
+            
+            -- Puxa o Texto Original (Inglês) salvo no Atributo
             local original = element:GetAttribute("OriginalText")
+            
+            -- Detecção Inteligente: Se o OriginalText não existe (Ex: Textos fixos e do Calibrador) 
+            -- Mas está na tabela de traduções como chave (Inglês), salva como OriginalText pra não quebrar.
+            if not original and Translations["PT"][currentText] then
+                original = currentText
+                element:SetAttribute("OriginalText", original)
+            end
+
             if original then
-                local translatedText = dict[original]
-                if translatedText then
-                    local currentText = element.Text
-                    if string.find(currentText, ": ") then
-                        local parts = string.split(currentText, ": ")
-                        local valTranslated = dict[parts[2]] or parts[2]
-                        element.Text = translatedText .. ": " .. valTranslated
+                if lang == "EN" then
+                    -- VOLTANDO PARA O INGLÊS
+                    local splitPos = string.find(currentText, ": ")
+                    if splitPos then
+                        -- Lógica correta para Dropdown (Recupera o valor após o ": ")
+                        local val = string.sub(currentText, splitPos + 2)
+                        local enVal = GetEnglishKey(val)
+                        element.Text = original .. ": " .. enVal
                     else
-                        element.Text = translatedText
+                        element.Text = original
+                    end
+                elseif dict then
+                    -- TRADUZINDO PARA PT OU ES
+                    local translatedText = dict[original]
+                    if translatedText then
+                        local splitPos = string.find(currentText, ": ")
+                        if splitPos then
+                            -- É um Dropdown ou Input de Texto Variável (Traduz a Base e o Valor)
+                            local val = string.sub(currentText, splitPos + 2)
+                            local valTranslated = dict[val] or val
+                            element.Text = translatedText .. ": " .. valTranslated
+                        else
+                            -- Texto Simples
+                            element.Text = translatedText
+                        end
                     end
                 end
             end
