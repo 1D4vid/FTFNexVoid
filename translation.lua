@@ -51,7 +51,7 @@ local Translations = {
         ["Gray characters"] = "Personagens Cinzas",
         ["Floorbang"] = "Atirar pelo Chão",
 
-        -- Aba: Advanced (A MAIS IMPORTANTE)
+        -- Aba: Advanced
         ["Survivor"] = "Sobrevivente",
         ["No hack fail"] = "Nunca Errar o PC",
         ["Fling"] = "Girar (Fling / Derrubar)",
@@ -64,6 +64,7 @@ local Translations = {
         ["Beast"] = "Fera (Beast)",
         ["No Jump Delay"] = "Sem Atraso no Pulo",
         ["Hitbox extender"] = "Aumentar Hitbox (Caixa de Dano)",
+        ["Show Hitbox"] = "Mostrar Hitbox",
         ["Hitbox Size"] = "Tamanho da Hitbox",
         ["Anti Fling"] = "Anti-Fling (Sem Colisão)",
         ["Auto Tie"] = "Amarrar Automático",
@@ -154,6 +155,7 @@ local Translations = {
         ["Beast"] = "Bestia",
         ["No Jump Delay"] = "Sin Retraso de Salto",
         ["Hitbox extender"] = "Extender Hitbox",
+        ["Show Hitbox"] = "Mostrar Hitbox",
         ["Hitbox Size"] = "Tamaño de Hitbox",
         ["Anti Fling"] = "Anti Fling",
         ["Auto Tie"] = "Atar Automático",
@@ -180,12 +182,10 @@ function TranslationModule.Translate(gui, lang)
     if not gui then return end
 
     if lang == "EN" then
-        -- Volta para o Inglês Original
         for _, element in pairs(gui:GetDescendants()) do
             if element:IsA("TextLabel") or element:IsA("TextButton") then
                 local original = element:GetAttribute("OriginalText")
                 if original then
-                    -- Caso o elemento tenha um valor embutido, por exemplo os Dropdowns "Tracer Origin: Topo"
                     local currentText = element.Text
                     if string.find(currentText, ": ") then
                         local parts = string.split(currentText, ": ")
@@ -208,11 +208,9 @@ function TranslationModule.Translate(gui, lang)
             if original then
                 local translatedText = dict[original]
                 if translatedText then
-                    -- Lógica para manter os valores nos Dropdowns ou Labels dinâmicos (Ex: "Velocidade: 100")
                     local currentText = element.Text
                     if string.find(currentText, ": ") then
                         local parts = string.split(currentText, ": ")
-                        -- Verifica se o valor (parts[2]) também precisa ser traduzido (Ex: "Default" para "Padrão")
                         local valTranslated = dict[parts[2]] or parts[2]
                         element.Text = translatedText .. ": " .. valTranslated
                     else
