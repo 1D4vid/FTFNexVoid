@@ -1,106 +1,224 @@
-local TranslationModule = {}
+local Translations = {
+    ["PT"] = {
+        -- Menu Lateral (Sidebar)
+        ["Highlight"] = "Destaques (ESP)",
+        ["Visual"] = "Visuais",
+        ["Progress"] = "Progresso",
+        ["Textures"] = "Texturas",
+        ["Fog"] = "Neblina",
+        ["Sound"] = "Sons",
+        ["Advanced"] = "Avançado",
+        ["Visual Skins"] = "Skins Visuais",
+        ["Teleport"] = "Teleporte",
+        ["Highlight Config"] = "Config de ESP",
+        ["Info"] = "Informações",
 
-local Dictionary = {
-    ["Highlight"] = { PT = "Realce", ES = "Resaltar" },
-    ["Highlight Config"] = { PT = "Config Realce", ES = "Config Resaltar" },
-    ["Visual"] = { PT = "Visual", ES = "Visual" },
-    ["Progress"] = { PT = "Progresso", ES = "Progreso" },
-    ["Advanced"] = { PT = "Avançado", ES = "Avanzado" },
-    ["Textures"] = { PT = "Texturas", ES = "Texturas" },
-    ["Sound"] = { PT = "Som", ES = "Sonido" },
-    ["Visual Skins"] = { PT = "Skins Visuais", ES = "Skins Visuales" },["CrossHair"] = { PT = "Mira", ES = "Mira" },
-    ["Teleport"] = { PT = "Teleporte", ES = "Teletransporte" },
-    ["Info"] = { PT = "Informação", ES = "Información" },
-    
-    ["ESP Features"] = { PT = "Funções ESP", ES = "Funciones ESP" },
-    ["Esp Players"] = { PT = "Esp Jogadores", ES = "Esp Jugadores" },
-    ["Esp outline"] = { PT = "Esp Contorno", ES = "Esp Contorno" },
-    ["Esp Tracer Line"] = { PT = "Esp Linha Guia", ES = "Esp Línea Guía" },
-    ["Tracer Origin"] = { PT = "Origem da Linha", ES = "Origen de Línea" },
-    ["Esp Computers"] = { PT = "Esp Computadores", ES = "Esp Computadoras" },
-    ["Esp Doors"] = { PT = "Esp Portas", ES = "Esp Puertas" },
-    ["Esp Freezepods"] = { PT = "Esp Cápsulas", ES = "Esp Cápsulas" },
-    ["Beast Highlight"] = { PT = "Realce da Fera", ES = "Resaltar Bestia" },
-    
-    ["Global Settings"] = { PT = "Configurações Globais", ES = "Ajustes Globales" },
-    ["Only Esp Beast"] = { PT = "Apenas Esp Fera", ES = "Solo Esp Bestia" },
-    ["Hide Name Esp Player"] = { PT = "Ocultar Nome Jogador", ES = "Ocultar Nombre Jugador" },
-    ["Color Customization"] = { PT = "Personalização de Cor", ES = "Personalización de Color" },
-    ["Beast highlight Color"] = { PT = "Cor Realce Fera", ES = "Color Resalte Bestia" },
-    ["Survivor ESP Color"] = { PT = "Cor ESP Sobrevivente", ES = "Color ESP Superviviente" },["Beast ESP Color"] = { PT = "Cor ESP Fera", ES = "Color ESP Bestia" },["Freezepod ESP Color"] = { PT = "Cor ESP Cápsula", ES = "Color ESP Cápsula" },
-    
-    ["Camera & UI"] = { PT = "Câmera e Interface", ES = "Cámara y UI" },
-    ["Fov Changer"] = { PT = "Mudar Campo de Visão", ES = "Cambiar Campo de Visión" },
-    ["Font Changer"] = { PT = "Mudar Fonte", ES = "Cambiar Fuente" },
-    ["stretch screen"] = { PT = "Esticar Tela", ES = "Estirar Pantalla" },
-    
-    ["Visual Name/Level"] = { PT = "Nome/Nível Visual", ES = "Nombre/Nivel Visual" },["Enable Visuals"] = { PT = "Ativar Visuais", ES = "Activar Visuales" },["Fake Name"] = { PT = "Nome Falso", ES = "Nombre Falso" },["Fake Level"] = { PT = "Nível Falso", ES = "Nivel Falso" },["Select Icon"] = { PT = "Selecionar Ícone", ES = "Seleccionar Icono" },
-    
-    ["Visual Environment"] = { PT = "Ambiente Visual", ES = "Entorno Visual" },
-    ["Hide Leaves (Only Homestead)"] = { PT = "Ocultar Folhas (Homestead)", ES = "Ocultar Hojas (Homestead)" },
-    ["No fog"] = { PT = "Sem Neblina", ES = "Sin Niebla" },
-    ["Black Fog"] = { PT = "Neblina Escura", ES = "Niebla Oscura" },
-    ["Gray characters"] = { PT = "Personagens Cinzas", ES = "Personajes Grises" },
-    ["Floorbang"] = { PT = "Floorbang (Atravessar Chão)", ES = "Floorbang (Atravesar Suelo)" },["Textures Settings"] = { PT = "Configurações de Textura", ES = "Ajustes de Texturas" },
-    ["Remove Textures"] = { PT = "Remover Texturas", ES = "Quitar Texturas" },["FpsBooster"] = { PT = "Otimizador de FPS", ES = "Aumentar FPS" },["Ultra HD Graphics"] = { PT = "Gráficos Ultra HD", ES = "Gráficos Ultra HD" },
-    
-    ["Double Jump Effects"] = { PT = "Efeitos de Pulo Duplo", ES = "Efectos de Doble Salto" },
-    ["Insert Texture ID"] = { PT = "Inserir ID de Textura", ES = "Insertar ID de Textura" },
-    ["Default"] = { PT = "Padrão", ES = "Por defecto" },
-    
-    ["Mobile Button Jump"] = { PT = "Botão de Pulo Mobile", ES = "Botón de Salto Móvil" },["Enter Texture ID..."] = { PT = "Insira o ID da Textura...", ES = "Ingrese ID de Textura..." },
-    
-    ["SKIN CHANGER"] = { PT = "MODIFICADOR DE SKIN", ES = "CAMBIADOR DE SKIN" },
-    ["QUICK SELECT"] = { PT = "SELEÇÃO RÁPIDA", ES = "SELECCIÓN RÁPIDA" },
-    ["Skin Found!"] = { PT = "Skin Encontrada!", ES = "Skin Encontrada!" },
-    ["APPLY"] = { PT = "APLICAR", ES = "APLICAR" },
-    ["Apply"] = { PT = "Aplicar", ES = "Aplicar" },["PLAYER INFO"] = { PT = "INFO DO JOGADOR", ES = "INFO DEL JUGADOR" },
-    ["SERVER INFO"] = { PT = "INFO DO SERVIDOR", ES = "INFO DEL SERVIDOR" },
-    ["Server Rejoin"] = { PT = "Reentrar no Servidor", ES = "Reconectar al Servidor" },
-    ["Join Random Server"] = { PT = "Entrar em Servidor Aleatório", ES = "Entrar en Servidor Aleatorio" },
-    
-    ["SETTINGS"] = { PT = "CONFIGURAÇÕES", ES = "AJUSTES" },
-    ["Menu Keybind:"] = { PT = "Tecla do Menu:", ES = "Tecla del Menú:" },
-    ["Sets the key to Open and Close this menu."] = { PT = "Define a tecla para Abrir e Fechar este menu.", ES = "Establece la tecla para Abrir y Cerrar este menú." },["Save Configurations"] = { PT = "Salvar Configurações", ES = "Guardar Configuraciones" },["Saves ALL your enabled options (Toggles, Sliders, Inputs) and your Keybind so they load automatically on your next execution."] = { PT = "Salva TODAS as suas opções ativas e atalhos para carregarem automaticamente.", ES = "Guarda TODAS las opciones activas y teclas para que carguen automáticamente." },
-    ["Reset Configurations"] = { PT = "Redefinir Configurações", ES = "Restablecer Configuraciones" },["Deletes all saved data and restores the script to its default state."] = { PT = "Apaga os dados salvos e restaura o script ao estado padrão.", ES = "Borra los datos guardados y restaura el script al estado predeterminado." },
-    ["Close"] = { PT = "Fechar", ES = "Cerrar" },
-    ["Cancel"] = { PT = "Cancelar", ES = "Cancelar" },
-    ["Exit"] = { PT = "Sair", ES = "Salir" },
-    ["CONFIRMATION"] = { PT = "CONFIRMAÇÃO", ES = "CONFIRMACIÓN" },
-    ["Exit the Script?"] = { PT = "Sair do Script?", ES = "¿Salir del Script?" },
-    
-    ["Search..."] = { PT = "Pesquisar...", ES = "Buscar..." }
+        -- Aba: Highlight
+        ["ESP Features"] = "Funções de Visão (ESP)",
+        ["Esp Players"] = "ESP Jogadores",
+        ["Esp outline"] = "Contorno Jogadores",
+        ["Esp Tracer Line"] = "Linha (Tracer)",
+        ["Tracer Origin"] = "Origem da Linha",
+        ["Esp Computers"] = "ESP Computadores",
+        ["Esp Doors"] = "ESP Portas",
+        ["Esp Freezepods"] = "ESP Cápsulas",
+        ["Beast Highlight"] = "Brilho na Fera",
+
+        -- Aba: Highlight Config
+        ["Global Settings"] = "Configurações Globais",
+        ["Only Esp Beast"] = "Apenas ESP na Fera",
+        ["Hide Name Esp Player"] = "Ocultar Nomes no ESP",
+        ["Color Customization"] = "Cores Personalizadas",
+        ["Beast highlight Color"] = "Cor do Brilho da Fera",
+        ["Survivor ESP Color"] = "Cor ESP: Sobrevivente",
+        ["Beast ESP Color"] = "Cor ESP: Fera",
+        ["Freezepod ESP Color"] = "Cor ESP: Cápsula",
+
+        -- Aba: Visual
+        ["Camera & UI"] = "Câmera e Interface",
+        ["Fov Changer"] = "Alterar Campo de Visão",
+        ["Font Changer"] = "Alterar Fonte da Tela",
+        ["stretch screen"] = "Tela Esticada",
+        ["Visual Name/Level"] = "Nome/Nível Falso",
+        ["Enable Visuals"] = "Ativar Falsificação",
+        ["Fake Name"] = "Nome Falso",
+        ["Fake Level"] = "Nível Falso",
+        ["Select Icon"] = "Ícone Falso",
+        ["Visual Environment"] = "Ambiente Visual",
+        ["Hide Leaves (Only Homestead)"] = "Sem Folhas (Mapa Homestead)",
+        ["No fog"] = "Sem Neblina",
+        ["Black Fog"] = "Neblina Escura",
+        ["Gray characters"] = "Personagens Cinzas",
+        ["Floorbang"] = "Atirar pelo Chão",
+
+        -- Aba: Advanced (A MAIS IMPORTANTE)
+        ["Survivor"] = "Sobrevivente",
+        ["No hack fail"] = "Nunca Errar o PC",
+        ["Fling"] = "Girar (Fling / Derrubar)",
+        ["Anti Ragdoll"] = "Anti-Desmaio/Queda",
+        ["Slow Beast"] = "Fera Lenta (Bug)",
+        ["Beast Untie Player"] = "Fera Solta Jogadores",
+        ["Auto Save (Teleport)"] = "Salvar Amigos (Teleporte)",
+        ["Auto Save (Silent)"] = "Salvar Amigos (Invisível)",
+
+        ["Beast"] = "Fera (Beast)",
+        ["No Jump Delay"] = "Sem Atraso no Pulo",
+        ["Hitbox extender"] = "Aumentar Hitbox (Caixa de Dano)",
+        ["Hitbox Size"] = "Tamanho da Hitbox",
+        ["Anti Fling"] = "Anti-Fling (Sem Colisão)",
+        ["Auto Tie"] = "Amarrar Automático",
+        ["Hit Aura"] = "Aura de Dano",
+        ["Hit Aura Range"] = "Alcance da Aura de Dano",
+
+        ["Players"] = "Movimentação do Jogador",
+        ["Fast Double Jump"] = "Pulo Duplo Rápido",
+        ["Inf Jump"] = "Pulo Infinito",
+        ["Shiftlock"] = "Travar Câmera (Shiftlock)",
+        ["Fly"] = "Voar (Fly)",
+        ["Fly Speed"] = "Velocidade de Voo",
+        ["No clip"] = "Atravessar Paredes (Noclip)",
+        ["Jump Power"] = "Força do Pulo",
+        ["Jump Power Val"] = "Ajustar Pulo",
+        ["Walkspeed"] = "Velocidade (Walkspeed)",
+        ["Speed Value"] = "Ajustar Velocidade",
+
+        -- Dropdowns
+        ["Inferior"] = "Embaixo",
+        ["Topo"] = "Cima",
+        ["Torso"] = "Peito",
+        ["Default"] = "Padrão",
+        ["Nenhum"] = "Nenhum"
+    },
+    ["ES"] = {
+        -- Menu Lateral
+        ["Highlight"] = "Destaques (ESP)",
+        ["Visual"] = "Visuales",
+        ["Progress"] = "Progreso",
+        ["Textures"] = "Texturas",
+        ["Fog"] = "Niebla",
+        ["Sound"] = "Sonido",
+        ["Advanced"] = "Avanzado",
+        ["Visual Skins"] = "Skins Visuales",
+        ["Teleport"] = "Teletransporte",
+        ["Highlight Config"] = "Config. de ESP",
+        ["Info"] = "Información",
+
+        -- Aba: Highlight
+        ["ESP Features"] = "Opciones de ESP",
+        ["Esp Players"] = "ESP Jugadores",
+        ["Esp outline"] = "Contorno Jugadores",
+        ["Esp Tracer Line"] = "Línea Trazadora",
+        ["Tracer Origin"] = "Origen de la Línea",
+        ["Esp Computers"] = "ESP Computadoras",
+        ["Esp Doors"] = "ESP Puertas",
+        ["Esp Freezepods"] = "ESP Cápsulas",
+        ["Beast Highlight"] = "Brillo de Bestia",
+
+        -- Aba: Highlight Config
+        ["Global Settings"] = "Ajustes Globales",
+        ["Only Esp Beast"] = "Solo ESP Bestia",
+        ["Hide Name Esp Player"] = "Ocultar Nombres ESP",
+        ["Color Customization"] = "Personalización de Color",
+        ["Beast highlight Color"] = "Color Brillo Bestia",
+        ["Survivor ESP Color"] = "Color Superviviente",
+        ["Beast ESP Color"] = "Color Bestia",
+        ["Freezepod ESP Color"] = "Color Cápsula",
+
+        -- Aba: Visual
+        ["Camera & UI"] = "Cámara e Interfaz",
+        ["Fov Changer"] = "Cambiar FOV",
+        ["Font Changer"] = "Cambiar Fuente",
+        ["stretch screen"] = "Pantalla Estirada",
+        ["Visual Name/Level"] = "Nombre/Nivel Falso",
+        ["Enable Visuals"] = "Activar Falso",
+        ["Fake Name"] = "Nombre Falso",
+        ["Fake Level"] = "Nivel Falso",
+        ["Select Icon"] = "Ícono Falso",
+        ["Visual Environment"] = "Entorno Visual",
+        ["Hide Leaves (Only Homestead)"] = "Sin Hojas (Solo Homestead)",
+        ["No fog"] = "Sin Niebla",
+        ["Black Fog"] = "Niebla Oscura",
+        ["Gray characters"] = "Personajes Grises",
+        ["Floorbang"] = "Atravesar Suelo",
+
+        -- Aba: Advanced
+        ["Survivor"] = "Superviviente",
+        ["No hack fail"] = "Nunca fallar PC",
+        ["Fling"] = "Volar Jugadores (Fling)",
+        ["Anti Ragdoll"] = "Anti-Desmayo",
+        ["Slow Beast"] = "Bestia Lenta",
+        ["Beast Untie Player"] = "Bestia Suelta Jugador",
+        ["Auto Save (Teleport)"] = "Auto Salvar (Teletransporte)",
+        ["Auto Save (Silent)"] = "Auto Salvar (Invisible)",
+
+        ["Beast"] = "Bestia",
+        ["No Jump Delay"] = "Sin Retraso de Salto",
+        ["Hitbox extender"] = "Extender Hitbox",
+        ["Hitbox Size"] = "Tamaño de Hitbox",
+        ["Anti Fling"] = "Anti Fling",
+        ["Auto Tie"] = "Atar Automático",
+        ["Hit Aura"] = "Aura de Golpe",
+        ["Hit Aura Range"] = "Rango de Aura",
+
+        ["Players"] = "Jugadores",
+        ["Fast Double Jump"] = "Doble Salto Rápido",
+        ["Inf Jump"] = "Salto Infinito",
+        ["Shiftlock"] = "Bloqueo de Cámara",
+        ["Fly"] = "Volar",
+        ["Fly Speed"] = "Velocidad de Vuelo",
+        ["No clip"] = "Atravesar Paredes",
+        ["Jump Power"] = "Poder de Salto",
+        ["Jump Power Val"] = "Valor de Salto",
+        ["Walkspeed"] = "Velocidad de Caminata",
+        ["Speed Value"] = "Valor de Velocidad"
+    }
 }
 
-function TranslationModule.Translate(ScreenGui, Lang)
-    for _, obj in pairs(ScreenGui:GetDescendants()) do
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-            -- Set Cache
-            if obj.Text and obj.Text ~= "" and not obj:GetAttribute("OrigText") then
-                obj:SetAttribute("OrigText", obj.Text)
-            end
-            if obj.PlaceholderText and obj.PlaceholderText ~= "" and not obj:GetAttribute("OrigPlaceholder") then
-                obj:SetAttribute("OrigPlaceholder", obj.PlaceholderText)
-            end
-            
-            local orig = obj:GetAttribute("OrigText")
-            if orig then
-                -- Check for normal translation
-                if Dictionary[orig] then
-                    obj.Text = Lang == "EN" and orig or Dictionary[orig][Lang]
-                else
-                    -- Check for Dropdown format "Text: Value"
-                    local parts = string.split(orig, ": ")
-                    if #parts == 2 and Dictionary[parts[1]] then
-                        local translatedPrefix = Lang == "EN" and parts[1] or Dictionary[parts[1]][Lang]
-                        obj.Text = translatedPrefix .. ": " .. parts[2]
+local TranslationModule = {}
+
+function TranslationModule.Translate(gui, lang)
+    if not gui then return end
+
+    if lang == "EN" then
+        -- Volta para o Inglês Original
+        for _, element in pairs(gui:GetDescendants()) do
+            if element:IsA("TextLabel") or element:IsA("TextButton") then
+                local original = element:GetAttribute("OriginalText")
+                if original then
+                    -- Caso o elemento tenha um valor embutido, por exemplo os Dropdowns "Tracer Origin: Topo"
+                    local currentText = element.Text
+                    if string.find(currentText, ": ") then
+                        local parts = string.split(currentText, ": ")
+                        element.Text = original .. ": " .. parts[2]
+                    else
+                        element.Text = original
                     end
                 end
             end
+        end
+        return
+    end
 
-            local placeholder = obj:GetAttribute("OrigPlaceholder")
-            if placeholder and Dictionary[placeholder] then
-                obj.PlaceholderText = Lang == "EN" and placeholder or Dictionary[placeholder][Lang]
+    local dict = Translations[lang]
+    if not dict then return end
+
+    for _, element in pairs(gui:GetDescendants()) do
+        if element:IsA("TextLabel") or element:IsA("TextButton") then
+            local original = element:GetAttribute("OriginalText")
+            if original then
+                local translatedText = dict[original]
+                if translatedText then
+                    -- Lógica para manter os valores nos Dropdowns ou Labels dinâmicos (Ex: "Velocidade: 100")
+                    local currentText = element.Text
+                    if string.find(currentText, ": ") then
+                        local parts = string.split(currentText, ": ")
+                        -- Verifica se o valor (parts[2]) também precisa ser traduzido (Ex: "Default" para "Padrão")
+                        local valTranslated = dict[parts[2]] or parts[2]
+                        element.Text = translatedText .. ": " .. valTranslated
+                    else
+                        element.Text = translatedText
+                    end
+                end
             end
         end
     end
