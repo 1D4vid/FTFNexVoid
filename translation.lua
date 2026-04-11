@@ -1,7 +1,7 @@
-
 local TranslationModule = {}
 
 local Dictionary = {
+    -- [[ CATEGORIAS LATERAIS ]] --
     ["Highlight"] = { PT = "Realce", ES = "Resaltar" },
     ["Highlight Config"] = { PT = "Config Realce", ES = "Config Resaltar" },
     ["Visual"] = { PT = "Visual", ES = "Visual" },
@@ -14,6 +14,7 @@ local Dictionary = {
     ["Teleport"] = { PT = "Teleporte", ES = "Teletransporte" },
     ["Info"] = { PT = "Informação", ES = "Información" },
     
+    -- [[ DESTAQUES (HIGHLIGHT) ]] --
     ["ESP Features"] = { PT = "Funções ESP", ES = "Funciones ESP" },
     ["Esp Players"] = { PT = "Esp Jogadores", ES = "Esp Jugadores" },
     ["Esp outline"] = { PT = "Esp Contorno", ES = "Esp Contorno" },
@@ -33,6 +34,7 @@ local Dictionary = {
     ["Beast ESP Color"] = { PT = "Cor ESP Fera", ES = "Color ESP Bestia" },
     ["Freezepod ESP Color"] = { PT = "Cor ESP Cápsula", ES = "Color ESP Cápsula" },
     
+    -- [[ CÂMERA E VISUAL ]] --
     ["Camera & UI"] = { PT = "Câmera e Interface", ES = "Cámara y UI" },
     ["Fov Changer"] = { PT = "Mudar Campo de Visão", ES = "Cambiar Campo de Visión" },
     ["Font Changer"] = { PT = "Mudar Fonte", ES = "Cambiar Fuente" },
@@ -50,23 +52,26 @@ local Dictionary = {
     ["Black Fog"] = { PT = "Neblina Escura", ES = "Niebla Oscura" },
     ["Gray characters"] = { PT = "Personagens Cinzas", ES = "Personajes Grises" },
     ["Floorbang"] = { PT = "Floorbang (Atravessar Chão)", ES = "Floorbang (Atravesar Suelo)" },
+    
+    -- [[ TEXTURAS E OTIMIZAÇÃO ]] --
     ["Textures Settings"] = { PT = "Configurações de Textura", ES = "Ajustes de Texturas" },
     ["Remove Textures"] = { PT = "Remover Texturas", ES = "Quitar Texturas" },
     ["FpsBooster"] = { PT = "Otimizador de FPS", ES = "Aumentar FPS" },
     ["Ultra HD Graphics"] = { PT = "Gráficos Ultra HD", ES = "Gráficos Ultra HD" },
-    
     ["Double Jump Effects"] = { PT = "Efeitos de Pulo Duplo", ES = "Efectos de Doble Salto" },
     ["Insert Texture ID"] = { PT = "Inserir ID de Textura", ES = "Insertar ID de Textura" },
     ["Default"] = { PT = "Padrão", ES = "Por defecto" },
-    
     ["Mobile Button Jump"] = { PT = "Botão de Pulo Mobile", ES = "Botón de Salto Móvil" },
     ["Enter Texture ID..."] = { PT = "Insira o ID da Textura...", ES = "Ingrese ID de Textura..." },
     
+    -- [[ SKINS ]] --
     ["SKIN CHANGER"] = { PT = "MODIFICADOR DE SKIN", ES = "CAMBIADOR DE SKIN" },
     ["QUICK SELECT"] = { PT = "SELEÇÃO RÁPIDA", ES = "SELECCIÓN RÁPIDA" },
     ["Skin Found!"] = { PT = "Skin Encontrada!", ES = "Skin Encontrada!" },
     ["APPLY"] = { PT = "APLICAR", ES = "APLICAR" },
     ["Apply"] = { PT = "Aplicar", ES = "Aplicar" },
+    
+    -- [[ INFORMAÇÕES E OPÇÕES DO SISTEMA ]] --
     ["PLAYER INFO"] = { PT = "INFO DO JOGADOR", ES = "INFO DEL JUGADOR" },
     ["SERVER INFO"] = { PT = "INFO DO SERVIDOR", ES = "INFO DEL SERVIDOR" },
     ["Server Rejoin"] = { PT = "Reentrar no Servidor", ES = "Reconectar al Servidor" },
@@ -84,13 +89,13 @@ local Dictionary = {
     ["Exit"] = { PT = "Sair", ES = "Salir" },
     ["CONFIRMATION"] = { PT = "CONFIRMAÇÃO", ES = "CONFIRMACIÓN" },
     ["Exit the Script?"] = { PT = "Sair do Script?", ES = "¿Salir del Script?" },
-    
     ["Search..."] = { PT = "Pesquisar...", ES = "Buscar..." },
-
-    -- [[ NOVA CATEGORIA ADVANCED ]] --
+    
+    -- [[ CATEGORIA ADVANCED ]] --
     ["Survivor"] = { PT = "Sobrevivente", ES = "Superviviente" },
     ["Beast"] = { PT = "Fera", ES = "Bestia" },
     ["Players"] = { PT = "Jogadores", ES = "Jugadores" },
+    
     ["No hack fail"] = { PT = "Sem Falha no Hack", ES = "Sin Fallo de Hack" },
     ["Fling"] = { PT = "Fling (Arremessar)", ES = "Fling (Arrojar)" },
     ["Anti Ragdoll"] = { PT = "Anti Ragdoll", ES = "Anti Ragdoll" },
@@ -98,6 +103,7 @@ local Dictionary = {
     ["Beast Untie Player"] = { PT = "Fera Soltar Jogador", ES = "Bestia Desatar Jugador" },
     ["Auto Save (Teleport)"] = { PT = "Salvar Auto (Teleporte)", ES = "Auto Salvar (Teletransporte)" },
     ["Auto Save (Silent)"] = { PT = "Salvar Auto (Silencioso)", ES = "Auto Salvar (Silencioso)" },
+    
     ["No Jump Delay"] = { PT = "Sem Atraso de Pulo", ES = "Sin Retraso de Salto" },
     ["Hitbox extender"] = { PT = "Extensor de Hitbox", ES = "Extensor de Hitbox" },
     ["Hitbox Size"] = { PT = "Tamanho da Hitbox", ES = "Tamaño de Hitbox" },
@@ -105,6 +111,7 @@ local Dictionary = {
     ["Auto Tie"] = { PT = "Amarrar Automático", ES = "Auto Atar" },
     ["Hit Aura"] = { PT = "Aura de Dano", ES = "Aura de Golpe" },
     ["Hit Aura Range"] = { PT = "Alcance da Aura", ES = "Rango de Aura" },
+    
     ["Fast Double Jump"] = { PT = "Pulo Duplo Rápido", ES = "Doble Salto Rápido" },
     ["Inf Jump"] = { PT = "Pulo Infinito", ES = "Salto Infinito" },
     ["Shiftlock"] = { PT = "Shiftlock", ES = "Shiftlock" },
@@ -115,6 +122,7 @@ local Dictionary = {
     ["Jump Power Val"] = { PT = "Valor Força do Pulo", ES = "Valor Fuerza de Salto" },
     ["Walkspeed"] = { PT = "Velocidade", ES = "Velocidad" },
     ["Speed Value"] = { PT = "Valor Velocidade", ES = "Valor Velocidad" },
+    
     ["Set Key"] = { PT = "Definir", ES = "Fijar" },
     ["Reset"] = { PT = "Resetar", ES = "Reiniciar" }
 }
@@ -122,7 +130,7 @@ local Dictionary = {
 function TranslationModule.Translate(ScreenGui, Lang)
     for _, obj in pairs(ScreenGui:GetDescendants()) do
         if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-            -- Set Cache
+            -- Define o texto original como um cache
             if obj.Text and obj.Text ~= "" and not obj:GetAttribute("OrigText") then
                 obj:SetAttribute("OrigText", obj.Text)
             end
@@ -132,11 +140,11 @@ function TranslationModule.Translate(ScreenGui, Lang)
             
             local orig = obj:GetAttribute("OrigText")
             if orig then
-                -- Check for normal translation
+                -- Checa a tradução normal
                 if Dictionary[orig] then
                     obj.Text = Lang == "EN" and orig or Dictionary[orig][Lang]
                 else
-                    -- Check for Dropdown format "Text: Value"
+                    -- Checa pro formato Dropdown "Texto: Valor"
                     local parts = string.split(orig, ": ")
                     if #parts == 2 and Dictionary[parts[1]] then
                         local translatedPrefix = Lang == "EN" and parts[1] or Dictionary[parts[1]][Lang]
