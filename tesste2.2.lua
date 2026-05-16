@@ -1087,12 +1087,13 @@ function Library:CreateToggle(Page, Text, Default, Callback)
     Tgl.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -35, 1, 0)
+    Label.Size = UDim2.new(1, -45, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd
     Label.Parent = Tgl
     
     local str
@@ -1196,6 +1197,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd
     Label.Parent = Tgl
     
     local str
@@ -1354,6 +1356,7 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
     Label.Font = Theme.Font
     Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = Frame
     
 	local ValueLabel = Instance.new("TextLabel")
@@ -1452,6 +1455,7 @@ function Library:CreateInput(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = Container
 
 	local Box = Instance.new("TextBox")
@@ -1527,14 +1531,14 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
-    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        str = Instance.new("UIStroke", Container)
+        local str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -1705,14 +1709,14 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
-    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        str = Instance.new("UIStroke", Container)
+        local str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -1722,7 +1726,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -25, 1, 0)
+        Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
         Label.TextSize = 11
         Label.TextColor3 = Theme.TextDark
@@ -1735,7 +1739,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
 
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -20, 0.5, -10)
+    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -25, 0.5, -10)
     Icon.BackgroundTransparency = 1
     Icon.Text = "▼"
     Icon.TextColor3 = Theme.TextDark
@@ -1896,14 +1900,14 @@ function Library:CreateColorPicker(Page, Text, DefaultColor, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
-    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        str = Instance.new("UIStroke", Container)
+        local str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -2079,8 +2083,8 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     end
     
 	local Avatar = Instance.new("ImageLabel")
-    Avatar.Size = UDim2.new(0, 36, 0, 36)
-    Avatar.Position = UDim2.new(0, 8, 0.5, -18)
+    Avatar.Size = UDim2.new(0, 30, 0, 30)
+    Avatar.Position = UDim2.new(0, 5, 0.5, -15)
     Avatar.BackgroundColor3 = Color3.new(0, 0, 0)
     Avatar.BackgroundTransparency = 0.45
     Avatar.Parent = Card
@@ -2092,33 +2096,35 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     
 	local Display = Instance.new("TextLabel")
     Display.Text = Player.DisplayName
-    Display.Size = UDim2.new(1, isOld and -130 or -120, 0, 18)
-    Display.Position = UDim2.new(0, isOld and 54 or 50, 0, 8)
+    Display.Size = UDim2.new(1, -85, 0, 16)
+    Display.Position = UDim2.new(0, 40, 0, 5)
     Display.BackgroundTransparency = 1
     Display.Font = Theme.Font
-    Display.TextSize = isOld and 13 or 12
+    Display.TextSize = 11
     Display.TextColor3 = Theme.Text
     Display.TextXAlignment = Enum.TextXAlignment.Left
+    Display.TextTruncate = Enum.TextTruncate.AtEnd 
     Display.Parent = Card
     
 	local User = Instance.new("TextLabel")
     User.Text = "@" .. Player.Name
-    User.Size = UDim2.new(1, isOld and -130 or -120, 0, 14)
-    User.Position = UDim2.new(0, isOld and 54 or 50, 0, isOld and 26 or 24)
+    User.Size = UDim2.new(1, -85, 0, 14)
+    User.Position = UDim2.new(0, 40, 0, 21)
     User.BackgroundTransparency = 1
     User.Font = Enum.Font.Gotham
-    User.TextSize = isOld and 11 or 10
+    User.TextSize = 10
     User.TextColor3 = Theme.TextDark
     User.TextXAlignment = Enum.TextXAlignment.Left
+    User.TextTruncate = Enum.TextTruncate.AtEnd 
     User.Parent = Card
     
 	local ActionBtn = Instance.new("TextButton")
-    ActionBtn.Size = UDim2.new(0, isOld and 75 or 60, 0, isOld and 26 or 24)
-    ActionBtn.Position = UDim2.new(1, isOld and -83 or -65, 0.5, isOld and -13 or -12)
+    ActionBtn.Size = UDim2.new(0, 40, 0, 24)
+    ActionBtn.Position = UDim2.new(1, -45, 0.5, -12)
     ActionBtn.BackgroundColor3 = Theme.Accent
-    ActionBtn.Text = isOld and "Teleport" or "TP"
+    ActionBtn.Text = "TP"
     ActionBtn.Font = Enum.Font.GothamBold
-    ActionBtn.TextSize = isOld and 11 or 10
+    ActionBtn.TextSize = 10
     ActionBtn.TextColor3 = Color3.new(0,0,0)
     ActionBtn.Parent = Card
     Instance.new("UICorner", ActionBtn).CornerRadius = UDim.new(0, 6)
@@ -2427,7 +2433,7 @@ local function LoadFogPage(Page)
     DashTitle.BackgroundTransparency = 1
     DashTitle.Text = "Advanced Color Calibrator"
     DashTitle.Font = Enum.Font.GothamBold
-    DashTitle.TextSize = 12
+    DashTitle.TextSize = 11
     DashTitle.TextColor3 = Theme.Text
     DashTitle.TextXAlignment = Enum.TextXAlignment.Center
     DashTitle.Parent = TitleRow
@@ -2445,7 +2451,7 @@ local function LoadFogPage(Page)
     lbl.Text = "Enable Calibrator"
     lbl.Font = Theme.Font
     lbl.TextSize = 11
-    lbl.TextColor3 = Theme.Text
+    lbl.TextColor3 = Theme.TextDark
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = row
 
@@ -2502,7 +2508,7 @@ local function LoadSoundsPage(Page)
 end
 
 local function LoadTeleportPage(Page) 
-    Library:CreateSection(Page, "Map Objects Teleport")
+    Library:CreateSection(Page, "Map Objects Teleport", "Left")
     
     local CheckpointFrame = Instance.new("Frame")
     CheckpointFrame.Name = "CheckpointFrame"
@@ -2535,18 +2541,19 @@ local function LoadTeleportPage(Page)
     Library:CreateButton(Page, "Teleport Exitdoor", function() end)
     Library:CreateButton(Page, "Teleport Freezepods", function() end)
 
-    Library:CreateSection(Page, "Players Teleport")
+    Library:CreateSection(Page, "Players Teleport", "Right")
+    local targetParentTp = GetParentTarget(Page).RightCol:FindFirstChild("CategoryBox_Players Teleport")
+    
     local RefreshBtn = Instance.new("TextButton")
     RefreshBtn.Name = "RefreshBtnStatic"
-    RefreshBtn.Size = UDim2.new(1, -2, 0, 32)
-    RefreshBtn.Position = UDim2.new(0, 1, 0, 0)
+    RefreshBtn.Size = UDim2.new(1, 0, 0, 28)
     RefreshBtn.BackgroundColor3 = Color3.new(0,0,0)
     RefreshBtn.BackgroundTransparency = 0.45
     RefreshBtn.Text = "Refresh"
     RefreshBtn.TextColor3 = Theme.Accent
     RefreshBtn.Font = Theme.Font
-    RefreshBtn.TextSize = 13
-    RefreshBtn.Parent = Page
+    RefreshBtn.TextSize = 11
+    RefreshBtn.Parent = targetParentTp
     Instance.new("UICorner", RefreshBtn).CornerRadius = UDim.new(0, 6)
     local rbStr = Instance.new("UIStroke", RefreshBtn)
     rbStr.Color = Color3.fromRGB(40,40,40)
@@ -2600,12 +2607,12 @@ local ProgressPage = createSidebarButton("6761866149", "Progress", LoadProgressP
 local TexturesPage = createSidebarButton("12623720992", "Textures", LoadTexturesPage)
 local AutoFarmPage = createSidebarButton("12403104094", "Auto Farm", LoadAutoFarmPage) 
 local FogPage = createSidebarButton("111246090084265", "Fog", LoadFogPage)
-local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage)
+local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage, true)
 local AdvancedPage = createSidebarButton("16717281575", "Advanced", LoadAdvancedPage)
 
 -- ESTAS USAM O ESTILO ANTIGO
 local VisualSkinsPage = createSidebarButton("11656483170", "Visual Skins", LoadVisualSkinsPage, true) 
-local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage, true)
+local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage) 
 local SettingsPage = createSidebarButton("11293977610", "Settings", nil, true)
 
 -- ==========================================
@@ -2647,21 +2654,24 @@ Library:CreateSlider(VisualPage, "Fov Changer", 70, 120, 70, function(v) end)
 Library:CreateDropdown(VisualPage, "Font Changer", {"Default"}, "Default", function(val) end)
 Library:CreateToggle(VisualPage, "stretch screen", false, function(state) end)
 
-Library:CreateSection(VisualPage, "Visual Name/Level")
-Library:CreateToggle(VisualPage, "Enable Visuals", false, function(state) end)
-Library:CreateInput(VisualPage, "Fake Name", LocalPlayer.Name, function(val) end)
-Library:CreateInput(VisualPage, "Fake Level", "67", function(val) end)
-Library:CreateDropdown(VisualPage, "Select Icon", {"VIP", "QA", "CON", "Mod", "Dev", "Manager", "MrWindy", "Nenhum"}, "VIP", function(val) end)
-
-Library:CreateSection(VisualPage, "Spoof Other Players")
+-- Dividindo a aba Visual em caixas menores para o Mobile não alongar
+Library:CreateSection(VisualPage, "Spoof Settings")
 Library:CreateToggle(VisualPage, "Enable Others Spoofing", false, function(state) end)
 Library:CreatePlayerDropdown(VisualPage, "Target Player", "Select Player", function(val) end)
 Library:CreateInput(VisualPage, "Target Fake Name", "Fake Name", function(val) end)
 Library:CreateInput(VisualPage, "Target Fake Level", "100", function(val) end)
 Library:CreateDropdown(VisualPage, "Target Fake Icon", {"VIP", "QA", "CON", "Mod", "Dev", "Manager", "MrWindy", "Nenhum"}, "VIP", function(val) end)
+
+Library:CreateSection(VisualPage, "Spoof Actions")
 Library:CreateButton(VisualPage, "Apply To Selected Player", function() end)
 Library:CreateButton(VisualPage, "Reset Selected Player", function() end)
 Library:CreateButton(VisualPage, "Clear All Spoofed Players", function() end)
+
+Library:CreateSection(VisualPage, "Visual Name/Level")
+Library:CreateToggle(VisualPage, "Enable Visuals", false, function(state) end)
+Library:CreateInput(VisualPage, "Fake Name", LocalPlayer.Name, function(val) end)
+Library:CreateInput(VisualPage, "Fake Level", "67", function(val) end)
+Library:CreateDropdown(VisualPage, "Select Icon", {"VIP", "QA", "CON", "Mod", "Dev", "Manager", "MrWindy", "Nenhum"}, "VIP", function(val) end)
 
 Library:CreateSection(VisualPage, "Visual Environment")
 Library:CreateToggle(VisualPage, "Hide Leaves (Only Homestead)", false, function(state) end)
@@ -2939,23 +2949,139 @@ Library:CreateButton(SettingsPage, "Random Servers", function()
     SendNotification("Server Hop triggered (Framework only)", 2)
 end)
 
+-- ==========================================
+-- MODAL DE INFO (Cards) 
+-- ==========================================
+local function createInfoCard(titleText, items)
+    local Card = Instance.new("Frame")
+    Card.Size = UDim2.new(1, -15, 0, 40 + (#items * 25))
+    Card.BackgroundColor3 = Color3.new(0, 0, 0)
+    Card.BackgroundTransparency = 0.45
+    Card.BorderSizePixel = 0
+    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 6)
+
+    local Stroke = Instance.new("UIStroke", Card)
+    Stroke.Color = Color3.fromRGB(40, 40, 40)
+    Stroke.Thickness = 1
+    
+    local TitleLabel = Instance.new("TextLabel", Card)
+    TitleLabel.Size = UDim2.new(1, -30, 0, 30)
+    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = titleText
+    TitleLabel.Font = Enum.Font.GothamBlack
+    TitleLabel.TextSize = 12
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local AccentBar = Instance.new("Frame", Card)
+    AccentBar.Size = UDim2.new(0, 3, 0, 14)
+    AccentBar.Position = UDim2.new(0, 10, 0, 8)
+    AccentBar.BackgroundColor3 = Theme.Accent
+    AccentBar.BorderSizePixel = 0
+    Instance.new("UICorner", AccentBar).CornerRadius = UDim.new(1, 0)
+    
+    local Sep = Instance.new("Frame", Card)
+    Sep.Size = UDim2.new(1, -20, 0, 1)
+    Sep.Position = UDim2.new(0, 10, 0, 30)
+    Sep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Sep.BorderSizePixel = 0
+
+    local dynamicLabels = {}
+
+    for i, field in ipairs(items) do
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, -20, 0, 20)
+        Label.Position = UDim2.new(0, 15, 0, 35 + ((i - 1) * 25))
+        Label.BackgroundTransparency = 1
+        Label.RichText = true
+        Label.Text = field.Default
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 12
+        Label.TextColor3 = Theme.Text
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = Card
+
+        if field.Id then
+            dynamicLabels[field.Id] = Label
+        end
+    end
+    return Card, dynamicLabels
+end
+
+local creditsCard, _ = createInfoCard("CREDITS", {
+    {Default = "<b>UI Framework Extracted</b>"},
+    {Default = "<b>Ready for custom scripts!</b>"}
+})
+creditsCard.Parent = InfoScroll
+
+local playerCard, playerLabels = createInfoCard("PLAYER INFO", {
+    {Id = "FPS", Default = "<b>FPS:</b> <font color='rgb(150,150,150)'>...</font>"},
+    {Id = "Ping", Default = "<b>Ping:</b> <font color='rgb(150,150,150)'>... ms</font>"},
+    {Id = "Exec", Default = "<b>Executor:</b> <font color='rgb(150,150,150)'>" .. (identifyexecutor and identifyexecutor() or "Unknown") .. "</font>"}
+})
+playerCard.Parent = InfoScroll
+
+local serverCard, serverLabels = createInfoCard("SERVER INFO", {
+    {Id = "Region", Default = "<b>Region:</b> <font color='rgb(150,150,150)'>Fetching...</font>"},
+    {Id = "Players", Default = "<b>Players:</b> <font color='rgb(150,150,150)'>...</font>"},
+    {Id = "Max", Default = "<b>Max Players:</b> <font color='rgb(150,150,150)'>" .. tostring(Players.MaxPlayers) .. "</font>"}
+})
+serverCard.Parent = InfoScroll
+
+-- Atualização Dinâmica da Rolagem (Caso a tela seja menor)
+InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    InfoScroll.CanvasSize = UDim2.new(0, 0, 0, InfoLayout.AbsoluteContentSize.Y + 20)
+end)
+
+local frames = 0
+local lastUpdate = tick()
+
+task.spawn(function()
+    local s, r = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
+    end)
+    local reg = "Unknown"
+    if s and r and r.countryCode then
+        reg = r.countryCode
+    end
+    if serverLabels["Region"] then
+        serverLabels["Region"].Text = "<b>Region:</b> <font color='rgb(150,150,150)'>" .. reg .. "</font>"
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    frames = frames + 1
+    local currentTick = tick()
+    if currentTick - lastUpdate >= 1 then
+        local fps = frames
+        frames = 0
+        lastUpdate = currentTick
+        
+        if playerLabels["FPS"] then
+            playerLabels["FPS"].Text = "<b>FPS:</b> <font color='rgb(150,150,150)'>" .. tostring(fps) .. "</font>"
+        end
+        
+        local pingVal = 0
+        pcall(function()
+            pingVal = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        if playerLabels["Ping"] then
+            playerLabels["Ping"].Text = "<b>Ping:</b> <font color='rgb(150,150,150)'>" .. tostring(pingVal) .. " ms</font>"
+        end
+
+        if serverLabels["Players"] then
+            serverLabels["Players"].Text = "<b>Players:</b> <font color='rgb(150,150,150)'>" .. tostring(#Players:GetPlayers()) .. "</font>"
+        end
+    end
+end)
+
 if tabs[1] then 
 	tabs[1].Page.Visible = true
 	tabs[1].Indicator.BackgroundTransparency = 0
 	tabs[1].Label.TextTransparency = 0
 	tabs[1].Icon.ImageTransparency = 0
 end
-
-task.spawn(function()
-    task.wait(0.5)
-    local infoHeight = 0
-    for _, child in ipairs(InfoScroll:GetChildren()) do
-        if child:IsA("Frame") or child:IsA("TextLabel") then
-            infoHeight = infoHeight + child.AbsoluteSize.Y + 10
-        end
-    end
-    InfoScroll.CanvasSize = UDim2.new(0, 0, 0, infoHeight)
-end)
 
 ScreenGui.Enabled = true
 MainFrame.Visible = true
