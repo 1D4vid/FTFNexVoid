@@ -62,6 +62,7 @@ local Theme = {
 	CloseRed = Color3.fromRGB(100, 100, 100)
 }
 
+-- Custom Cursor UI Logic
 local CurrentCursorSize = 24
 local PCCursorActive = false
 local MobileCrosshair = Instance.new("ImageLabel")
@@ -194,6 +195,7 @@ local function ResetAllConfigs()
     CurrentKey = Enum.KeyCode.K
 end
 
+-- Tamanhos ORIGINAIS exigidos restaurados
 local Config = {
 	MainSize = isMobile and UDim2.new(0, 520, 0, 365) or UDim2.new(0, 600, 0, 420),
 	SidebarWidth = isMobile and 130 or 150,
@@ -922,7 +924,7 @@ local function GetParentTarget(Page)
 end
 
 -- ==========================================
--- CRIAÇÃO DOS ELEMENTOS 
+-- CRIAÇÃO DOS ELEMENTOS (COM TEXTSCALED - NENHUM "...")
 -- ==========================================
 
 function Library:CreateSection(Page, Text, ForceSide)
@@ -1040,6 +1042,9 @@ function Library:CreateButton(Page, Text, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextScaled = true 
+    local tConst = Instance.new("UITextSizeConstraint", Label)
+    tConst.MinTextSize = 7
     Label.Parent = BtnFrame
     
     local str
@@ -1052,11 +1057,11 @@ function Library:CreateButton(Page, Text, Callback)
         str.Thickness = 1
         str.Parent = BtnFrame
         Label.Position = UDim2.new(0, 10, 0, 0)
-        Label.TextSize = 12
+        tConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         BtnFrame.BackgroundTransparency = 1 
-        Label.TextSize = 11
+        tConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
@@ -1087,13 +1092,15 @@ function Library:CreateToggle(Page, Text, Default, Callback)
     Tgl.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -45, 1, 0)
+    Label.Size = UDim2.new(1, -35, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd
+    Label.TextScaled = true 
+    local tConst = Instance.new("UITextSizeConstraint", Label)
+    tConst.MinTextSize = 7
     Label.Parent = Tgl
     
     local str
@@ -1106,12 +1113,12 @@ function Library:CreateToggle(Page, Text, Default, Callback)
         str.Thickness = 1
         str.Parent = Tgl
         Label.Position = UDim2.new(0, 12, 0, 0)
-        Label.TextSize = 12
+        tConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         Tgl.BackgroundTransparency = 1
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        tConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
@@ -1191,13 +1198,15 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     Tgl.Parent = targetParent
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -110, 1, 0)
+    Label.Size = UDim2.new(1, -95, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd
+    Label.TextScaled = true 
+    local tConst = Instance.new("UITextSizeConstraint", Label)
+    tConst.MinTextSize = 7
     Label.Parent = Tgl
     
     local str
@@ -1210,38 +1219,38 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
         str.Thickness = 1
         str.Parent = Tgl
         Label.Position = UDim2.new(0, 12, 0, 0)
-        Label.TextSize = 12
+        tConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         Tgl.BackgroundTransparency = 1
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        tConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
     local KeyBtn = Instance.new("TextButton")
-    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 32, 0, 16)
-    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -66, 0.5, -8)
+    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 26, 0, 16)
+    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -62, 0.5, -8)
     KeyBtn.BackgroundColor3 = Color3.new(0,0,0)
     KeyBtn.BackgroundTransparency = 0.45
     KeyBtn.Text = (Key == "None" and (isOld and "Set Key" or "Key") or Key)
     KeyBtn.TextColor3 = Theme.TextDark
     KeyBtn.Font = Enum.Font.Gotham
-    KeyBtn.TextSize = 10
+    KeyBtn.TextSize = 9
     KeyBtn.Parent = Tgl
     Instance.new("UICorner", KeyBtn).CornerRadius = UDim.new(0, 4)
     local kbStr = Instance.new("UIStroke", KeyBtn)
     kbStr.Color = Color3.fromRGB(40, 40, 40)
 
     local ResetBtn = Instance.new("TextButton")
-    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 26, 0, 16)
-    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -96, 0.5, -8)
+    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 24, 0, 16)
+    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -88, 0.5, -8)
     ResetBtn.BackgroundColor3 = Color3.new(0,0,0)
     ResetBtn.BackgroundTransparency = 0.45
     ResetBtn.Text = isOld and "Reset" or "Del"
     ResetBtn.TextColor3 = Theme.CloseRed
     ResetBtn.Font = Enum.Font.Gotham
-    ResetBtn.TextSize = 10
+    ResetBtn.TextSize = 9
     ResetBtn.Parent = Tgl
     Instance.new("UICorner", ResetBtn).CornerRadius = UDim.new(0, 4)
     local rbStr = Instance.new("UIStroke", ResetBtn)
@@ -1252,7 +1261,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
 
     local Bg = Instance.new("Frame")
     Bg.Size = UDim2.new(0, bgWidth, 0, bgHeight)
-    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -30, 0.5, -7)
+    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -32, 0.5, -7)
     Bg.BackgroundColor3 = Theme.SwitchOff
     Bg.Parent = Tgl
     Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
@@ -1354,9 +1363,10 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
-    Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
+    Label.TextScaled = true 
+    local lConst = Instance.new("UITextSizeConstraint", Label)
+    lConst.MinTextSize = 7
     Label.Parent = Frame
     
 	local ValueLabel = Instance.new("TextLabel")
@@ -1379,6 +1389,7 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
         
         Label.Size = UDim2.new(1, -45, 0, 20)
         Label.Position = UDim2.new(0, 10, 0, 2)
+        lConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
         ValueLabel.Position = UDim2.new(1, -10, 0, 2)
         ValueLabel.TextColor3 = Theme.TextDark
@@ -1386,6 +1397,7 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
         Frame.BackgroundTransparency = 1
         Label.Size = UDim2.new(1, -45, 0, 20)
         Label.Position = UDim2.new(0, 5, 0, 2)
+        lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
         ValueLabel.Position = UDim2.new(1, -5, 0, 2)
         ValueLabel.TextColor3 = Theme.Text
@@ -1455,7 +1467,9 @@ function Library:CreateInput(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
+    Label.TextScaled = true 
+    local lConst = Instance.new("UITextSizeConstraint", Label)
+    lConst.MinTextSize = 7
     Label.Parent = Container
 
 	local Box = Instance.new("TextBox")
@@ -1479,7 +1493,7 @@ function Library:CreateInput(Page, Text, Default, Callback)
         
         Label.Size = UDim2.new(1, -90, 1, 0)
         Label.Position = UDim2.new(0, 10, 0, 0)
-        Label.TextSize = 12
+        lConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
         Box.Size = UDim2.new(0, 70, 0, 26)
         Box.Position = UDim2.new(1, -80, 0.5, -13)
@@ -1487,7 +1501,7 @@ function Library:CreateInput(Page, Text, Default, Callback)
         Container.BackgroundTransparency = 1
         Label.Size = UDim2.new(1, -75, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
         Box.Size = UDim2.new(0, 60, 0, 24)
         Box.Position = UDim2.new(1, -65, 0.5, -12)
@@ -1531,26 +1545,29 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
+    Label.TextScaled = true 
+    local lConst = Instance.new("UITextSizeConstraint", Label)
+    lConst.MinTextSize = 7
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
         Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 15, 0, 0)
-        Label.TextSize = 12
+        lConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
         Label.Size = UDim2.new(1, -25, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
@@ -1709,26 +1726,29 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
+    Label.TextScaled = true 
+    local lConst = Instance.new("UITextSizeConstraint", Label)
+    lConst.MinTextSize = 7
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
         Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 15, 0, 0)
-        Label.TextSize = 12
+        lConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -40, 1, 0)
+        Label.Size = UDim2.new(1, -25, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
@@ -1739,7 +1759,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
 
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -25, 0.5, -10)
+    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -20, 0.5, -10)
     Icon.BackgroundTransparency = 1
     Icon.Text = "▼"
     Icon.TextColor3 = Theme.TextDark
@@ -1900,26 +1920,29 @@ function Library:CreateColorPicker(Page, Text, DefaultColor, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
+    Label.TextScaled = true 
+    local lConst = Instance.new("UITextSizeConstraint", Label)
+    lConst.MinTextSize = 7
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
         Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 10, 0, 0)
-        Label.TextSize = 12
+        lConst.MaxTextSize = 12
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
         Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
-        Label.TextSize = 11
+        lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
     end
 
@@ -2096,35 +2119,39 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     
 	local Display = Instance.new("TextLabel")
     Display.Text = Player.DisplayName
-    Display.Size = UDim2.new(1, -85, 0, 16)
-    Display.Position = UDim2.new(0, 40, 0, 5)
+    Display.Size = UDim2.new(1, isOld and -130 or -100, 0, 18)
+    Display.Position = UDim2.new(0, isOld and 54 or 40, 0, 5)
     Display.BackgroundTransparency = 1
     Display.Font = Theme.Font
-    Display.TextSize = 11
+    Display.TextScaled = true 
+    local dConst = Instance.new("UITextSizeConstraint", Display)
+    dConst.MinTextSize = 7
+    dConst.MaxTextSize = isOld and 13 or 11
     Display.TextColor3 = Theme.Text
     Display.TextXAlignment = Enum.TextXAlignment.Left
-    Display.TextTruncate = Enum.TextTruncate.AtEnd 
     Display.Parent = Card
     
 	local User = Instance.new("TextLabel")
     User.Text = "@" .. Player.Name
-    User.Size = UDim2.new(1, -85, 0, 14)
-    User.Position = UDim2.new(0, 40, 0, 21)
+    User.Size = UDim2.new(1, isOld and -130 or -100, 0, 14)
+    User.Position = UDim2.new(0, isOld and 54 or 40, 0, isOld and 26 or 21)
     User.BackgroundTransparency = 1
     User.Font = Enum.Font.Gotham
-    User.TextSize = 10
+    User.TextScaled = true 
+    local uConst = Instance.new("UITextSizeConstraint", User)
+    uConst.MinTextSize = 7
+    uConst.MaxTextSize = isOld and 11 or 9
     User.TextColor3 = Theme.TextDark
     User.TextXAlignment = Enum.TextXAlignment.Left
-    User.TextTruncate = Enum.TextTruncate.AtEnd 
     User.Parent = Card
     
 	local ActionBtn = Instance.new("TextButton")
-    ActionBtn.Size = UDim2.new(0, 40, 0, 24)
-    ActionBtn.Position = UDim2.new(1, -45, 0.5, -12)
+    ActionBtn.Size = UDim2.new(0, isOld and 75 or 45, 0, isOld and 26 or 24)
+    ActionBtn.Position = UDim2.new(1, isOld and -83 or -50, 0.5, isOld and -13 or -12)
     ActionBtn.BackgroundColor3 = Theme.Accent
-    ActionBtn.Text = "TP"
+    ActionBtn.Text = isOld and "Teleport" or "TP"
     ActionBtn.Font = Enum.Font.GothamBold
-    ActionBtn.TextSize = 10
+    ActionBtn.TextSize = isOld and 11 or 10
     ActionBtn.TextColor3 = Color3.new(0,0,0)
     ActionBtn.Parent = Card
     Instance.new("UICorner", ActionBtn).CornerRadius = UDim.new(0, 6)
@@ -2546,10 +2573,11 @@ local function LoadTeleportPage(Page)
     
     local RefreshBtn = Instance.new("TextButton")
     RefreshBtn.Name = "RefreshBtnStatic"
-    RefreshBtn.Size = UDim2.new(1, 0, 0, 28)
+    RefreshBtn.Size = UDim2.new(1, -2, 0, 28)
+    RefreshBtn.Position = UDim2.new(0, 1, 0, 0)
     RefreshBtn.BackgroundColor3 = Color3.new(0,0,0)
     RefreshBtn.BackgroundTransparency = 0.45
-    RefreshBtn.Text = "Refresh"
+    RefreshBtn.Text = "Refresh List"
     RefreshBtn.TextColor3 = Theme.Accent
     RefreshBtn.Font = Theme.Font
     RefreshBtn.TextSize = 11
@@ -2610,7 +2638,6 @@ local FogPage = createSidebarButton("111246090084265", "Fog", LoadFogPage)
 local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage, true)
 local AdvancedPage = createSidebarButton("16717281575", "Advanced", LoadAdvancedPage)
 
--- ESTAS USAM O ESTILO ANTIGO
 local VisualSkinsPage = createSidebarButton("11656483170", "Visual Skins", LoadVisualSkinsPage, true) 
 local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage) 
 local SettingsPage = createSidebarButton("11293977610", "Settings", nil, true)
@@ -2654,7 +2681,7 @@ Library:CreateSlider(VisualPage, "Fov Changer", 70, 120, 70, function(v) end)
 Library:CreateDropdown(VisualPage, "Font Changer", {"Default"}, "Default", function(val) end)
 Library:CreateToggle(VisualPage, "stretch screen", false, function(state) end)
 
--- Dividindo a aba Visual em caixas menores para o Mobile não alongar
+-- Dividindo Spoof em duas caixas
 Library:CreateSection(VisualPage, "Spoof Settings")
 Library:CreateToggle(VisualPage, "Enable Others Spoofing", false, function(state) end)
 Library:CreatePlayerDropdown(VisualPage, "Target Player", "Select Player", function(val) end)
@@ -2947,133 +2974,6 @@ end)
 
 Library:CreateButton(SettingsPage, "Random Servers", function()
     SendNotification("Server Hop triggered (Framework only)", 2)
-end)
-
--- ==========================================
--- MODAL DE INFO (Cards) 
--- ==========================================
-local function createInfoCard(titleText, items)
-    local Card = Instance.new("Frame")
-    Card.Size = UDim2.new(1, -15, 0, 40 + (#items * 25))
-    Card.BackgroundColor3 = Color3.new(0, 0, 0)
-    Card.BackgroundTransparency = 0.45
-    Card.BorderSizePixel = 0
-    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 6)
-
-    local Stroke = Instance.new("UIStroke", Card)
-    Stroke.Color = Color3.fromRGB(40, 40, 40)
-    Stroke.Thickness = 1
-    
-    local TitleLabel = Instance.new("TextLabel", Card)
-    TitleLabel.Size = UDim2.new(1, -30, 0, 30)
-    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = titleText
-    TitleLabel.Font = Enum.Font.GothamBlack
-    TitleLabel.TextSize = 12
-    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local AccentBar = Instance.new("Frame", Card)
-    AccentBar.Size = UDim2.new(0, 3, 0, 14)
-    AccentBar.Position = UDim2.new(0, 10, 0, 8)
-    AccentBar.BackgroundColor3 = Theme.Accent
-    AccentBar.BorderSizePixel = 0
-    Instance.new("UICorner", AccentBar).CornerRadius = UDim.new(1, 0)
-    
-    local Sep = Instance.new("Frame", Card)
-    Sep.Size = UDim2.new(1, -20, 0, 1)
-    Sep.Position = UDim2.new(0, 10, 0, 30)
-    Sep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Sep.BorderSizePixel = 0
-
-    local dynamicLabels = {}
-
-    for i, field in ipairs(items) do
-        local Label = Instance.new("TextLabel")
-        Label.Size = UDim2.new(1, -20, 0, 20)
-        Label.Position = UDim2.new(0, 15, 0, 35 + ((i - 1) * 25))
-        Label.BackgroundTransparency = 1
-        Label.RichText = true
-        Label.Text = field.Default
-        Label.Font = Enum.Font.Gotham
-        Label.TextSize = 12
-        Label.TextColor3 = Theme.Text
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.Parent = Card
-
-        if field.Id then
-            dynamicLabels[field.Id] = Label
-        end
-    end
-    return Card, dynamicLabels
-end
-
-local creditsCard, _ = createInfoCard("CREDITS", {
-    {Default = "<b>UI Framework Extracted</b>"},
-    {Default = "<b>Ready for custom scripts!</b>"}
-})
-creditsCard.Parent = InfoScroll
-
-local playerCard, playerLabels = createInfoCard("PLAYER INFO", {
-    {Id = "FPS", Default = "<b>FPS:</b> <font color='rgb(150,150,150)'>...</font>"},
-    {Id = "Ping", Default = "<b>Ping:</b> <font color='rgb(150,150,150)'>... ms</font>"},
-    {Id = "Exec", Default = "<b>Executor:</b> <font color='rgb(150,150,150)'>" .. (identifyexecutor and identifyexecutor() or "Unknown") .. "</font>"}
-})
-playerCard.Parent = InfoScroll
-
-local serverCard, serverLabels = createInfoCard("SERVER INFO", {
-    {Id = "Region", Default = "<b>Region:</b> <font color='rgb(150,150,150)'>Fetching...</font>"},
-    {Id = "Players", Default = "<b>Players:</b> <font color='rgb(150,150,150)'>...</font>"},
-    {Id = "Max", Default = "<b>Max Players:</b> <font color='rgb(150,150,150)'>" .. tostring(Players.MaxPlayers) .. "</font>"}
-})
-serverCard.Parent = InfoScroll
-
--- Atualização Dinâmica da Rolagem (Caso a tela seja menor)
-InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    InfoScroll.CanvasSize = UDim2.new(0, 0, 0, InfoLayout.AbsoluteContentSize.Y + 20)
-end)
-
-local frames = 0
-local lastUpdate = tick()
-
-task.spawn(function()
-    local s, r = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
-    end)
-    local reg = "Unknown"
-    if s and r and r.countryCode then
-        reg = r.countryCode
-    end
-    if serverLabels["Region"] then
-        serverLabels["Region"].Text = "<b>Region:</b> <font color='rgb(150,150,150)'>" .. reg .. "</font>"
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    frames = frames + 1
-    local currentTick = tick()
-    if currentTick - lastUpdate >= 1 then
-        local fps = frames
-        frames = 0
-        lastUpdate = currentTick
-        
-        if playerLabels["FPS"] then
-            playerLabels["FPS"].Text = "<b>FPS:</b> <font color='rgb(150,150,150)'>" .. tostring(fps) .. "</font>"
-        end
-        
-        local pingVal = 0
-        pcall(function()
-            pingVal = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
-        end)
-        if playerLabels["Ping"] then
-            playerLabels["Ping"].Text = "<b>Ping:</b> <font color='rgb(150,150,150)'>" .. tostring(pingVal) .. " ms</font>"
-        end
-
-        if serverLabels["Players"] then
-            serverLabels["Players"].Text = "<b>Players:</b> <font color='rgb(150,150,150)'>" .. tostring(#Players:GetPlayers()) .. "</font>"
-        end
-    end
 end)
 
 if tabs[1] then 
