@@ -195,21 +195,22 @@ local function ResetAllConfigs()
     CurrentKey = Enum.KeyCode.K
 end
 
+-- TAMANHOS RESTAURADOS PARA O ORIGINAL QUE VOCÊ PEDIU
 local Config = {
-	MainSize = isMobile and UDim2.new(0, 480, 0, 320) or UDim2.new(0, 560, 0, 380),
-	SidebarWidth = 130,
+	MainSize = isMobile and UDim2.new(0, 520, 0, 365) or UDim2.new(0, 600, 0, 420),
+	SidebarWidth = isMobile and 130 or 150,
 	FooterHeight = 18, 
-	BtnHeight = isMobile and 24 or 26, 
+	BtnHeight = isMobile and 24 or 28, 
 	ListPadding = UDim.new(0, 2), 
-	FontSize = 11,
-	IconSize = 14
+	FontSize = isMobile and 10 or 12,
+	IconSize = isMobile and 13 or 16
 }
 
 local ContentConfig = {
-	ItemHeightNew = 30,
+	ItemHeightNew = 35,
     ItemHeightOld = 40,
 	PlayerCardHeight = 45,
-	ItemPadding = UDim.new(0, 2)
+	ItemPadding = UDim.new(0, 4)
 }
 
 local function MakeDraggable(triggerObject, frameObject)
@@ -311,7 +312,7 @@ TitleLabel.RichText = true
 TitleLabel.Size = UDim2.new(0, 180, 1, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Font = Theme.Font
-TitleLabel.TextSize = 16
+TitleLabel.TextSize = isMobile and 14 or 16
 TitleLabel.TextColor3 = Theme.Text
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Position = UDim2.new(0, 45, 0, 0)
@@ -396,8 +397,8 @@ local LangBtn = createTopBtn("Language", "EN", 4, false)
 
 local SearchContainer = Instance.new("Frame")
 SearchContainer.Name = "SearchContainer"
-SearchContainer.Size = UDim2.new(0, 110, 0, 24) 
-SearchContainer.Position = UDim2.new(1, -155, 0.5, 0)
+SearchContainer.Size = UDim2.new(0, isMobile and 90 or 110, 0, 24) 
+SearchContainer.Position = UDim2.new(1, isMobile and -140 or -155, 0.5, 0)
 SearchContainer.AnchorPoint = Vector2.new(1, 0.5)
 SearchContainer.BackgroundColor3 = Color3.new(0,0,0)
 SearchContainer.BackgroundTransparency = 0.45
@@ -542,7 +543,7 @@ ExitBoxContainer.Size = UDim2.new(0, 310, 0, 165)
 ExitBoxContainer.AnchorPoint = Vector2.new(0.5, 0.5)
 ExitBoxContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 ExitBoxContainer.BackgroundColor3 = Color3.new(0,0,0)
-ExitBoxContainer.BackgroundTransparency = 0.45
+ExitBoxContainer.BackgroundTransparency = 0.15
 ExitBoxContainer.BorderSizePixel = 0
 ExitBoxContainer.ZIndex = 11
 ExitBoxContainer.Visible = false
@@ -630,7 +631,6 @@ ConfirmStroke.Thickness = 1
 ConfirmStroke.Parent = ConfirmExitBtn
 ApplyGradient(ConfirmExitBtn, Color3.fromRGB(255, 60, 60), Color3.fromRGB(180, 20, 20), 90)
 
--- CORREÇÃO DO BOTÃO DE FECHAR (Retirado o Yield/Wait que travava o script)
 CancelExitBtn.MouseButton1Click:Connect(function() 
     TweenService:Create(ExitBoxContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
     task.delay(0.2, function()
@@ -804,7 +804,8 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
     
     if not isOldStyle then
         local PageLayout = Instance.new("UIListLayout")
-        PageLayout.FillDirection = Enum.FillDirection.Horizontal
+        -- LOGICA RESPONSIVA AQUI: MOBILE = 1 COLUNA, PC = 2 COLUNAS
+        PageLayout.FillDirection = isMobile and Enum.FillDirection.Vertical or Enum.FillDirection.Horizontal
         PageLayout.Padding = UDim.new(0, 12) 
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         PageLayout.Parent = Page
@@ -812,10 +813,13 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
         local PP = Instance.new("UIPadding")
         PP.PaddingBottom = UDim.new(0, 10)
         PP.Parent = Page
+        
+        -- Lógica de tamanho: 100% no mobile, 50% no pc
+        local colWidth = isMobile and UDim2.new(1, -10, 0, 0) or UDim2.new(0.5, -6, 0, 0)
 
         local LeftCol = Instance.new("Frame")
         LeftCol.Name = "LeftCol"
-        LeftCol.Size = UDim2.new(0.5, -6, 0, 0)
+        LeftCol.Size = colWidth
         LeftCol.AutomaticSize = Enum.AutomaticSize.Y
         LeftCol.BackgroundTransparency = 1
         LeftCol.Parent = Page
@@ -826,7 +830,7 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
 
         local RightCol = Instance.new("Frame")
         RightCol.Name = "RightCol"
-        RightCol.Size = UDim2.new(0.5, -6, 0, 0)
+        RightCol.Size = colWidth
         RightCol.AutomaticSize = Enum.AutomaticSize.Y
         RightCol.BackgroundTransparency = 1
         RightCol.Parent = Page
@@ -1086,7 +1090,7 @@ function Library:CreateToggle(Page, Text, Default, Callback)
     Tgl.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.Size = UDim2.new(1, -50, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
@@ -1188,8 +1192,9 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     Tgl.Text = ""
     Tgl.Parent = targetParent
 
+    -- CORREÇÃO PRINCIPAL AQUI: O TEXTO NÃO PASSA DOS BOTÕES
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.4, 0, 1, 0)
+    Label.Size = UDim2.new(1, -160, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
@@ -1219,7 +1224,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
 
     local KeyBtn = Instance.new("TextButton")
     KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 36, 0, 18)
-    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -80, 0.5, -9)
+    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -85, 0.5, -9)
     KeyBtn.BackgroundColor3 = Color3.new(0,0,0)
     KeyBtn.BackgroundTransparency = 0.45
     KeyBtn.Text = (Key == "None" and (isOld and "Set Key" or "Key") or Key)
@@ -1233,7 +1238,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
 
     local ResetBtn = Instance.new("TextButton")
     ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 30, 0, 18)
-    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -115, 0.5, -9)
+    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -120, 0.5, -9)
     ResetBtn.BackgroundColor3 = Color3.new(0,0,0)
     ResetBtn.BackgroundTransparency = 0.45
     ResetBtn.Text = isOld and "Reset" or "Del"
@@ -2455,7 +2460,7 @@ local function LoadFogPage(Page)
     local Cir = Instance.new("Frame")
     Cir.Size = UDim2.new(0, 12, 0, 12)
     Cir.Position = UDim2.new(0, 2, 0.5, -6)
-    Cir.BackgroundColor3 = Color.fromRGB(150, 150, 150)
+    Cir.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
     Cir.Parent = Bg
     Instance.new("UICorner", Cir).CornerRadius = UDim.new(1, 0)
 end
@@ -2598,7 +2603,6 @@ local FogPage = createSidebarButton("111246090084265", "Fog", LoadFogPage)
 local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage)
 local AdvancedPage = createSidebarButton("16717281575", "Advanced", LoadAdvancedPage)
 
--- ESTAS USAM O ESTILO ANTIGO
 local VisualSkinsPage = createSidebarButton("11656483170", "Visual Skins", LoadVisualSkinsPage, true) 
 local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage, true)
 local SettingsPage = createSidebarButton("11293977610", "Settings", nil, true)
@@ -2923,137 +2927,12 @@ ResetAllBtn.MouseButton1Click:Connect(function()
     SendNotification("All Configs Wiped! Please re-execute script.", 4)
 end)
 
-Library:CreateSection(SettingsPage, "Server Management")
-
 Library:CreateButton(SettingsPage, "Server Rejoin", function()
     SendNotification("Server Rejoin triggered (Framework only)", 2)
 end)
 
 Library:CreateButton(SettingsPage, "Random Servers", function()
     SendNotification("Server Hop triggered (Framework only)", 2)
-end)
-
-
--- ==========================================
--- MODAL DE INFO (Cards) Restaurado e Preto
--- ==========================================
-local function createInfoCard(titleText, items)
-    local Card = Instance.new("Frame")
-    Card.Size = UDim2.new(1, -15, 0, 40 + (#items * 25))
-    Card.BackgroundColor3 = Color3.new(0, 0, 0)
-    Card.BackgroundTransparency = 0.45
-    Card.BorderSizePixel = 0
-    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 6)
-
-    local Stroke = Instance.new("UIStroke", Card)
-    Stroke.Color = Color3.fromRGB(40, 40, 40)
-    Stroke.Thickness = 1
-    
-    local TitleLabel = Instance.new("TextLabel", Card)
-    TitleLabel.Size = UDim2.new(1, -30, 0, 30)
-    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = titleText
-    TitleLabel.Font = Enum.Font.GothamBlack
-    TitleLabel.TextSize = 12
-    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local AccentBar = Instance.new("Frame", Card)
-    AccentBar.Size = UDim2.new(0, 3, 0, 14)
-    AccentBar.Position = UDim2.new(0, 10, 0, 8)
-    AccentBar.BackgroundColor3 = Theme.Accent
-    AccentBar.BorderSizePixel = 0
-    Instance.new("UICorner", AccentBar).CornerRadius = UDim.new(1, 0)
-    
-    local Sep = Instance.new("Frame", Card)
-    Sep.Size = UDim2.new(1, -20, 0, 1)
-    Sep.Position = UDim2.new(0, 10, 0, 30)
-    Sep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Sep.BorderSizePixel = 0
-
-    local dynamicLabels = {}
-
-    for i, field in ipairs(items) do
-        local Label = Instance.new("TextLabel")
-        Label.Size = UDim2.new(1, -20, 0, 20)
-        Label.Position = UDim2.new(0, 15, 0, 35 + ((i - 1) * 25))
-        Label.BackgroundTransparency = 1
-        Label.RichText = true
-        Label.Text = field.Default
-        Label.Font = Enum.Font.Gotham
-        Label.TextSize = 12
-        Label.TextColor3 = Theme.Text
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.Parent = Card
-
-        if field.Id then
-            dynamicLabels[field.Id] = Label
-        end
-    end
-    return Card, dynamicLabels
-end
-
-local creditsCard, _ = createInfoCard("CREDITS", {
-    {Default = "<b>UI Framework Extracted</b>"},
-    {Default = "<b>Ready for custom scripts!</b>"}
-})
-creditsCard.Parent = InfoScroll
-
-local playerCard, playerLabels = createInfoCard("PLAYER INFO", {
-    {Id = "FPS", Default = "<b>FPS:</b> <font color='rgb(150,150,150)'>...</font>"},
-    {Id = "Ping", Default = "<b>Ping:</b> <font color='rgb(150,150,150)'>... ms</font>"},
-    {Id = "Exec", Default = "<b>Executor:</b> <font color='rgb(150,150,150)'>" .. (identifyexecutor and identifyexecutor() or "Unknown") .. "</font>"}
-})
-playerCard.Parent = InfoScroll
-
-local serverCard, serverLabels = createInfoCard("SERVER INFO", {
-    {Id = "Region", Default = "<b>Region:</b> <font color='rgb(150,150,150)'>Fetching...</font>"},
-    {Id = "Players", Default = "<b>Players:</b> <font color='rgb(150,150,150)'>...</font>"},
-    {Id = "Max", Default = "<b>Max Players:</b> <font color='rgb(150,150,150)'>" .. tostring(Players.MaxPlayers) .. "</font>"}
-})
-serverCard.Parent = InfoScroll
-
-local frames = 0
-local lastUpdate = tick()
-
-task.spawn(function()
-    local s, r = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
-    end)
-    local reg = "Unknown"
-    if s and r and r.countryCode then
-        reg = r.countryCode
-    end
-    if serverLabels["Region"] then
-        serverLabels["Region"].Text = "<b>Region:</b> <font color='rgb(150,150,150)'>" .. reg .. "</font>"
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    frames = frames + 1
-    local currentTick = tick()
-    if currentTick - lastUpdate >= 1 then
-        local fps = frames
-        frames = 0
-        lastUpdate = currentTick
-        
-        if playerLabels["FPS"] then
-            playerLabels["FPS"].Text = "<b>FPS:</b> <font color='rgb(150,150,150)'>" .. tostring(fps) .. "</font>"
-        end
-        
-        local pingVal = 0
-        pcall(function()
-            pingVal = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
-        end)
-        if playerLabels["Ping"] then
-            playerLabels["Ping"].Text = "<b>Ping:</b> <font color='rgb(150,150,150)'>" .. tostring(pingVal) .. " ms</font>"
-        end
-
-        if serverLabels["Players"] then
-            serverLabels["Players"].Text = "<b>Players:</b> <font color='rgb(150,150,150)'>" .. tostring(#Players:GetPlayers()) .. "</font>"
-        end
-    end
 end)
 
 if tabs[1] then 
