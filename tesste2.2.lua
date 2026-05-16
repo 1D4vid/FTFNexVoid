@@ -62,7 +62,6 @@ local Theme = {
 	CloseRed = Color3.fromRGB(100, 100, 100)
 }
 
--- Custom Cursor UI Logic
 local CurrentCursorSize = 24
 local PCCursorActive = false
 local MobileCrosshair = Instance.new("ImageLabel")
@@ -195,7 +194,6 @@ local function ResetAllConfigs()
     CurrentKey = Enum.KeyCode.K
 end
 
--- TAMANHOS RESTAURADOS PARA O ORIGINAL QUE VOCÊ PEDIU
 local Config = {
 	MainSize = isMobile and UDim2.new(0, 520, 0, 365) or UDim2.new(0, 600, 0, 420),
 	SidebarWidth = isMobile and 130 or 150,
@@ -207,8 +205,8 @@ local Config = {
 }
 
 local ContentConfig = {
-	ItemHeightNew = 35,
-    ItemHeightOld = 40,
+	ItemHeightNew = 30,
+    ItemHeightOld = 35,
 	PlayerCardHeight = 45,
 	ItemPadding = UDim.new(0, 4)
 }
@@ -631,15 +629,6 @@ ConfirmStroke.Thickness = 1
 ConfirmStroke.Parent = ConfirmExitBtn
 ApplyGradient(ConfirmExitBtn, Color3.fromRGB(255, 60, 60), Color3.fromRGB(180, 20, 20), 90)
 
-CancelExitBtn.MouseButton1Click:Connect(function() 
-    TweenService:Create(ExitBoxContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-    task.delay(0.2, function()
-        ModalOverlay.Visible = false
-        ExitBoxContainer.Visible = false 
-    end)
-end)
-ConfirmExitBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
-
 CancelExitBtn.MouseEnter:Connect(function()
     TweenService:Create(CancelExitBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
     TweenService:Create(CancelStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(100, 100, 100)}):Play()
@@ -655,6 +644,15 @@ end)
 ConfirmExitBtn.MouseLeave:Connect(function()
     TweenService:Create(ConfirmExitBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(220, 40, 40)}):Play()
 end)
+
+CancelExitBtn.MouseButton1Click:Connect(function() 
+    TweenService:Create(ExitBoxContainer, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    task.delay(0.2, function()
+        ModalOverlay.Visible = false
+        ExitBoxContainer.Visible = false 
+    end)
+end)
+ConfirmExitBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
 local InfoBox = createModalBox(350)
 local InfoTitle = Instance.new("TextLabel")
@@ -804,8 +802,7 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
     
     if not isOldStyle then
         local PageLayout = Instance.new("UIListLayout")
-        -- LOGICA RESPONSIVA AQUI: MOBILE = 1 COLUNA, PC = 2 COLUNAS
-        PageLayout.FillDirection = isMobile and Enum.FillDirection.Vertical or Enum.FillDirection.Horizontal
+        PageLayout.FillDirection = Enum.FillDirection.Horizontal
         PageLayout.Padding = UDim.new(0, 12) 
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         PageLayout.Parent = Page
@@ -813,13 +810,10 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
         local PP = Instance.new("UIPadding")
         PP.PaddingBottom = UDim.new(0, 10)
         PP.Parent = Page
-        
-        -- Lógica de tamanho: 100% no mobile, 50% no pc
-        local colWidth = isMobile and UDim2.new(1, -10, 0, 0) or UDim2.new(0.5, -6, 0, 0)
 
         local LeftCol = Instance.new("Frame")
         LeftCol.Name = "LeftCol"
-        LeftCol.Size = colWidth
+        LeftCol.Size = UDim2.new(0.5, -6, 0, 0)
         LeftCol.AutomaticSize = Enum.AutomaticSize.Y
         LeftCol.BackgroundTransparency = 1
         LeftCol.Parent = Page
@@ -830,7 +824,7 @@ local function createSidebarButton(iconId, name, lazyLoadFunc, isOldStyle)
 
         local RightCol = Instance.new("Frame")
         RightCol.Name = "RightCol"
-        RightCol.Size = colWidth
+        RightCol.Size = UDim2.new(0.5, -6, 0, 0)
         RightCol.AutomaticSize = Enum.AutomaticSize.Y
         RightCol.BackgroundTransparency = 1
         RightCol.Parent = Page
@@ -936,7 +930,8 @@ function Library:CreateSection(Page, Text, ForceSide)
     
     if isOld then
         local Section = Instance.new("Frame")
-        Section.Size = UDim2.new(1, 0, 0, 25)
+        Section.Size = UDim2.new(1, -2, 0, 25)
+        Section.Position = UDim2.new(0, 1, 0, 0)
         Section.BackgroundTransparency = 1
         Section.Parent = Page
         
@@ -954,16 +949,16 @@ function Library:CreateSection(Page, Text, ForceSide)
         ApplyAnimatedTextGradient(Label)
         
         local Line = Instance.new("Frame")
-        Line.Size = UDim2.new(1, -(Label.TextBounds.X + 12), 0, 2)
-        Line.Position = UDim2.new(0, Label.TextBounds.X + 12, 0.5, 0)
+        Line.Size = UDim2.new(1, -(Label.TextBounds.X + 16), 0, 1)
+        Line.Position = UDim2.new(0, Label.TextBounds.X + 8, 0.5, 0)
         Line.BackgroundColor3 = Theme.ItemStroke
         Line.BorderSizePixel = 0
         Line.Parent = Section
         ApplyGradient(Line, Theme.Accent, Color3.new(0,0,0), 0)
 
         Label:GetPropertyChangedSignal("TextBounds"):Connect(function()
-            Line.Size = UDim2.new(1, -(Label.TextBounds.X + 12), 0, 2)
-            Line.Position = UDim2.new(0, Label.TextBounds.X + 12, 0.5, 0)
+            Line.Size = UDim2.new(1, -(Label.TextBounds.X + 16), 0, 1)
+            Line.Position = UDim2.new(0, Label.TextBounds.X + 8, 0.5, 0)
         end)
     else
         local targetCol
@@ -978,7 +973,8 @@ function Library:CreateSection(Page, Text, ForceSide)
 
         local SectionBox = Instance.new("Frame")
         SectionBox.Name = "CategoryBox_" .. Text
-        SectionBox.Size = UDim2.new(1, 0, 0, 0)
+        SectionBox.Size = UDim2.new(1, -2, 0, 0)
+        SectionBox.Position = UDim2.new(0, 1, 0, 0)
         SectionBox.AutomaticSize = Enum.AutomaticSize.Y
         SectionBox.BackgroundColor3 = Color3.new(0, 0, 0) 
         SectionBox.BackgroundTransparency = 0.45 
@@ -1031,19 +1027,19 @@ function Library:CreateButton(Page, Text, Callback)
     local height = isOld and ContentConfig.ItemHeightOld or ContentConfig.ItemHeightNew
     
 	local BtnFrame = Instance.new("TextButton")
-    BtnFrame.Size = UDim2.new(1, 0, 0, height)
+    BtnFrame.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    BtnFrame.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     BtnFrame.Text = ""
     BtnFrame.Parent = targetParent
     
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -20, 1, 0)
+    Label.Size = UDim2.new(1, -10, 1, 0)
     Label.Position = UDim2.new(0, 5, 0, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = BtnFrame
     
     local str
@@ -1085,18 +1081,18 @@ function Library:CreateToggle(Page, Text, Default, Callback)
 	UserConfigs[Flag] = State
 
 	local Tgl = Instance.new("TextButton")
-    Tgl.Size = UDim2.new(1, 0, 0, height)
+    Tgl.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Tgl.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Tgl.Text = ""
     Tgl.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -50, 1, 0)
+    Label.Size = UDim2.new(1, -35, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd
     Label.Parent = Tgl
     
     local str
@@ -1118,12 +1114,12 @@ function Library:CreateToggle(Page, Text, Default, Callback)
         Label.TextColor3 = Theme.TextDark
     end
 
-    local bgWidth, bgHeight, cirSize = 32, 16, 12
+    local bgWidth, bgHeight, cirSize = 30, 14, 12
     if isOld then bgWidth, bgHeight, cirSize = 34, 18, 14 end
 
 	local Bg = Instance.new("Frame")
     Bg.Size = UDim2.new(0, bgWidth, 0, bgHeight)
-    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -32, 0.5, -8)
+    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -30, 0.5, -7)
     Bg.BackgroundColor3 = Theme.SwitchOff
     Bg.Parent = Tgl
     Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
@@ -1131,14 +1127,14 @@ function Library:CreateToggle(Page, Text, Default, Callback)
     
 	local Cir = Instance.new("Frame")
     Cir.Size = UDim2.new(0, cirSize, 0, cirSize)
-    Cir.Position = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 2, 0.5, -6)
+    Cir.Position = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 1, 0.5, -6)
     Cir.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
     Cir.Parent = Bg
     Instance.new("UICorner", Cir).CornerRadius = UDim.new(1, 0)
 	
     local function Upd(fireCallback)
-        local onPos = isOld and UDim2.new(1, -16, 0.5, -7) or UDim2.new(1, -14, 0.5, -6)
-        local offPos = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 2, 0.5, -6)
+        local onPos = isOld and UDim2.new(1, -16, 0.5, -7) or UDim2.new(1, -13, 0.5, -6)
+        local offPos = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 1, 0.5, -6)
         
 		if State then 
             TweenService:Create(Bg, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent}):Play()
@@ -1188,19 +1184,18 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     UserConfigs[FlagKey] = Key
 
     local Tgl = Instance.new("TextButton")
-    Tgl.Size = UDim2.new(1, 0, 0, height)
+    Tgl.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Tgl.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Tgl.Text = ""
     Tgl.Parent = targetParent
 
-    -- CORREÇÃO PRINCIPAL AQUI: O TEXTO NÃO PASSA DOS BOTÕES
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -160, 1, 0)
+    Label.Size = UDim2.new(1, -110, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd
     Label.Parent = Tgl
     
     local str
@@ -1223,8 +1218,8 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     end
 
     local KeyBtn = Instance.new("TextButton")
-    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 36, 0, 18)
-    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -85, 0.5, -9)
+    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 32, 0, 16)
+    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -66, 0.5, -8)
     KeyBtn.BackgroundColor3 = Color3.new(0,0,0)
     KeyBtn.BackgroundTransparency = 0.45
     KeyBtn.Text = (Key == "None" and (isOld and "Set Key" or "Key") or Key)
@@ -1237,8 +1232,8 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     kbStr.Color = Color3.fromRGB(40, 40, 40)
 
     local ResetBtn = Instance.new("TextButton")
-    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 30, 0, 18)
-    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -120, 0.5, -9)
+    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 26, 0, 16)
+    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -96, 0.5, -8)
     ResetBtn.BackgroundColor3 = Color3.new(0,0,0)
     ResetBtn.BackgroundTransparency = 0.45
     ResetBtn.Text = isOld and "Reset" or "Del"
@@ -1250,12 +1245,12 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     local rbStr = Instance.new("UIStroke", ResetBtn)
     rbStr.Color = Color3.fromRGB(40, 40, 40)
 
-    local bgWidth, bgHeight, cirSize = 32, 16, 12
+    local bgWidth, bgHeight, cirSize = 30, 14, 12
     if isOld then bgWidth, bgHeight, cirSize = 34, 18, 14 end
 
     local Bg = Instance.new("Frame")
     Bg.Size = UDim2.new(0, bgWidth, 0, bgHeight)
-    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -32, 0.5, -8)
+    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -30, 0.5, -7)
     Bg.BackgroundColor3 = Theme.SwitchOff
     Bg.Parent = Tgl
     Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
@@ -1263,14 +1258,14 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     
 	local Cir = Instance.new("Frame")
     Cir.Size = UDim2.new(0, cirSize, 0, cirSize)
-    Cir.Position = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 2, 0.5, -6)
+    Cir.Position = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 1, 0.5, -6)
     Cir.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
     Cir.Parent = Bg
     Instance.new("UICorner", Cir).CornerRadius = UDim.new(1, 0)
 
     local function Upd(fireCallback)
-        local onPos = isOld and UDim2.new(1, -16, 0.5, -7) or UDim2.new(1, -14, 0.5, -6)
-        local offPos = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 2, 0.5, -6)
+        local onPos = isOld and UDim2.new(1, -16, 0.5, -7) or UDim2.new(1, -13, 0.5, -6)
+        local offPos = isOld and UDim2.new(0, 2, 0.5, -7) or UDim2.new(0, 1, 0.5, -6)
         
         if State then 
             TweenService:Create(Bg, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent}):Play()
@@ -1348,7 +1343,8 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
 	UserConfigs[Flag] = currentVal
 
 	local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, 0, 0, height)
+    Frame.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Frame.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Frame.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
@@ -1358,7 +1354,6 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
     Label.Font = Theme.Font
     Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = Frame
     
 	local ValueLabel = Instance.new("TextLabel")
@@ -1379,14 +1374,14 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
-        Label.Size = UDim2.new(1, -20, 0, 20)
+        Label.Size = UDim2.new(1, -45, 0, 20)
         Label.Position = UDim2.new(0, 10, 0, 2)
         Label.TextColor3 = Theme.Text
         ValueLabel.Position = UDim2.new(1, -10, 0, 2)
         ValueLabel.TextColor3 = Theme.TextDark
     else
         Frame.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -20, 0, 20)
+        Label.Size = UDim2.new(1, -45, 0, 20)
         Label.Position = UDim2.new(0, 5, 0, 2)
         Label.TextColor3 = Theme.TextDark
         ValueLabel.Position = UDim2.new(1, -5, 0, 2)
@@ -1447,7 +1442,8 @@ function Library:CreateInput(Page, Text, Default, Callback)
 	UserConfigs[Flag] = currentVal
 
 	local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, height)
+    Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Container.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Container.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
@@ -1456,7 +1452,6 @@ function Library:CreateInput(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = Container
 
 	local Box = Instance.new("TextBox")
@@ -1486,12 +1481,12 @@ function Library:CreateInput(Page, Text, Default, Callback)
         Box.Position = UDim2.new(1, -80, 0.5, -13)
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -90, 1, 0)
+        Label.Size = UDim2.new(1, -75, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
         Label.TextSize = 11
         Label.TextColor3 = Theme.TextDark
-        Box.Size = UDim2.new(0, 70, 0, 24)
-        Box.Position = UDim2.new(1, -75, 0.5, -12)
+        Box.Size = UDim2.new(0, 60, 0, 24)
+        Box.Position = UDim2.new(1, -65, 0.5, -12)
     end
 	
 	task.spawn(function() pcall(Callback, currentVal) end)
@@ -1515,7 +1510,8 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
     UserConfigs[Flag] = currentVal
 
     local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, height)
+    Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Container.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Container.ClipsDescendants = true
     Container.Parent = targetParent
 
@@ -1531,14 +1527,14 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -1548,7 +1544,7 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -40, 1, 0)
+        Label.Size = UDim2.new(1, -25, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
         Label.TextSize = 11
         Label.TextColor3 = Theme.TextDark
@@ -1561,7 +1557,7 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
 
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -25, 0.5, -10)
+    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -20, 0.5, -10)
     Icon.BackgroundTransparency = 1
     Icon.Text = "▼"
     Icon.TextColor3 = Theme.TextDark
@@ -1607,11 +1603,11 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
         if isOpen then
             local optHeight = isOld and 30 or 26
             local maxHeight = isOld and 180 or 160
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, math.min(height + (#Options * optHeight), maxHeight))}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, math.min(height + (#Options * optHeight), maxHeight))}):Play()
             Icon.Text = "▲"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.Accent}):Play()
         else
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, height)}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, height)}):Play()
             Icon.Text = "▼"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.TextDark}):Play()
         end
@@ -1661,7 +1657,7 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
             end
             
             isOpen = false
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, height)}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, height)}):Play()
             Icon.Text = "▼"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.TextDark}):Play()
             
@@ -1692,7 +1688,8 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
     UserConfigs[Flag] = currentVal
 
     local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, height)
+    Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Container.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Container.ClipsDescendants = true
     Container.Parent = targetParent
 
@@ -1708,14 +1705,14 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -1725,7 +1722,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -40, 1, 0)
+        Label.Size = UDim2.new(1, -25, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
         Label.TextSize = 11
         Label.TextColor3 = Theme.TextDark
@@ -1738,7 +1735,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
 
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -25, 0.5, -10)
+    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -20, 0.5, -10)
     Icon.BackgroundTransparency = 1
     Icon.Text = "▼"
     Icon.TextColor3 = Theme.TextDark
@@ -1823,7 +1820,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
             end
             
             isOpen = false
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, height)}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, height)}):Play()
             Icon.Text = "▼"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.TextDark}):Play()
             
@@ -1852,11 +1849,11 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
             local targetHeight = math.min(height + (playerCount * optHeight), maxHeight)
             if targetHeight == height then targetHeight = height + optHeight end 
             
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetHeight)}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, targetHeight)}):Play()
             Icon.Text = "▲"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.Accent}):Play()
         else
-            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, height)}):Play()
+            TweenService:Create(Container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, isOld and -2 or 0, 0, height)}):Play()
             Icon.Text = "▼"
             TweenService:Create(Icon, TweenInfo.new(0.3), {TextColor3 = Theme.TextDark}):Play()
         end
@@ -1882,7 +1879,8 @@ function Library:CreateColorPicker(Page, Text, DefaultColor, Callback)
     UserConfigs[Flag] = currentVal:ToHex()
 
     local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, height)
+    Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
+    Container.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Container.ClipsDescendants = true
     Container.Parent = targetParent
 
@@ -1898,14 +1896,14 @@ function Library:CreateColorPicker(Page, Text, DefaultColor, Callback)
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.TextTruncate = Enum.TextTruncate.AtEnd 
     Label.Parent = TopBtn
     
+    local str
     if isOld then
         Container.BackgroundColor3 = Color3.new(0, 0, 0)
         Container.BackgroundTransparency = 0.45
         Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", Container)
+        str = Instance.new("UIStroke", Container)
         str.Color = Color3.fromRGB(40, 40, 40)
         str.Thickness = 1
         
@@ -2051,9 +2049,9 @@ function Library:CreateColorPicker(Page, Text, DefaultColor, Callback)
     TopBtn.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         if isOpen then
-            Container.Size = UDim2.new(1, 0, 0, height + 110)
+            Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height + 110)
         else
-            Container.Size = UDim2.new(1, 0, 0, height)
+            Container.Size = UDim2.new(1, isOld and -2 or 0, 0, height)
         end
     end)
 
@@ -2065,7 +2063,8 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     local targetParent = GetParentTarget(Page)
 	local Card = Instance.new("Frame")
     Card.Name = "PlayerCard" 
-    Card.Size = UDim2.new(1, 0, 0, isOld and 50 or ContentConfig.PlayerCardHeight)
+    Card.Size = UDim2.new(1, isOld and -2 or 0, 0, isOld and 50 or ContentConfig.PlayerCardHeight)
+    Card.Position = UDim2.new(0, isOld and 1 or 0, 0, 0)
     Card.Parent = targetParent
     
     if isOld then
@@ -2100,7 +2099,6 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     Display.TextSize = isOld and 13 or 12
     Display.TextColor3 = Theme.Text
     Display.TextXAlignment = Enum.TextXAlignment.Left
-    Display.TextTruncate = Enum.TextTruncate.AtEnd 
     Display.Parent = Card
     
 	local User = Instance.new("TextLabel")
@@ -2112,7 +2110,6 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     User.TextSize = isOld and 11 or 10
     User.TextColor3 = Theme.TextDark
     User.TextXAlignment = Enum.TextXAlignment.Left
-    User.TextTruncate = Enum.TextTruncate.AtEnd 
     User.Parent = Card
     
 	local ActionBtn = Instance.new("TextButton")
@@ -2358,7 +2355,8 @@ local function LoadVisualSkinsPage(Page)
     Library:CreateSection(Page, "Skin Changer")
     
     local InputContainer = Instance.new("Frame")
-    InputContainer.Size = UDim2.new(1, 0, 0, 35)
+    InputContainer.Size = UDim2.new(1, -2, 0, 35)
+    InputContainer.Position = UDim2.new(0, 1, 0, 0)
     InputContainer.BackgroundColor3 = Color3.new(0, 0, 0)
     InputContainer.BackgroundTransparency = 0.45
     InputContainer.Parent = Page
@@ -2452,14 +2450,14 @@ local function LoadFogPage(Page)
     lbl.Parent = row
 
     local Bg = Instance.new("Frame")
-    Bg.Size = UDim2.new(0, 32, 0, 16)
-    Bg.Position = UDim2.new(1, -34, 0.5, -8)
+    Bg.Size = UDim2.new(0, 30, 0, 14)
+    Bg.Position = UDim2.new(1, -30, 0.5, -7)
     Bg.BackgroundColor3 = Theme.SwitchOff
     Bg.Parent = row
     Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
     local Cir = Instance.new("Frame")
     Cir.Size = UDim2.new(0, 12, 0, 12)
-    Cir.Position = UDim2.new(0, 2, 0.5, -6)
+    Cir.Position = UDim2.new(0, 1, 0.5, -6)
     Cir.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
     Cir.Parent = Bg
     Instance.new("UICorner", Cir).CornerRadius = UDim.new(1, 0)
@@ -2489,7 +2487,8 @@ local function LoadSoundsPage(Page)
     Library:CreateSection(Page, "Custom Sound Packs")
     local targetParentSounds = GetParentTarget(Page)
     local ResetBtnFrame = Instance.new("TextButton")
-    ResetBtnFrame.Size = UDim2.new(1, 0, 0, 30)
+    ResetBtnFrame.Size = UDim2.new(1, -2, 0, 30)
+    ResetBtnFrame.Position = UDim2.new(0, 1, 0, 0)
     ResetBtnFrame.BackgroundColor3 = Color3.new(0, 0, 0)
     ResetBtnFrame.BackgroundTransparency = 0.45
     ResetBtnFrame.Text = "Default Sounds (Reset All)"
@@ -2539,7 +2538,8 @@ local function LoadTeleportPage(Page)
     Library:CreateSection(Page, "Players Teleport")
     local RefreshBtn = Instance.new("TextButton")
     RefreshBtn.Name = "RefreshBtnStatic"
-    RefreshBtn.Size = UDim2.new(1, 0, 0, 32)
+    RefreshBtn.Size = UDim2.new(1, -2, 0, 32)
+    RefreshBtn.Position = UDim2.new(0, 1, 0, 0)
     RefreshBtn.BackgroundColor3 = Color3.new(0,0,0)
     RefreshBtn.BackgroundTransparency = 0.45
     RefreshBtn.Text = "Refresh"
@@ -2603,6 +2603,7 @@ local FogPage = createSidebarButton("111246090084265", "Fog", LoadFogPage)
 local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage)
 local AdvancedPage = createSidebarButton("16717281575", "Advanced", LoadAdvancedPage)
 
+-- ESTAS USAM O ESTILO ANTIGO
 local VisualSkinsPage = createSidebarButton("11656483170", "Visual Skins", LoadVisualSkinsPage, true) 
 local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage, true)
 local SettingsPage = createSidebarButton("11293977610", "Settings", nil, true)
@@ -2675,7 +2676,8 @@ Library:CreateToggle(VisualPage, "Wallhop Lines", false, function(state) end)
 Library:CreateSection(SettingsPage, "Menu Configuration")
 
 local KeyFrame = Instance.new("Frame")
-KeyFrame.Size = UDim2.new(1, 0, 0, 40)
+KeyFrame.Size = UDim2.new(1, -2, 0, 40)
+KeyFrame.Position = UDim2.new(0, 1, 0, 0)
 KeyFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 KeyFrame.BackgroundTransparency = 0.45
 KeyFrame.Parent = SettingsPage
@@ -2734,7 +2736,8 @@ CfgNameTitle.TextXAlignment = Enum.TextXAlignment.Left
 CfgNameTitle.Parent = SettingsPage
 
 local CfgInputBg = Instance.new("Frame")
-CfgInputBg.Size = UDim2.new(1, 0, 0, 30)
+CfgInputBg.Size = UDim2.new(1, -2, 0, 30)
+CfgInputBg.Position = UDim2.new(0, 1, 0, 0)
 CfgInputBg.BackgroundColor3 = Color3.new(0, 0, 0)
 CfgInputBg.BackgroundTransparency = 0.45
 CfgInputBg.BorderSizePixel = 0
@@ -2804,8 +2807,8 @@ local dfStr = Instance.new("UIStroke", DefaultFileBtn)
 dfStr.Color = Color3.fromRGB(40, 40, 40)
 
 local ResetAllBtn = Instance.new("TextButton")
-ResetAllBtn.Size = UDim2.new(1, 0, 0, 25)
-ResetAllBtn.Position = UDim2.new(0, 0, 0, 35)
+ResetAllBtn.Size = UDim2.new(1, -2, 0, 25)
+ResetAllBtn.Position = UDim2.new(0, 1, 0, 35)
 ResetAllBtn.BackgroundColor3 = Color3.fromRGB(120, 25, 25)
 ResetAllBtn.BackgroundTransparency = 0.2
 ResetAllBtn.Text = "Reset to Default"
@@ -2828,7 +2831,8 @@ AvailableTitle.TextXAlignment = Enum.TextXAlignment.Left
 AvailableTitle.Parent = SettingsPage
 
 local ConfigListFrame = Instance.new("ScrollingFrame")
-ConfigListFrame.Size = UDim2.new(1, 0, 0, 100)
+ConfigListFrame.Size = UDim2.new(1, -2, 0, 100)
+ConfigListFrame.Position = UDim2.new(0, 1, 0, 0)
 ConfigListFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 ConfigListFrame.BackgroundTransparency = 0.45
 ConfigListFrame.BorderSizePixel = 0
