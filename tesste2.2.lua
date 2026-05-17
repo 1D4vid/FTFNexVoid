@@ -195,7 +195,6 @@ local function ResetAllConfigs()
     CurrentKey = Enum.KeyCode.K
 end
 
--- Tamanhos ORIGINAIS exigidos restaurados
 local Config = {
 	MainSize = isMobile and UDim2.new(0, 520, 0, 365) or UDim2.new(0, 600, 0, 420),
 	SidebarWidth = isMobile and 130 or 150,
@@ -924,7 +923,7 @@ local function GetParentTarget(Page)
 end
 
 -- ==========================================
--- CRIAÇÃO DOS ELEMENTOS (COM TEXTSCALED - NENHUM "...")
+-- CRIAÇÃO DOS ELEMENTOS 
 -- ==========================================
 
 function Library:CreateSection(Page, Text, ForceSide)
@@ -1092,7 +1091,7 @@ function Library:CreateToggle(Page, Text, Default, Callback)
     Tgl.Parent = targetParent
 
 	local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -35, 1, 0)
+    Label.Size = UDim2.new(1, -40, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
@@ -1198,7 +1197,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     Tgl.Parent = targetParent
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -95, 1, 0)
+    Label.Size = UDim2.new(1, -110, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
@@ -1229,28 +1228,28 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
     end
 
     local KeyBtn = Instance.new("TextButton")
-    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 26, 0, 16)
-    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -62, 0.5, -8)
+    KeyBtn.Size = isOld and UDim2.new(0, 45, 0, 20) or UDim2.new(0, 32, 0, 16)
+    KeyBtn.Position = isOld and UDim2.new(1, -100, 0.5, -10) or UDim2.new(1, -66, 0.5, -8)
     KeyBtn.BackgroundColor3 = Color3.new(0,0,0)
     KeyBtn.BackgroundTransparency = 0.45
     KeyBtn.Text = (Key == "None" and (isOld and "Set Key" or "Key") or Key)
     KeyBtn.TextColor3 = Theme.TextDark
     KeyBtn.Font = Enum.Font.Gotham
-    KeyBtn.TextSize = 9
+    KeyBtn.TextSize = 10
     KeyBtn.Parent = Tgl
     Instance.new("UICorner", KeyBtn).CornerRadius = UDim.new(0, 4)
     local kbStr = Instance.new("UIStroke", KeyBtn)
     kbStr.Color = Color3.fromRGB(40, 40, 40)
 
     local ResetBtn = Instance.new("TextButton")
-    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 24, 0, 16)
-    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -88, 0.5, -8)
+    ResetBtn.Size = isOld and UDim2.new(0, 40, 0, 20) or UDim2.new(0, 26, 0, 16)
+    ResetBtn.Position = isOld and UDim2.new(1, -148, 0.5, -10) or UDim2.new(1, -96, 0.5, -8)
     ResetBtn.BackgroundColor3 = Color3.new(0,0,0)
     ResetBtn.BackgroundTransparency = 0.45
     ResetBtn.Text = isOld and "Reset" or "Del"
     ResetBtn.TextColor3 = Theme.CloseRed
     ResetBtn.Font = Enum.Font.Gotham
-    ResetBtn.TextSize = 9
+    ResetBtn.TextSize = 10
     ResetBtn.Parent = Tgl
     Instance.new("UICorner", ResetBtn).CornerRadius = UDim.new(0, 4)
     local rbStr = Instance.new("UIStroke", ResetBtn)
@@ -1261,7 +1260,7 @@ function Library:CreateToggleKeybind(Page, Text, DefaultState, DefaultKey, Callb
 
     local Bg = Instance.new("Frame")
     Bg.Size = UDim2.new(0, bgWidth, 0, bgHeight)
-    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -32, 0.5, -7)
+    Bg.Position = isOld and UDim2.new(1, -46, 0.5, -9) or UDim2.new(1, -30, 0.5, -7)
     Bg.BackgroundColor3 = Theme.SwitchOff
     Bg.Parent = Tgl
     Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
@@ -1363,6 +1362,7 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
     Label.Text = Text
     Label:SetAttribute("OriginalText", Text) 
     Label.Font = Theme.Font
+    Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.TextScaled = true 
     local lConst = Instance.new("UITextSizeConstraint", Label)
@@ -1597,7 +1597,7 @@ function Library:CreateDropdown(Page, Text, Options, Default, Callback)
     local AccentLine = Instance.new("Frame")
     AccentLine.Size = UDim2.new(0, 2, 1, 0)
     AccentLine.Position = UDim2.new(1, -2, 0, 0)
-    AccentLine.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    AccentLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     AccentLine.BorderSizePixel = 0
     AccentLine.ZIndex = 5
     AccentLine.Parent = MenuBg
@@ -1746,7 +1746,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
         Label.TextColor3 = Theme.Text
     else
         Container.BackgroundTransparency = 1
-        Label.Size = UDim2.new(1, -25, 1, 0)
+        Label.Size = UDim2.new(1, -40, 1, 0)
         Label.Position = UDim2.new(0, 5, 0, 0)
         lConst.MaxTextSize = 11
         Label.TextColor3 = Theme.TextDark
@@ -1759,7 +1759,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
 
     local Icon = Instance.new("TextLabel")
     Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -20, 0.5, -10)
+    Icon.Position = isOld and UDim2.new(1, -30, 0.5, -10) or UDim2.new(1, -25, 0.5, -10)
     Icon.BackgroundTransparency = 1
     Icon.Text = "▼"
     Icon.TextColor3 = Theme.TextDark
@@ -1778,7 +1778,7 @@ function Library:CreatePlayerDropdown(Page, Text, Default, Callback)
     local AccentLine = Instance.new("Frame")
     AccentLine.Size = UDim2.new(0, 2, 1, 0)
     AccentLine.Position = UDim2.new(1, -2, 0, 0)
-    AccentLine.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    AccentLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     AccentLine.BorderSizePixel = 0
     AccentLine.ZIndex = 5
     AccentLine.Parent = MenuBg
@@ -2126,7 +2126,7 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     Display.TextScaled = true 
     local dConst = Instance.new("UITextSizeConstraint", Display)
     dConst.MinTextSize = 7
-    dConst.MaxTextSize = isOld and 13 or 11
+    dConst.MaxTextSize = isOld and 13 or 12
     Display.TextColor3 = Theme.Text
     Display.TextXAlignment = Enum.TextXAlignment.Left
     Display.Parent = Card
@@ -2140,7 +2140,7 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     User.TextScaled = true 
     local uConst = Instance.new("UITextSizeConstraint", User)
     uConst.MinTextSize = 7
-    uConst.MaxTextSize = isOld and 11 or 9
+    uConst.MaxTextSize = isOld and 11 or 10
     User.TextColor3 = Theme.TextDark
     User.TextXAlignment = Enum.TextXAlignment.Left
     User.Parent = Card
@@ -2164,8 +2164,200 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     end)
 end
 
+local function LoadTeleportPage(Page) 
+    local savedCFrame = nil
+    local checkpointMarker = nil
+    local currentPCIndex = 0
+    local currentDoorIndex = 0
+    local currentPodIndex = 0
+    local tpKeybindConn = nil
+
+    Library:CreateSection(Page, "Map Objects", "Left")
+    
+    local CheckpointFrame = Instance.new("Frame")
+    CheckpointFrame.Name = "CheckpointFrame"
+    CheckpointFrame.Size = UDim2.new(0, 40, 0, 90)
+    CheckpointFrame.Position = UDim2.new(0, 2, 0.5, -45)
+    CheckpointFrame.BackgroundTransparency = 1
+    CheckpointFrame.Visible = false
+    CheckpointFrame.ZIndex = 50
+    CheckpointFrame.Parent = ScreenGui
+
+    local CPListLayout = Instance.new("UIListLayout")
+    CPListLayout.Parent = CheckpointFrame
+    CPListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    CPListLayout.Padding = UDim.new(0, 8)
+
+    local SetBtn = Instance.new("ImageButton")
+    SetBtn.Size = UDim2.new(1, 0, 0, 40)
+    SetBtn.BackgroundTransparency = 1
+    SetBtn.Image = "rbxassetid://6723742952"
+    SetBtn.Parent = CheckpointFrame
+
+    local TpBtn = Instance.new("ImageButton")
+    TpBtn.Size = UDim2.new(1, 0, 0, 40)
+    TpBtn.BackgroundTransparency = 1
+    TpBtn.Image = "rbxassetid://6723921202"
+    TpBtn.Parent = CheckpointFrame
+
+    local function createMarker(cframe)
+        if checkpointMarker and checkpointMarker.Parent then
+            checkpointMarker:Destroy()
+        end
+        checkpointMarker = Instance.new("Part")
+        checkpointMarker.Name = "FleeCheckpointMarker"
+        checkpointMarker.Shape = Enum.PartType.Cylinder
+        checkpointMarker.Size = Vector3.new(0.2, 4, 4)
+        checkpointMarker.CFrame = cframe * CFrame.new(0, -2.5, 0) * CFrame.Angles(0, 0, math.rad(90))
+        checkpointMarker.Anchored = true
+        checkpointMarker.CanCollide = false
+        checkpointMarker.Material = Enum.Material.Neon
+        checkpointMarker.Color = Color3.fromRGB(0, 255, 128)
+        checkpointMarker.Transparency = 0.4
+        checkpointMarker.Parent = Workspace
+        
+        local light = Instance.new("PointLight")
+        light.Color = checkpointMarker.Color
+        light.Range = 8
+        light.Brightness = 2
+        light.Parent = checkpointMarker
+    end
+
+    local function teleportToCheckpoint()
+        if savedCFrame then
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = savedCFrame
+                TpBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+                task.delay(0.15, function() TpBtn.ImageColor3 = Color3.fromRGB(255, 255, 255) end)
+            end
+        else
+            SendNotification("No checkpoint set!", 2)
+        end
+    end
+
+    SetBtn.MouseButton1Click:Connect(function()
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            savedCFrame = char.HumanoidRootPart.CFrame
+            createMarker(savedCFrame)
+            SetBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+            task.delay(0.15, function() SetBtn.ImageColor3 = Color3.fromRGB(255, 255, 255) end)
+            SendNotification("Checkpoint Set!", 2)
+        end
+    end)
+
+    TpBtn.MouseButton1Click:Connect(teleportToCheckpoint)
+
+    Library:CreateToggle(Page, "Checkpoint (UI+R)", false, function(state) 
+        CheckpointFrame.Visible = state 
+        if state then
+            if not tpKeybindConn then
+                tpKeybindConn = UserInputService.InputBegan:Connect(function(input, gp)
+                    if gp then return end
+                    if input.KeyCode == Enum.KeyCode.R then
+                        teleportToCheckpoint()
+                    end
+                end)
+            end
+        else
+            if tpKeybindConn then 
+                tpKeybindConn:Disconnect() 
+                tpKeybindConn = nil 
+            end
+            if checkpointMarker then
+                checkpointMarker:Destroy()
+                checkpointMarker = nil
+            end
+            savedCFrame = nil
+        end
+    end)
+
+    Library:CreateButton(Page, "TP Computer", function() 
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        local pcs = {}
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name == "ComputerTable" then table.insert(pcs, obj) end
+        end
+        if #pcs == 0 then SendNotification("Map not loaded!", 2) return end
+        currentPCIndex = currentPCIndex + 1
+        if currentPCIndex > #pcs then currentPCIndex = 1 end
+        local pc = pcs[currentPCIndex]
+        local pcCFrame
+        if pc:IsA("Model") then pcCFrame = pc:GetPivot() else
+            local part = pc:FindFirstChildWhichIsA("BasePart")
+            if part then pcCFrame = part.CFrame end
+        end
+        if pcCFrame then char.HumanoidRootPart.CFrame = pcCFrame * CFrame.new(0, 3, -3) end
+    end)
+
+    Library:CreateButton(Page, "TP Exitdoor", function() 
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        local doors = {}
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("Model") then
+                local name = string.lower(obj.Name)
+                if string.find(name, "exit") and string.find(name, "door") then table.insert(doors, obj) end
+            end
+        end
+        if #doors == 0 then SendNotification("ExitDoors not found!", 2) return end
+        currentDoorIndex = currentDoorIndex + 1
+        if currentDoorIndex > #doors then currentDoorIndex = 1 end
+        local door = doors[currentDoorIndex]
+        local part = door.PrimaryPart or door:FindFirstChildWhichIsA("BasePart")
+        if part then char.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 3, 0) end
+    end)
+
+    Library:CreateButton(Page, "TP Freezepods", function() 
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        local pods = {}
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name == "FreezePod" then table.insert(pods, obj) end
+        end
+        if #pods == 0 then SendNotification("Map not loaded!", 2) return end
+        currentPodIndex = currentPodIndex + 1
+        if currentPodIndex > #pods then currentPodIndex = 1 end
+        local pod = pods[currentPodIndex]
+        local base = pod:FindFirstChild("BasePart") or pod:FindFirstChildWhichIsA("Part")
+        if base then char.HumanoidRootPart.CFrame = base.CFrame * CFrame.new(0, 1, -3) end
+    end)
+
+    Library:CreateSection(Page, "Players", "Right")
+    local TargetContainer = Library.CurrentSections[Page]
+
+    local function UpdateTeleportList()
+        if not TargetContainer then return end
+        for _, child in pairs(TargetContainer:GetChildren()) do 
+            if child.Name == "PlayerCard" then 
+                child:Destroy() 
+            end 
+        end
+
+        for _, player in pairs(Players:GetPlayers()) do 
+            if player ~= LocalPlayer then 
+                Library.CurrentSections[Page] = TargetContainer
+                Library:CreatePlayerCard(Page, player, function()
+                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0) 
+                    end
+                end) 
+            end 
+        end
+    end
+
+    Library:CreateButton(Page, "Refresh List", function()
+        UpdateTeleportList()
+        SendNotification("Player list updated!", 2)
+    end)
+    
+    UpdateTeleportList()
+end
+
 -- ==========================================
--- PAGE LOADERS
+-- PAGE LOADERS PLACEHOLDERS (MANTIDOS VAZIOS COMO O SCRIPT ORIGINAL)
 -- ==========================================
 
 local function LoadProgressPage(Page)
@@ -2534,61 +2726,6 @@ local function LoadSoundsPage(Page)
     rbsStr.Color = Color3.fromRGB(40,40,40)
 end
 
-local function LoadTeleportPage(Page) 
-    Library:CreateSection(Page, "Map Objects Teleport", "Left")
-    
-    local CheckpointFrame = Instance.new("Frame")
-    CheckpointFrame.Name = "CheckpointFrame"
-    CheckpointFrame.Size = UDim2.new(0, 40, 0, 90)
-    CheckpointFrame.Position = UDim2.new(0, 2, 0.5, -45)
-    CheckpointFrame.BackgroundTransparency = 1
-    CheckpointFrame.Visible = false
-    CheckpointFrame.ZIndex = 50
-    CheckpointFrame.Parent = ScreenGui
-
-    local CPListLayout = Instance.new("UIListLayout")
-    CPListLayout.Parent = CheckpointFrame
-    CPListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    CPListLayout.Padding = UDim.new(0, 8)
-
-    local SetBtn = Instance.new("ImageButton")
-    SetBtn.Size = UDim2.new(1, 0, 0, 40)
-    SetBtn.BackgroundTransparency = 1
-    SetBtn.Image = "rbxassetid://6723742952"
-    SetBtn.Parent = CheckpointFrame
-
-    local TpBtn = Instance.new("ImageButton")
-    TpBtn.Size = UDim2.new(1, 0, 0, 40)
-    TpBtn.BackgroundTransparency = 1
-    TpBtn.Image = "rbxassetid://6723921202"
-    TpBtn.Parent = CheckpointFrame
-
-    Library:CreateToggle(Page, "Checkpoint (UI + R Key)", false, function(state) CheckpointFrame.Visible = state end)
-    Library:CreateButton(Page, "Teleport Computer", function() end)
-    Library:CreateButton(Page, "Teleport Exitdoor", function() end)
-    Library:CreateButton(Page, "Teleport Freezepods", function() end)
-
-    Library:CreateSection(Page, "Players Teleport", "Right")
-    local targetParentTp = GetParentTarget(Page).RightCol:FindFirstChild("CategoryBox_Players Teleport")
-    
-    local RefreshBtn = Instance.new("TextButton")
-    RefreshBtn.Name = "RefreshBtnStatic"
-    RefreshBtn.Size = UDim2.new(1, -2, 0, 28)
-    RefreshBtn.Position = UDim2.new(0, 1, 0, 0)
-    RefreshBtn.BackgroundColor3 = Color3.new(0,0,0)
-    RefreshBtn.BackgroundTransparency = 0.45
-    RefreshBtn.Text = "Refresh List"
-    RefreshBtn.TextColor3 = Theme.Accent
-    RefreshBtn.Font = Theme.Font
-    RefreshBtn.TextSize = 11
-    RefreshBtn.Parent = targetParentTp
-    Instance.new("UICorner", RefreshBtn).CornerRadius = UDim.new(0, 6)
-    local rbStr = Instance.new("UIStroke", RefreshBtn)
-    rbStr.Color = Color3.fromRGB(40,40,40)
-    
-    Library:CreatePlayerCard(Page, LocalPlayer, function() end)
-end
-
 local function LoadAdvancedPage(Page)
     Library:CreateSection(Page, "Survivor")
     Library:CreateToggle(Page, "Auto Save (Teleport)", false, function(state) end)
@@ -2638,6 +2775,7 @@ local FogPage = createSidebarButton("111246090084265", "Fog", LoadFogPage)
 local SoundsPage = createSidebarButton("13288142767", "Sound", LoadSoundsPage, true)
 local AdvancedPage = createSidebarButton("16717281575", "Advanced", LoadAdvancedPage)
 
+-- ESTAS USAM O ESTILO ANTIGO (MANTIDOS SE FOR O CASO)
 local VisualSkinsPage = createSidebarButton("11656483170", "Visual Skins", LoadVisualSkinsPage, true) 
 local TeleportPage = createSidebarButton("12689978575", "Teleport", LoadTeleportPage) 
 local SettingsPage = createSidebarButton("11293977610", "Settings", nil, true)
@@ -2705,7 +2843,6 @@ Library:CreateToggle(VisualPage, "Hide Leaves (Only Homestead)", false, function
 Library:CreateToggle(VisualPage, "Gray characters", false, function(state) end)
 Library:CreateToggle(VisualPage, "Floorbang", false, function(state) end)
 Library:CreateToggle(VisualPage, "Wallhop Lines", false, function(state) end)
-
 
 -- ==========================================
 -- ABA DE SETTINGS
@@ -2974,6 +3111,133 @@ end)
 
 Library:CreateButton(SettingsPage, "Random Servers", function()
     SendNotification("Server Hop triggered (Framework only)", 2)
+end)
+
+-- ==========================================
+-- MODAL DE INFO (Cards) Restaurado
+-- ==========================================
+local function createInfoCard(titleText, items)
+    local Card = Instance.new("Frame")
+    Card.Size = UDim2.new(1, -15, 0, 40 + (#items * 25))
+    Card.BackgroundColor3 = Color3.new(0, 0, 0)
+    Card.BackgroundTransparency = 0.45
+    Card.BorderSizePixel = 0
+    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 6)
+
+    local Stroke = Instance.new("UIStroke", Card)
+    Stroke.Color = Color3.fromRGB(40, 40, 40)
+    Stroke.Thickness = 1
+    
+    local TitleLabel = Instance.new("TextLabel", Card)
+    TitleLabel.Size = UDim2.new(1, -30, 0, 30)
+    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = titleText
+    TitleLabel.Font = Enum.Font.GothamBlack
+    TitleLabel.TextSize = 12
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local AccentBar = Instance.new("Frame", Card)
+    AccentBar.Size = UDim2.new(0, 3, 0, 14)
+    AccentBar.Position = UDim2.new(0, 10, 0, 8)
+    AccentBar.BackgroundColor3 = Theme.Accent
+    AccentBar.BorderSizePixel = 0
+    Instance.new("UICorner", AccentBar).CornerRadius = UDim.new(1, 0)
+    
+    local Sep = Instance.new("Frame", Card)
+    Sep.Size = UDim2.new(1, -20, 0, 1)
+    Sep.Position = UDim2.new(0, 10, 0, 30)
+    Sep.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Sep.BorderSizePixel = 0
+
+    local dynamicLabels = {}
+
+    for i, field in ipairs(items) do
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, -20, 0, 20)
+        Label.Position = UDim2.new(0, 15, 0, 35 + ((i - 1) * 25))
+        Label.BackgroundTransparency = 1
+        Label.RichText = true
+        Label.Text = field.Default
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 12
+        Label.TextColor3 = Theme.Text
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = Card
+
+        if field.Id then
+            dynamicLabels[field.Id] = Label
+        end
+    end
+    return Card, dynamicLabels
+end
+
+local creditsCard, _ = createInfoCard("CREDITS", {
+    {Default = "<b>UI Framework Extracted</b>"},
+    {Default = "<b>Ready for custom scripts!</b>"}
+})
+creditsCard.Parent = InfoScroll
+
+local playerCard, playerLabels = createInfoCard("PLAYER INFO", {
+    {Id = "FPS", Default = "<b>FPS:</b> <font color='rgb(150,150,150)'>...</font>"},
+    {Id = "Ping", Default = "<b>Ping:</b> <font color='rgb(150,150,150)'>... ms</font>"},
+    {Id = "Exec", Default = "<b>Executor:</b> <font color='rgb(150,150,150)'>" .. (identifyexecutor and identifyexecutor() or "Unknown") .. "</font>"}
+})
+playerCard.Parent = InfoScroll
+
+local serverCard, serverLabels = createInfoCard("SERVER INFO", {
+    {Id = "Region", Default = "<b>Region:</b> <font color='rgb(150,150,150)'>Fetching...</font>"},
+    {Id = "Players", Default = "<b>Players:</b> <font color='rgb(150,150,150)'>...</font>"},
+    {Id = "Max", Default = "<b>Max Players:</b> <font color='rgb(150,150,150)'>" .. tostring(Players.MaxPlayers) .. "</font>"}
+})
+serverCard.Parent = InfoScroll
+
+-- Atualização Dinâmica da Rolagem
+InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    InfoScroll.CanvasSize = UDim2.new(0, 0, 0, InfoLayout.AbsoluteContentSize.Y + 20)
+end)
+
+local frames = 0
+local lastUpdate = tick()
+
+task.spawn(function()
+    local s, r = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
+    end)
+    local reg = "Unknown"
+    if s and r and r.countryCode then
+        reg = r.countryCode
+    end
+    if serverLabels["Region"] then
+        serverLabels["Region"].Text = "<b>Region:</b> <font color='rgb(150,150,150)'>" .. reg .. "</font>"
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    frames = frames + 1
+    local currentTick = tick()
+    if currentTick - lastUpdate >= 1 then
+        local fps = frames
+        frames = 0
+        lastUpdate = currentTick
+        
+        if playerLabels["FPS"] then
+            playerLabels["FPS"].Text = "<b>FPS:</b> <font color='rgb(150,150,150)'>" .. tostring(fps) .. "</font>"
+        end
+        
+        local pingVal = 0
+        pcall(function()
+            pingVal = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        if playerLabels["Ping"] then
+            playerLabels["Ping"].Text = "<b>Ping:</b> <font color='rgb(150,150,150)'>" .. tostring(pingVal) .. " ms</font>"
+        end
+
+        if serverLabels["Players"] then
+            serverLabels["Players"].Text = "<b>Players:</b> <font color='rgb(150,150,150)'>" .. tostring(#Players:GetPlayers()) .. "</font>"
+        end
+    end
 end)
 
 if tabs[1] then 
