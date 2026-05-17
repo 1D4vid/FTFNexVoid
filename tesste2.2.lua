@@ -6,6 +6,7 @@ local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then
@@ -1405,6 +1406,7 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
     end
 
 	local SliderBar = Instance.new("Frame")
+    -- ALTERADO: Aumentando a altura da barra para 8 e ajustando Y para 25
     SliderBar.Size = isOld and UDim2.new(1, -20, 0, 8) or UDim2.new(1, -10, 0, 8)
     SliderBar.Position = isOld and UDim2.new(0, 10, 0, 25) or UDim2.new(0, 5, 0, 25)
     SliderBar.BackgroundColor3 = Theme.SwitchOff
@@ -2176,7 +2178,7 @@ function Library:CreatePlayerCard(Page, Player, Callback)
 end
 
 -- ==========================================
--- TELEPORT PAGE
+-- LAZY LOAD PAGES
 -- ==========================================
 local function LoadTeleportPage(pageObj)
     local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/teleport2.7.lua") end)
@@ -2196,9 +2198,6 @@ local function LoadTeleportPage(pageObj)
     end
 end
 
--- ==========================================
--- FOG PAGE
--- ==========================================
 local function LoadFogPage(pageObj)
     local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/fog2.7.lua") end)
     if s and code then
@@ -2214,1108 +2213,128 @@ local function LoadFogPage(pageObj)
     end
 end
 
--- ==========================================
--- TEXTURES PAGE (PORTADO DA UI ANTIGA)
--- ==========================================
-local function LoadTexturesPage(Page)
-    local formatID = function(id)
-        if type(id) == "number" and id > 0 then return "rbxassetid://" .. id
-        elseif type(id) == "string" and id ~= "" and id ~= "0" then
-            if not id:find("rbxassetid://") then return "rbxassetid://" .. id else return id end
-        end
-        return nil
+local function LoadSoundsPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/sounds2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            Workspace = Workspace,
+            TweenService = TweenService,
+            Theme = Theme,
+            UserConfigs = UserConfigs,
+            GetParentTarget = GetParentTarget
+        })
+    else
+        warn("Failed to load Sounds Page")
     end
-
-    local function createGridContainer(parentTarget)
-        local bg = Instance.new("Frame")
-        bg.Size = UDim2.new(1, -2, 0, 0)
-        bg.Position = UDim2.new(0, 1, 0, 0)
-        bg.AutomaticSize = Enum.AutomaticSize.Y
-        bg.BackgroundColor3 = Color3.new(0, 0, 0)
-        bg.BackgroundTransparency = 0.45
-        bg.Parent = parentTarget
-        Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", bg)
-        str.Color = Color3.fromRGB(40, 40, 40)
-        str.Thickness = 1
-
-        local wrapper = Instance.new("Frame")
-        wrapper.Size = UDim2.new(1, 0, 0, 0)
-        wrapper.AutomaticSize = Enum.AutomaticSize.Y
-        wrapper.BackgroundTransparency = 1
-        wrapper.Parent = bg
-        
-        local grid = Instance.new("UIGridLayout")
-        grid.CellSize = UDim2.new(0, 36, 0, 36)
-        grid.CellPadding = UDim2.new(0, 8, 0, 8)
-        grid.SortOrder = Enum.SortOrder.LayoutOrder
-        grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        grid.Parent = wrapper
-        
-        local pad = Instance.new("UIPadding")
-        pad.PaddingTop = UDim.new(0, 8)
-        pad.PaddingBottom = UDim.new(0, 8)
-        pad.Parent = wrapper
-
-        return wrapper
-    end
-
-    Library:CreateSection(Page, "Map Textures", "Left")
-
-    -- [ WHITE BRICKS ]
-    local wbEnabled = false
-    local wbDescConn
-    local wbBkp = setmetatable({}, {__mode = "k"})
-    
-    local function applyWhiteBrick(part)
-        if not wbEnabled then return end
-        if not part:IsA("BasePart") or part:IsA("Terrain") then return end
-        
-        local parentModel = part:FindFirstAncestorOfClass("Model")
-        if parentModel and parentModel:FindFirstChildOfClass("Humanoid") then return end
-
-        if not wbBkp[part] then 
-            wbBkp[part] = {M = part.Material, C = part.Color} 
-        end
-        
-        pcall(function()
-            part.Material = Enum.Material.Brick
-            part.Color = Color3.fromRGB(255, 255, 255)
-        end)
-    end
-
-    Library:CreateToggle(Page, "White Bricks", false, function(state)
-        wbEnabled = state
-        if state then
-            task.spawn(function()
-                local desc = Workspace:GetDescendants()
-                local t = os.clock()
-                for i = 1, #desc do
-                    if not wbEnabled then break end
-                    applyWhiteBrick(desc[i])
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-            wbDescConn = Workspace.DescendantAdded:Connect(function(child)
-                if wbEnabled then task.defer(function() applyWhiteBrick(child) end) end
-            end)
-        else
-            if wbDescConn then wbDescConn:Disconnect() wbDescConn = nil end
-            local currentBkp = wbBkp
-            wbBkp = setmetatable({}, {__mode = "k"})
-            local toRevert = {}
-            for p, d in pairs(currentBkp) do table.insert(toRevert, {part = p, mat = d.M, col = d.C}) end
-            task.spawn(function()
-                local t = os.clock()
-                for i = 1, #toRevert do
-                    local item = toRevert[i]
-                    local p = item.part
-                    if p and p.Parent then
-                        pcall(function() p.Material = item.mat; p.Color = item.col end)
-                    end
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-        end
-    end)
-
-    -- [ SNOW TEXTURES ]
-    local snowEnabled = false
-    local snowDescConn
-    local snowBkp = setmetatable({}, {__mode = "k"})
-    local IgnoreNames = { ComputerTable = true, ExitDoor = true }
-    
-    local function applySnowTexture(part)
-        if not snowEnabled then return end
-        if not part:IsA("BasePart") or part:IsA("Terrain") then return end
-        if not part.Anchored or IgnoreNames[part.Name] then return end
-
-        if not snowBkp[part] then snowBkp[part] = {M = part.Material, C = part.Color} end
-        
-        pcall(function()
-            part.Material = Enum.Material.Snow
-            part.Color = Color3.fromRGB(255, 255, 255)
-        end)
-    end
-
-    Library:CreateToggle(Page, "Snow Textures", false, function(state)
-        snowEnabled = state
-        if state then
-            task.spawn(function()
-                local desc = Workspace:GetDescendants()
-                local t = os.clock()
-                for i = 1, #desc do
-                    if not snowEnabled then break end
-                    applySnowTexture(desc[i])
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-            snowDescConn = Workspace.DescendantAdded:Connect(function(child)
-                if snowEnabled then task.defer(function() applySnowTexture(child) end) end
-            end)
-        else
-            if snowDescConn then snowDescConn:Disconnect() snowDescConn = nil end
-            local currentBkp = snowBkp
-            snowBkp = setmetatable({}, {__mode = "k"})
-            local toRevert = {}
-            for p, d in pairs(currentBkp) do table.insert(toRevert, {part = p, mat = d.M, col = d.C}) end
-            task.spawn(function()
-                local t = os.clock()
-                for i = 1, #toRevert do
-                    local item = toRevert[i]
-                    local p = item.part
-                    if p and p.Parent then
-                        pcall(function() p.Material = item.mat; p.Color = item.col end)
-                    end
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-        end
-    end)
-
-    Library:CreateToggle(Page, "Remove Textures", false, function(state) 
-        if not getgenv().NexOptimization then
-            getgenv().NexOptimization = loadstring(game:HttpGet("https://raw.githubusercontent.com/1D4vid/FTFNexVoid/refs/heads/main/fps%20booster%20e%20remove%20textures.lua"))()
-        end
-        getgenv().NexOptimization.ToggleTextures(state)
-    end)
-    
-    Library:CreateToggle(Page, "FpsBooster", false, function(state) 
-        if not getgenv().NexOptimization then
-            getgenv().NexOptimization = loadstring(game:HttpGet("https://raw.githubusercontent.com/1D4vid/FTFNexVoid/refs/heads/main/fps%20booster%20e%20remove%20textures.lua"))()
-        end
-        getgenv().NexOptimization.ToggleFPSBooster(state)
-    end)
-
-    -- [ ULTRA HD GRAPHICS ]
-    local ultraHDConns = {}
-    local createdMaterials = {}
-    Library:CreateToggle(Page, "Ultra HD Graphics", false, function(state) 
-        local MaterialService = game:GetService("MaterialService")
-        local StarterGui = game:GetService("StarterGui")
-        local Cam = Workspace.CurrentCamera
-        
-        if state then
-            local function createMaterial(name, baseMaterial, colorMap, normalMap, roughnessMap)
-                local Mat = Instance.new("MaterialVariant")
-                Mat.Name = name .. "_TextureOnly"
-                Mat.BaseMaterial = baseMaterial
-                Mat.ColorMap = colorMap
-                Mat.NormalMap = normalMap
-                Mat.RoughnessMap = roughnessMap
-                Mat.Parent = MaterialService
-                pcall(function() MaterialService:SetBaseMaterialOverride(baseMaterial, Mat) end)
-                table.insert(createdMaterials, {Variant = Mat, Base = baseMaterial})
-            end
-            createMaterial("Concrete", Enum.Material.Concrete, "rbxassetid://6223521473", "rbxassetid://6223521257", "rbxassetid://6223521360")
-            createMaterial("Brick", Enum.Material.Brick, "rbxassetid://6396996328", "rbxassetid://6396996024", "rbxassetid://6396996160")
-            createMaterial("Wood", Enum.Material.Wood, "rbxassetid://924320031", "rbxassetid://924320256", "rbxassetid://924305001")
-            createMaterial("WoodPlanks", Enum.Material.WoodPlanks, "rbxassetid://924320031", "rbxassetid://924320256", "rbxassetid://924305001")
-            pcall(function() MaterialService.Use2022Materials = true end)
-
-            local spectateIndex = 1
-            local allPlayers = {}
-            local function updatePlayerList()
-                allPlayers = {}
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Humanoid") then
-                        table.insert(allPlayers, plr)
-                    end
-                end
-            end
-            local function spectatePlayer(direction)
-                updatePlayerList()
-                if #allPlayers == 0 then return end
-                spectateIndex = spectateIndex + direction
-                if spectateIndex > #allPlayers then spectateIndex = 1 end
-                if spectateIndex < 1 then spectateIndex = #allPlayers end
-                local target = allPlayers[spectateIndex]
-                if target and target.Character and target.Character:FindFirstChild("Humanoid") then
-                    Cam.CameraType = Enum.CameraType.Custom
-                    Cam.CameraSubject = target.Character.Humanoid
-                    pcall(function() StarterGui:SetCore("SendNotification", {Title = "Spectating", Text = target.Name, Duration = 1}) end)
-                end
-            end
-            local function stopSpectating()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                    Cam.CameraType = Enum.CameraType.Custom
-                    Cam.CameraSubject = LocalPlayer.Character.Humanoid
-                    pcall(function() StarterGui:SetCore("SendNotification", {Title = "Reset", Text = "Camera no Jogador", Duration = 2}) end)
-                end
-            end
-            table.insert(ultraHDConns, UserInputService.InputBegan:Connect(function(input, gameProcessed)
-                if gameProcessed then return end
-                if input.KeyCode == Enum.KeyCode.Right then spectatePlayer(1)
-                elseif input.KeyCode == Enum.KeyCode.Left then spectatePlayer(-1)
-                elseif input.KeyCode == Enum.KeyCode.Backspace then stopSpectating() end
-            end))
-        else
-            for _, m in ipairs(createdMaterials) do
-                pcall(function() MaterialService:SetBaseMaterialOverride(m.Base, "") end)
-                if m.Variant then m.Variant:Destroy() end
-            end
-            table.clear(createdMaterials)
-            pcall(function() MaterialService.Use2022Materials = false end)
-            for _, c in ipairs(ultraHDConns) do c:Disconnect() end
-            table.clear(ultraHDConns)
-            if Cam.CameraSubject and Cam.CameraSubject:IsA("Humanoid") and Cam.CameraSubject.Parent ~= LocalPlayer.Character then
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                    Cam.CameraType = Enum.CameraType.Custom
-                    Cam.CameraSubject = LocalPlayer.Character.Humanoid
-                end
-            end
-        end
-    end)
-
-    -- [ MINECRAFT TEXTURE ]
-    local mcOriginalMaterials = setmetatable({}, {__mode = "k"})
-    local mcDescendantConn
-    local mcLoopConn
-    local mcFila = {}
-    local mcEnabled = false
-    local mcFaces = {"Front", "Back", "Bottom", "Top", "Right", "Left"}
-    local mcMaterials = {
-        Wood = "3258599312", WoodPlanks = "8676581022", Brick = "8558400252", Cobblestone = "5003953441",
-        Concrete = "7341687607", DiamondPlate = "6849247561", Fabric = "118776397", Granite = "4722586771",
-        Grass = "4722588177", Ice = "3823766459", Marble = "62967586", Metal = "62967586", Sand = "152572215"
-    }
-
-    local function processMCPart(part)
-        if not mcEnabled then return end
-        if part:IsA("BasePart") and part.Transparency < 1 then
-            if part:FindFirstChild("McTexture_Front") then return end
-            local textureId = mcMaterials[part.Material.Name]
-            if textureId then
-                mcOriginalMaterials[part] = part.Material
-                for _, face in ipairs(mcFaces) do
-                    local newTex = Instance.new("Texture")
-                    newTex.Name = "McTexture_" .. face
-                    newTex.ZIndex = 2147483647
-                    newTex.Texture = "rbxassetid://" .. textureId
-                    newTex.Face = Enum.NormalId[face]
-                    newTex.StudsPerTileU = 4
-                    newTex.StudsPerTileV = 4
-                    newTex.Color3 = part.Color
-                    newTex.Transparency = part.Transparency
-                    newTex.Parent = part
-                end
-                part.Material = Enum.Material.SmoothPlastic
-            end
-        end
-    end
-
-    Library:CreateToggle(Page, "Minecraft Texture", false, function(state)
-        mcEnabled = state
-        if state then
-            task.spawn(function()
-                local desc = Workspace:GetDescendants()
-                local t = os.clock()
-                for i = 1, #desc do
-                    if not mcEnabled then break end
-                    processMCPart(desc[i])
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-            mcDescendantConn = Workspace.DescendantAdded:Connect(function(newObj)
-                if mcEnabled then table.insert(mcFila, newObj) end
-            end)
-            mcLoopConn = RunService.Heartbeat:Connect(function()
-                if not mcEnabled then return end
-                local t = os.clock()
-                while #mcFila > 0 do
-                    if os.clock() - t > 0.005 then break end 
-                    local obj = table.remove(mcFila) 
-                    processMCPart(obj)
-                end
-            end)
-        else
-            if mcDescendantConn then mcDescendantConn:Disconnect() end
-            if mcLoopConn then mcLoopConn:Disconnect() end
-            table.clear(mcFila)
-            
-            local currentBkp = mcOriginalMaterials
-            mcOriginalMaterials = setmetatable({}, {__mode = "k"})
-            local toRevert = {}
-            for part, origMat in pairs(currentBkp) do table.insert(toRevert, {part = part, mat = origMat}) end
-            
-            task.spawn(function()
-                local t = os.clock()
-                for i = 1, #toRevert do
-                    local p = toRevert[i].part
-                    if p and p.Parent then
-                        pcall(function()
-                            for _, face in ipairs(mcFaces) do
-                                local tex = p:FindFirstChild("McTexture_" .. face)
-                                if tex then tex:Destroy() end
-                            end
-                            p.Material = toRevert[i].mat
-                        end)
-                    end
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-            end)
-        end
-    end)
-
-    -- [ DOUBLE JUMP EFFECTS ]
-    local currentDoubleJumpConns = {}
-    local originalTextures = setmetatable({}, {__mode = "k"})
-    local OriginalSparkleColors = setmetatable({}, {__mode = "k"})
-    
-    local function EnableDoubleJumpEffect(texturaID)
-        UserConfigs["TexturesPage_DoubleJump"] = texturaID
-        for _, c in ipairs(currentDoubleJumpConns) do c:Disconnect() end
-        table.clear(currentDoubleJumpConns)
-        
-        local function aplicarTextura(obj)
-            if texturaID == "Default" then
-                obj:SetAttribute("CurrentTexture", nil)
-                if obj.ClassName == "ParticleEmitter" then
-                    if originalTextures[obj] then obj.Texture = originalTextures[obj] end
-                elseif obj.ClassName == "Sparkles" then
-                    local oldClone = obj.Parent:FindFirstChild("CustomSparkleClone_" .. obj.Name)
-                    if oldClone then oldClone:Destroy() end
-                    if OriginalSparkleColors[obj] then pcall(function() obj.SparkleColor = OriginalSparkleColors[obj] end)
-                    else pcall(function() obj.SparkleColor = Color3.new(1, 1, 1) end) end
-                end
-                return
-            end
-
-            if obj:GetAttribute("CurrentTexture") == texturaID then return end
-            obj:SetAttribute("CurrentTexture", texturaID)
-            
-            local classe = obj.ClassName
-            if classe == "ParticleEmitter" then
-                local sucesso, texturaAtual = pcall(function() return obj.Texture end)
-                if sucesso and texturaAtual and string.find(string.lower(texturaAtual), "sparkles_main") then
-                    if not originalTextures[obj] then originalTextures[obj] = obj.Texture end
-                    obj.Texture = texturaID
-                end
-            elseif classe == "Sparkles" then
-                if not OriginalSparkleColors[obj] then OriginalSparkleColors[obj] = obj.SparkleColor end
-                pcall(function() obj.SparkleColor = Color3.new(0, 0, 0) end)
-                
-                local oldClone = obj.Parent:FindFirstChild("CustomSparkleClone_" .. obj.Name)
-                if oldClone then oldClone:Destroy() end
-                
-                local clone = Instance.new("ParticleEmitter")
-                clone.Name = "CustomSparkleClone_" .. obj.Name
-                clone.Texture = texturaID
-                clone.Rate = 20
-                clone.Speed = NumberRange.new(2, 4)
-                clone.Lifetime = NumberRange.new(1.5, 2)
-                clone.Rotation = NumberRange.new(0, 360)
-                clone.RotSpeed = NumberRange.new(-50, 50)
-                clone.LightEmission = 0.8
-                clone.ZOffset = 1
-                clone.Brightness = 2
-                clone.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 1), NumberSequenceKeypoint.new(1, 0)})
-                clone.Parent = obj.Parent
-                clone.Enabled = obj.Enabled
-                
-                local conexao = obj:GetPropertyChangedSignal("Enabled"):Connect(function() 
-                    if clone then clone.Enabled = obj.Enabled end
-                end)
-                local destConn = obj.Destroying:Connect(function()
-                    if conexao then conexao:Disconnect() end
-                    if clone then clone:Destroy() end
-                end)
-                
-                table.insert(currentDoubleJumpConns, conexao)
-                table.insert(currentDoubleJumpConns, destConn)
-            end
-        end
-
-        task.spawn(function()
-            local pastasSeguras = {Workspace, game:GetService("ReplicatedStorage"), Players}
-            local t = os.clock()
-            for _, pasta in ipairs(pastasSeguras) do
-                local desc = pasta:GetDescendants()
-                for i = 1, #desc do
-                    local obj = desc[i]
-                    if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then aplicarTextura(obj) end
-                    if os.clock() - t > 0.01 then task.wait() t = os.clock() end
-                end
-                if texturaID ~= "Default" then
-                    table.insert(currentDoubleJumpConns, pasta.DescendantAdded:Connect(function(obj)
-                        if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then task.defer(function() aplicarTextura(obj) end) end
-                    end))
-                end
-            end
-        end)
-    end
-
-    -- DIVISÃO DO DOUBLE JUMP EM PARTE 1 E 2
-    Library:CreateSection(Page, "Double Jump Effects (P1)", "Right")
-    local targetParentDJ1 = GetParentTarget(Page)
-    
-    Library:CreateSection(Page, "Double Jump (P2)", "Left")
-    local targetParentDJ2 = GetParentTarget(Page)
-
-    local CustomInputContainer = Instance.new("Frame")
-    CustomInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-    CustomInputContainer.Position = UDim2.new(0, 1, 0, 0)
-    CustomInputContainer.BackgroundTransparency = 1
-    CustomInputContainer.Parent = targetParentDJ1
-
-    local CustomInputBox = Instance.new("TextBox")
-    CustomInputBox.Size = UDim2.new(1, -65, 1, 0)
-    CustomInputBox.Position = UDim2.new(0, 5, 0, 0)
-    CustomInputBox.BackgroundTransparency = 1
-    CustomInputBox.Text = ""
-    local savedDJ = UserConfigs["TexturesPage_DoubleJump"]
-    if savedDJ and savedDJ ~= "Default" then CustomInputBox.Text = savedDJ:gsub("rbxassetid://", "") end
-    CustomInputBox.PlaceholderText = "Texture ID..."
-    CustomInputBox.TextColor3 = Theme.TextDark
-    CustomInputBox.PlaceholderColor3 = Theme.TextDark
-    CustomInputBox.Font = Theme.Font
-    CustomInputBox.TextSize = 10
-    CustomInputBox.TextXAlignment = Enum.TextXAlignment.Left
-    CustomInputBox.ClearTextOnFocus = false
-    CustomInputBox.Parent = CustomInputContainer
-
-    local ApplyBtn = Instance.new("TextButton")
-    ApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-    ApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-    ApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
-    ApplyBtn.BackgroundTransparency = 0.45
-    ApplyBtn.Text = "Apply"
-    ApplyBtn.Font = Enum.Font.GothamBold
-    ApplyBtn.TextSize = 10
-    ApplyBtn.TextColor3 = Theme.TextDark
-    ApplyBtn.Parent = CustomInputContainer
-    Instance.new("UICorner", ApplyBtn).CornerRadius = UDim.new(0, 4)
-    local abStr = Instance.new("UIStroke", ApplyBtn)
-    abStr.Color = Color3.fromRGB(40,40,40)
-
-    ApplyBtn.MouseButton1Click:Connect(function()
-        local val = CustomInputBox.Text
-        if val and val ~= "" then
-            local formatted = formatID(val)
-            if formatted then
-                UserConfigs["TexturesPage_DoubleJump"] = formatted
-                EnableDoubleJumpEffect(formatted)
-            end
-        end
-    end)
-
-    local effectIDs = {
-        "81110491136307", "117864251880006", "120181545812734", "74056211768119", 
-        "116419901031627", "92247449256845", "113423466689563", "90279999098357", 
-        "94123299347751", "105065705443269", "122902019815288", "138617722401997", 
-        "75192344666220", "139646605021296", "133105930199997", "96482830256985", 
-        "107964624563909", "122185636007520", "130200330618832", "84159990264787",
-        "87265760472097", "125925535971201", "99196076742919", "80555494674270", 
-        "77364460442867", "84014330993791", "80081088131892", "70463296258416",
-        "84683340454265", "110707827597886", "94615398600162", "136555497393349", 
-        "115660311620643", "87528090276578", "91090339346537", "104273334466284", 
-        "125877054664162", "99696281853254", "115091366896134", "118044368508403"
-    }
-
-    local GridWrapperDJ1 = createGridContainer(targetParentDJ1)
-    local GridWrapperDJ2 = createGridContainer(targetParentDJ2)
-
-    local defaultBtn = Instance.new("TextButton")
-    defaultBtn.Text = "Default"
-    defaultBtn.Font = Enum.Font.GothamBold
-    defaultBtn.TextSize = 9
-    defaultBtn.TextColor3 = Theme.TextDark
-    defaultBtn.BackgroundColor3 = Color3.new(0,0,0)
-    defaultBtn.BackgroundTransparency = 0.45
-    defaultBtn.Parent = GridWrapperDJ1
-    Instance.new("UICorner", defaultBtn).CornerRadius = UDim.new(0, 4)
-    local dbStr = Instance.new("UIStroke", defaultBtn)
-    dbStr.Color = Color3.fromRGB(40,40,40)
-    
-    defaultBtn.MouseEnter:Connect(function() TweenService:Create(dbStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-    defaultBtn.MouseLeave:Connect(function() TweenService:Create(dbStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
-    defaultBtn.MouseButton1Click:Connect(function() UserConfigs["TexturesPage_DoubleJump"] = "Default" EnableDoubleJumpEffect("Default") end)
-
-    for i, id in ipairs(effectIDs) do
-        local targetGrid = (i <= 19) and GridWrapperDJ1 or GridWrapperDJ2
-        local btn = Instance.new("ImageButton")
-        btn.BackgroundColor3 = Color3.new(0,0,0)
-        btn.BackgroundTransparency = 0.45
-        btn.Image = "rbxassetid://" .. id
-        btn.ScaleType = Enum.ScaleType.Crop 
-        btn.Parent = targetGrid
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-        local ebStr = Instance.new("UIStroke", btn)
-        ebStr.Color = Color3.fromRGB(40,40,40)
-
-        btn.MouseEnter:Connect(function() TweenService:Create(ebStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-        btn.MouseLeave:Connect(function() TweenService:Create(ebStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
-        btn.MouseButton1Click:Connect(function() 
-            UserConfigs["TexturesPage_DoubleJump"] = "rbxassetid://" .. id
-            EnableDoubleJumpEffect("rbxassetid://" .. id)
-        end)
-    end
-
-    -- [ MOBILE JUMP BUTTON ]
-    if isMobile then
-        Library:CreateSection(Page, "Mobile Button Jump", "Right")
-        local targetParentMJ = GetParentTarget(Page)
-
-        local mobileJumpConns = {}
-        local function EnableMobileButtonJump(texturaID)
-            UserConfigs["TexturesPage_MobileJump"] = texturaID
-            if not isMobile then return end
-            
-            for _, c in ipairs(mobileJumpConns) do c:Disconnect() end
-            table.clear(mobileJumpConns)
-
-            local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-            local function applyCustomButton(touchGui)
-                local touchControlFrame = touchGui:FindFirstChild("TouchControlFrame") or touchGui:WaitForChild("TouchControlFrame", 2)
-                if not touchControlFrame then return end
-                local jumpButton = touchControlFrame:FindFirstChild("JumpButton") or touchControlFrame:WaitForChild("JumpButton", 2)
-                if not jumpButton then return end
-
-                if texturaID == "Default" then
-                    jumpButton.ImageTransparency = 0
-                    local existingIcon = jumpButton:FindFirstChild("CustomJumpIcon")
-                    if existingIcon then existingIcon:Destroy() end
-                    return
-                end
-                
-                jumpButton.ImageTransparency = 1 
-                local existingIcon = jumpButton:FindFirstChild("CustomJumpIcon")
-                if existingIcon then existingIcon:Destroy() end
-                
-                local customIcon = Instance.new("ImageLabel")
-                customIcon.Name = "CustomJumpIcon"
-                customIcon.Size = UDim2.new(1, 0, 1, 0)
-                customIcon.Position = UDim2.new(0, 0, 0, 0)
-                customIcon.BackgroundTransparency = 1
-                customIcon.Image = texturaID
-                customIcon.ZIndex = jumpButton.ZIndex + 50
-                customIcon.Parent = jumpButton
-                
-                local c1 = jumpButton.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        customIcon.ImageColor3 = Color3.fromRGB(150, 150, 150)
-                    end
-                end)
-                local c2 = jumpButton.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        customIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                    end
-                end)
-                table.insert(mobileJumpConns, c1)
-                table.insert(mobileJumpConns, c2)
-            end
-
-            if playerGui:FindFirstChild("TouchGui") then task.spawn(applyCustomButton, playerGui.TouchGui) end
-            if texturaID ~= "Default" then
-                table.insert(mobileJumpConns, playerGui.ChildAdded:Connect(function(child)
-                    if child.Name == "TouchGui" then task.spawn(applyCustomButton, child) end
-                end))
-            end
-        end
-
-        local MJInputContainer = Instance.new("Frame")
-        MJInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-        MJInputContainer.Position = UDim2.new(0, 1, 0, 0)
-        MJInputContainer.BackgroundTransparency = 1
-        MJInputContainer.Parent = targetParentMJ
-
-        local MJumpTextBox = Instance.new("TextBox")
-        MJumpTextBox.Size = UDim2.new(1, -65, 1, 0)
-        MJumpTextBox.Position = UDim2.new(0, 5, 0, 0)
-        MJumpTextBox.BackgroundTransparency = 1
-        MJumpTextBox.Text = ""
-        local savedMJ = UserConfigs["TexturesPage_MobileJump"]
-        if savedMJ and savedMJ ~= "Default" then MJumpTextBox.Text = savedMJ:gsub("rbxassetid://", "") end
-        MJumpTextBox.PlaceholderText = "Texture ID..."
-        MJumpTextBox.TextColor3 = Theme.TextDark
-        MJumpTextBox.PlaceholderColor3 = Theme.TextDark
-        MJumpTextBox.Font = Theme.Font
-        MJumpTextBox.TextSize = 10
-        MJumpTextBox.TextXAlignment = Enum.TextXAlignment.Left
-        MJumpTextBox.ClearTextOnFocus = false
-        MJumpTextBox.Parent = MJInputContainer
-
-        local MJumpApplyBtn = Instance.new("TextButton")
-        MJumpApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-        MJumpApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-        MJumpApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
-        MJumpApplyBtn.BackgroundTransparency = 0.45
-        MJumpApplyBtn.Text = "Apply"
-        MJumpApplyBtn.Font = Enum.Font.GothamBold
-        MJumpApplyBtn.TextSize = 10
-        MJumpApplyBtn.TextColor3 = Theme.TextDark
-        MJumpApplyBtn.Parent = MJInputContainer
-        Instance.new("UICorner", MJumpApplyBtn).CornerRadius = UDim.new(0, 4)
-        local mbStr = Instance.new("UIStroke", MJumpApplyBtn)
-        mbStr.Color = Color3.fromRGB(40,40,40)
-
-        MJumpApplyBtn.MouseButton1Click:Connect(function()
-            local val = MJumpTextBox.Text
-            if val and val ~= "" then
-                local formatted = formatID(val)
-                if formatted then
-                    UserConfigs["TexturesPage_MobileJump"] = formatted
-                    EnableMobileButtonJump(formatted)
-                end
-            end
-        end)
-
-        local MJGridWrapper = createGridContainer(targetParentMJ)
-
-        local mDefaultBtn = Instance.new("TextButton")
-        mDefaultBtn.Text = "Default"
-        mDefaultBtn.Font = Enum.Font.GothamBold
-        mDefaultBtn.TextSize = 9
-        mDefaultBtn.TextColor3 = Theme.TextDark
-        mDefaultBtn.BackgroundColor3 = Color3.new(0,0,0)
-        mDefaultBtn.BackgroundTransparency = 0.45
-        mDefaultBtn.Parent = MJGridWrapper
-        Instance.new("UICorner", mDefaultBtn).CornerRadius = UDim.new(0, 4)
-        local mDStr = Instance.new("UIStroke", mDefaultBtn)
-        mDStr.Color = Color3.fromRGB(40,40,40)
-        
-        mDefaultBtn.MouseEnter:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(mDefaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-        mDefaultBtn.MouseLeave:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(mDefaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
-        mDefaultBtn.MouseButton1Click:Connect(function() UserConfigs["TexturesPage_MobileJump"] = "Default" EnableMobileButtonJump("Default") end)
-
-        local mJumpIDs = {
-            "126321670529682", "77430663366893", "115979689020396", "101678026501268", 
-            "100604012502918", "107988778180975", "106355869384286", "119823685069603"
-        }
-
-        for _, id in ipairs(mJumpIDs) do
-            local btn = Instance.new("ImageButton")
-            btn.BackgroundColor3 = Color3.new(0,0,0)
-            btn.BackgroundTransparency = 0.45
-            btn.Image = "rbxassetid://" .. id
-            btn.ScaleType = Enum.ScaleType.Crop 
-            btn.Parent = MJGridWrapper
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            local str = Instance.new("UIStroke", btn)
-            str.Color = Color3.fromRGB(40,40,40)
-            
-            btn.MouseEnter:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-            btn.MouseLeave:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
-            btn.MouseButton1Click:Connect(function() 
-                UserConfigs["TexturesPage_MobileJump"] = "rbxassetid://" .. id
-                EnableMobileButtonJump("rbxassetid://" .. id)
-            end)
-        end
-    end
-
-    -- DIVISÃO DO CROSSHAIR EM PARTE 1 E 2
-    Library:CreateSection(Page, "Crosshairs (P1)", "Left")
-    Library:CreateSlider(Page, "Cursor Size", 10, 100, 24, UpdateCursorSizes)
-    local targetParentCur1 = GetParentTarget(Page)
-    
-    Library:CreateSection(Page, "Crosshairs (P2)", "Right")
-    local targetParentCur2 = GetParentTarget(Page)
-
-    local CursorList = {
-        {Name = "Default", ID = "RESET"},
-        {Name = "Use Cursor", ID = "15368174199"}, {Name = "Use Cursor", ID = "12701650945"},
-        {Name = "Use Cursor", ID = "128514706094926"}, {Name = "Use Cursor", ID = "119350232226515"},
-        {Name = "Use Cursor", ID = "5060823578"}, {Name = "Use Cursor", ID = "9896571799"},
-        {Name = "Use Cursor", ID = "139654963330788"}, {Name = "Use Cursor", ID = "13441649168"},
-        {Name = "Use Cursor", ID = "88005681147215"}, {Name = "Use Cursor", ID = "72902755839437"},
-        {Name = "Use Cursor", ID = "128926155948846"}, {Name = "Use Cursor", ID = "95348763251820"},
-        {Name = "Use Cursor", ID = "138513473967293"}, {Name = "Use Cursor", ID = "82043397777881"},
-        {Name = "Use Cursor", ID = "84583215296063"}, {Name = "Use Cursor", ID = "120058675182639"},
-        {Name = "Use Cursor", ID = "130210380679877"}, {Name = "Use Cursor", ID = "74264514489577"},
-        {Name = "Use Cursor", ID = "115877213393063"}, {Name = "Use Cursor", ID = "133579119074302"},
-        {Name = "Use Cursor", ID = "137970082797101"}, {Name = "Use Cursor", ID = "116865736993390"},
-        {Name = "Use Cursor", ID = "70613337612134"}, {Name = "Use Cursor", ID = "75670552980458"}, 
-        {Name = "Use Cursor", ID = "100822311002882"}, {Name = "Use Cursor", ID = "135331308026486"},
-        {Name = "Use Cursor", ID = "91090339346537"}, {Name = "Use Cursor", ID = "99626703938913"},
-        {Name = "Use Cursor", ID = "112195317343485"}, {Name = "Use Cursor", ID = "89746976355403"},
-        {Name = "Use Cursor", ID = "132191954497107"}, {Name = "Use Cursor", ID = "93050147531878"},
-        {Name = "Use Cursor", ID = "88343941218179"}, {Name = "Use Cursor", ID = "81277812126144"},
-        {Name = "Use Cursor", ID = "131422226977434"}, {Name = "Use Cursor", ID = "116499481211766"}
-    }
-
-    local function CreateCursorSystem(isMob)
-        local CInputContainer = Instance.new("Frame")
-        CInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-        CInputContainer.Position = UDim2.new(0, 1, 0, 0)
-        CInputContainer.BackgroundTransparency = 1
-        CInputContainer.Parent = targetParentCur1
-        
-        local TextBox = Instance.new("TextBox")
-        TextBox.Size = UDim2.new(1, -65, 1, 0)
-        TextBox.Position = UDim2.new(0, 5, 0, 0)
-        TextBox.BackgroundTransparency = 1
-        TextBox.Text = ""
-        local flagKey = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
-        local savedCross = UserConfigs[flagKey]
-        if savedCross and savedCross ~= "RESET" then TextBox.Text = savedCross:gsub("rbxassetid://", "") end
-        TextBox.PlaceholderText = "Texture ID..."
-        TextBox.TextColor3 = Theme.TextDark
-        TextBox.PlaceholderColor3 = Theme.TextDark
-        TextBox.Font = Theme.Font
-        TextBox.TextSize = 10
-        TextBox.TextXAlignment = Enum.TextXAlignment.Left
-        TextBox.ClearTextOnFocus = false
-        TextBox.Parent = CInputContainer
-        
-        local ApplyBtn = Instance.new("TextButton")
-        ApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-        ApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-        ApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
-        ApplyBtn.BackgroundTransparency = 0.45
-        ApplyBtn.Text = "Apply"
-        ApplyBtn.Font = Enum.Font.GothamBold
-        ApplyBtn.TextSize = 10
-        ApplyBtn.TextColor3 = Theme.TextDark
-        ApplyBtn.Parent = CInputContainer
-        Instance.new("UICorner", ApplyBtn).CornerRadius = UDim.new(0, 4)
-        local apStr = Instance.new("UIStroke", ApplyBtn)
-        apStr.Color = Color3.fromRGB(40,40,40)
-        
-        ApplyBtn.MouseButton1Click:Connect(function() 
-            local id = TextBox.Text
-            if id ~= "" then 
-                local fullID = formatID(id)
-                local flag = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
-                UserConfigs[flag] = fullID
-                if isMob then 
-                    MobileCrosshair.Image = fullID
-                    MobileCrosshair.Visible = true 
-                else 
-                    PCSoftwareCursor.Image = fullID
-                    SetPCCursorActive(true)
-                    PCSoftwareCursor.Visible = true 
-                end 
-            end 
-        end)
-
-        local GridWrapperCur1 = createGridContainer(targetParentCur1)
-        local GridWrapperCur2 = createGridContainer(targetParentCur2)
-        
-        for i, item in ipairs(CursorList) do
-            local targetGrid = (i <= 18) and GridWrapperCur1 or GridWrapperCur2
-
-            if item.ID == "RESET" then
-                local defaultBtn = Instance.new("TextButton")
-                defaultBtn.Text = "Default"
-                defaultBtn.Font = Enum.Font.GothamBold
-                defaultBtn.TextSize = 9
-                defaultBtn.TextColor3 = Theme.TextDark
-                defaultBtn.BackgroundColor3 = Color3.new(0,0,0)
-                defaultBtn.BackgroundTransparency = 0.45
-                defaultBtn.Parent = targetGrid
-                Instance.new("UICorner", defaultBtn).CornerRadius = UDim.new(0, 4)
-                local dStr = Instance.new("UIStroke", defaultBtn)
-                dStr.Color = Color3.fromRGB(40,40,40)
-                
-                defaultBtn.MouseEnter:Connect(function() TweenService:Create(dStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-                defaultBtn.MouseLeave:Connect(function() TweenService:Create(dStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
-                
-                defaultBtn.MouseButton1Click:Connect(function() 
-                    local flag = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
-                    UserConfigs[flag] = "RESET"
-                    if isMob then 
-                        MobileCrosshair.Visible = false 
-                    else 
-                        SetPCCursorActive(false)
-                        PCSoftwareCursor.Visible = false
-                        UserInputService.MouseIconEnabled = true 
-                    end 
-                end)
-            else
-                local btn = Instance.new("ImageButton")
-                btn.BackgroundColor3 = Color3.new(0,0,0)
-                btn.BackgroundTransparency = 0.45
-                btn.Image = "rbxassetid://" .. item.ID
-                btn.ScaleType = Enum.ScaleType.Crop 
-                btn.Parent = targetGrid
-                Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-                local imgStr = Instance.new("UIStroke", btn)
-                imgStr.Color = Color3.fromRGB(40,40,40)
-                
-                btn.MouseEnter:Connect(function() TweenService:Create(imgStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-                btn.MouseLeave:Connect(function() TweenService:Create(imgStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
-                
-                btn.MouseButton1Click:Connect(function() 
-                    local fullID = "rbxassetid://" .. item.ID
-                    local flag = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
-                    UserConfigs[flag] = fullID
-                    if isMob then 
-                        MobileCrosshair.Image = fullID
-                        MobileCrosshair.Visible = true 
-                    else 
-                        PCSoftwareCursor.Image = fullID
-                        SetPCCursorActive(true)
-                        PCSoftwareCursor.Visible = true 
-                    end 
-                end)
-            end
-        end
-    end
-
-    local usePCCursor = UserInputService.MouseEnabled
-    if usePCCursor then CreateCursorSystem(false) else CreateCursorSystem(true) end
-
-    -- INICIALIZADOR DE SALVOS
-    if UserConfigs["TexturesPage_DoubleJump"] then task.spawn(function() EnableDoubleJumpEffect(UserConfigs["TexturesPage_DoubleJump"]) end) end
-    if isMobile and UserConfigs["TexturesPage_MobileJump"] then task.spawn(function() EnableMobileButtonJump(UserConfigs["TexturesPage_MobileJump"]) end) end
-
-    task.spawn(function()
-        if usePCCursor then
-            local saved = UserConfigs["TexturesPage_Crosshair_PC"]
-            if saved and saved ~= "RESET" then
-                PCSoftwareCursor.Image = saved
-                SetPCCursorActive(true)
-                PCSoftwareCursor.Visible = true 
-            end
-        else
-            local saved = UserConfigs["TexturesPage_Crosshair_Mobile"]
-            if saved and saved ~= "RESET" then
-                MobileCrosshair.Image = saved
-                MobileCrosshair.Visible = true 
-            end
-        end
-    end)
 end
 
--- ==========================================
--- PAGE LOADERS PLACEHOLDERS 
--- ==========================================
-
-local function LoadProgressPage(Page)
-    Library:CreateSection(Page, "Action Timers")
-    Library:CreateToggle(Page, "Computer Progress", false, function(state) end)
-    Library:CreateToggle(Page, "Door Progress", false, function(state) end)
-    Library:CreateToggle(Page, "ExitDoor Progress", false, function(state) end)
-    Library:CreateToggle(Page, "GetUp Timer", false, function(state) end)
-    
-    Library:CreateSection(Page, "Beast Indicators")
-    Library:CreateToggle(Page, "Beast Power Timer", false, function(state) end)
-    Library:CreateToggle(Page, "Beast Power Timer V2", false, function(state) end)
-    Library:CreateToggle(Page, "Beast Spawn Timer", false, function(state) end)
-    Library:CreateToggle(Page, "WalkSpeed Detector", false, function(state) end)
+local function LoadTexturesPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/texture2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Workspace = Workspace,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            RunService = RunService,
+            TweenService = TweenService,
+            UserInputService = UserInputService,
+            Theme = Theme,
+            UserConfigs = UserConfigs,
+            GetParentTarget = GetParentTarget,
+            isMobile = isMobile,
+            ContentConfig = ContentConfig,
+            UpdateCursorSizes = UpdateCursorSizes,
+            SetPCCursorActive = SetPCCursorActive,
+            MobileCrosshair = MobileCrosshair,
+            PCSoftwareCursor = PCSoftwareCursor
+        })
+    else
+        warn("Failed to load Textures Page")
+    end
 end
 
-local function LoadVisualSkinsPage(Page)
-    local PreviewBox = Instance.new("Frame")
-    PreviewBox.Size = UDim2.new(0, 260, 0, 130)
-    PreviewBox.AnchorPoint = Vector2.new(0.5, 0.5)
-    PreviewBox.Position = UDim2.new(0.5, 0, 0.5, 0)
-    PreviewBox.BackgroundColor3 = Color3.new(0,0,0)
-    PreviewBox.BackgroundTransparency = 0.15
-    PreviewBox.BorderSizePixel = 0
-    PreviewBox.ZIndex = 11
-    PreviewBox.Visible = false
-    PreviewBox.Parent = ModalOverlay
-
-    local PBStroke = Instance.new("UIStroke")
-    PBStroke.Color = Color3.fromRGB(40, 40, 40)
-    PBStroke.Parent = PreviewBox
-    
-    local PBTopLine = Instance.new("Frame")
-    PBTopLine.Size = UDim2.new(1, 0, 0, 2)
-    PBTopLine.BackgroundColor3 = Theme.Accent
-    PBTopLine.BorderSizePixel = 0
-    PBTopLine.ZIndex = 12
-    PBTopLine.Parent = PreviewBox
-    ApplyGradient(PBTopLine, Theme.Accent, Theme.AccentDark, 0)
-
-    local PTitle = Instance.new("TextLabel")
-    PTitle.Parent = PreviewBox
-    PTitle.Text = "FOUND"
-    PTitle.Font = Theme.Font
-    PTitle.TextSize = 14
-    PTitle.TextColor3 = Theme.Accent
-    PTitle.Size = UDim2.new(1, 0, 0, 35)
-    PTitle.BackgroundTransparency = 1
-    PTitle.ZIndex = 12
-
-    local PImage = Instance.new("ImageLabel")
-    PImage.Size = UDim2.new(0, 46, 0, 46)
-    PImage.Position = UDim2.new(0, 20, 0, 35)
-    PImage.BackgroundColor3 = Theme.SwitchOff
-    PImage.ZIndex = 12
-    PImage.Parent = PreviewBox
-    Instance.new("UICorner", PImage).CornerRadius = UDim.new(0, 6)
-
-    local PName = Instance.new("TextLabel")
-    PName.Text = "Name"
-    PName.Size = UDim2.new(1, -80, 0, 46)
-    PName.Position = UDim2.new(0, 75, 0, 35)
-    PName.BackgroundTransparency = 1
-    PName.TextColor3 = Theme.Text
-    PName.Font = Enum.Font.Gotham
-    PName.TextSize = 13
-    PName.TextXAlignment = Enum.TextXAlignment.Left
-    PName.ZIndex = 12
-    PName.Parent = PreviewBox
-
-    local PApplyBtn = Instance.new("TextButton")
-    PApplyBtn.Text = "Apply"
-    PApplyBtn.Size = UDim2.new(0, 100, 0, 28)
-    PApplyBtn.Position = UDim2.new(0, 20, 0, 90)
-    PApplyBtn.BackgroundColor3 = Theme.Accent
-    PApplyBtn.TextColor3 = Color3.new(0,0,0)
-    PApplyBtn.Font = Theme.Font
-    PApplyBtn.TextSize = 12
-    PApplyBtn.ZIndex = 12
-    PApplyBtn.Parent = PreviewBox
-    Instance.new("UICorner", PApplyBtn).CornerRadius = UDim.new(0, 4)
-    ApplyGradient(PApplyBtn, Theme.Accent, Theme.AccentDark, 90)
-
-    local PCancelBtn = Instance.new("TextButton")
-    PCancelBtn.Text = "Cancel"
-    PCancelBtn.Size = UDim2.new(0, 100, 0, 28)
-    PCancelBtn.Position = UDim2.new(1, -120, 0, 90)
-    PCancelBtn.BackgroundColor3 = Color3.new(0,0,0)
-    PCancelBtn.BackgroundTransparency = 0.45
-    PCancelBtn.TextColor3 = Theme.TextDark
-    PCancelBtn.Font = Theme.Font
-    PCancelBtn.TextSize = 12
-    PCancelBtn.ZIndex = 12
-    PCancelBtn.Parent = PreviewBox
-    Instance.new("UICorner", PCancelBtn).CornerRadius = UDim.new(0, 4)
-    local pcbStr = Instance.new("UIStroke", PCancelBtn)
-    pcbStr.Color = Color3.fromRGB(40,40,40)
-
-    PCancelBtn.MouseButton1Click:Connect(function() 
-        ModalOverlay.Visible = false
-        PreviewBox.Visible = false
-    end)
-    PApplyBtn.MouseButton1Click:Connect(function() 
-        SendNotification("Skin UI Base Applied!", 2)
-        ModalOverlay.Visible = false
-        PreviewBox.Visible = false
-    end)
-
-    Library:CreateSection(Page, "Exclusive Bundles")
-    Library:CreateToggle(Page, "Headless", false, function(state) end)
-    Library:CreateToggle(Page, "Korblox", false, function(state) end)
-
-    local SpacerEx = Instance.new("Frame")
-    SpacerEx.Size = UDim2.new(1, 0, 0, 5)
-    SpacerEx.BackgroundTransparency = 1
-    SpacerEx.Parent = Page
-
-    Library:CreateSection(Page, "Skin Changer")
-    
-    local InputContainer = Instance.new("Frame")
-    InputContainer.Size = UDim2.new(1, -2, 0, 35)
-    InputContainer.Position = UDim2.new(0, 1, 0, 0)
-    InputContainer.BackgroundColor3 = Color3.new(0, 0, 0)
-    InputContainer.BackgroundTransparency = 0.45
-    InputContainer.Parent = Page
-    Instance.new("UICorner", InputContainer).CornerRadius = UDim.new(0, 6)
-    local icStr = Instance.new("UIStroke", InputContainer)
-    icStr.Color = Color3.fromRGB(40,40,40)
-
-    local UserInputBox = Instance.new("TextBox")
-    UserInputBox.Size = UDim2.new(1, -40, 1, 0)
-    UserInputBox.Position = UDim2.new(0, 10, 0, 0)
-    UserInputBox.BackgroundTransparency = 1
-    UserInputBox.Text = ""
-    UserInputBox.PlaceholderText = "Username..."
-    UserInputBox.TextColor3 = Theme.Text
-    UserInputBox.PlaceholderColor3 = Theme.TextDark
-    UserInputBox.Font = Theme.Font
-    UserInputBox.TextSize = 13
-    UserInputBox.TextXAlignment = Enum.TextXAlignment.Left
-    UserInputBox.Parent = InputContainer
-
-    local SearchBtnIcon = Instance.new("ImageButton")
-    SearchBtnIcon.Size = UDim2.new(0, 20, 0, 20)
-    SearchBtnIcon.Position = UDim2.new(1, -28, 0.5, -10)
-    SearchBtnIcon.BackgroundTransparency = 1
-    SearchBtnIcon.Image = "rbxassetid://104986431790017"
-    SearchBtnIcon.ImageColor3 = Theme.Accent
-    SearchBtnIcon.ScaleType = Enum.ScaleType.Fit
-    SearchBtnIcon.Parent = InputContainer
-
-    SearchBtnIcon.MouseButton1Click:Connect(function()
-        if UserInputBox.Text ~= "" then
-            PTitle.Text = "SKIN FOUND"
-            PName.Text = UserInputBox.Text
-            PApplyBtn.Text = "Apply Skin"
-            ModalOverlay.Visible = true
-            PreviewBox.Visible = true
-        end
-    end)
-
-    Library:CreateSection(Page, "Bundle Changer")
-    Library:CreateInput(Page, "Bundle ID...", "", function(val) end)
+local function LoadProgressPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/progress2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            Workspace = Workspace,
+            CoreGui = CoreGui,
+            ReplicatedStorage = ReplicatedStorage,
+            RunService = RunService,
+            TweenService = TweenService,
+            Theme = Theme,
+            SendNotification = SendNotification
+        })
+    else
+        warn("Failed to load Progress Page")
+    end
 end
 
-local function LoadAutoFarmPage(Page)
-    Library:CreateSection(Page, "Main Farming")
-    Library:CreateToggle(Page, "Enable Auto Farm", false, function(state) end)
-    Library:CreateToggle(Page, "Auto Win Survivor", false, function(state) end)
-    Library:CreateToggle(Page, "Auto Win Beast", false, function(state) end)
-
-    Library:CreateSection(Page, "Farm Settings")
-    Library:CreateToggle(Page, "Auto Save (Silent)", false, function(state) end)
-    Library:CreateToggle(Page, "Anti AFK", false, function(state) end)
+local function LoadAdvancedPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/advanced2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Workspace = Workspace,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            RunService = RunService,
+            UserInputService = UserInputService,
+            ReplicatedStorage = ReplicatedStorage,
+            CoreGui = CoreGui
+        })
+    else
+        warn("Failed to load Advanced Page")
+    end
 end
 
-local function LoadSoundsPage(Page)
-    Library:CreateSection(Page, "Mute Sounds")
-    Library:CreateToggle(Page, "Remove Your Steps", false, function(state) end)
-    Library:CreateToggle(Page, "Remove Your Jumps", false, function(state) end)
-    Library:CreateToggle(Page, "Remove Pc Hack Sounds", false, function(state) end)
-    Library:CreateToggle(Page, "No hit sound", false, function(state) end)
-    
-    Library:CreateSection(Page, "General")
-    Library:CreateSlider(Page, "Volume Boost", 0, 10, 1, function(val) end)
-    
-    Library:CreateSection(Page, "Custom Sound Packs")
-    local targetParentSounds = GetParentTarget(Page)
-    local ResetBtnFrame = Instance.new("TextButton")
-    ResetBtnFrame.Size = UDim2.new(1, -2, 0, 30)
-    ResetBtnFrame.Position = UDim2.new(0, 1, 0, 0)
-    ResetBtnFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-    ResetBtnFrame.BackgroundTransparency = 0.45
-    ResetBtnFrame.Text = "Default Sounds (Reset All)"
-    ResetBtnFrame.TextColor3 = Theme.CloseRed
-    ResetBtnFrame.Font = Enum.Font.GothamBold
-    ResetBtnFrame.TextSize = 11
-    ResetBtnFrame.Parent = targetParentSounds
-    Instance.new("UICorner", ResetBtnFrame).CornerRadius = UDim.new(0, 6)
-    local rbsStr = Instance.new("UIStroke", ResetBtnFrame)
-    rbsStr.Color = Color3.fromRGB(40,40,40)
+local function LoadVisualSkinsPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/visualskins2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Workspace = Workspace,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            RunService = RunService,
+            TweenService = TweenService,
+            Theme = Theme,
+            SendNotification = SendNotification,
+            ModalOverlay = ModalOverlay,
+            ApplyGradient = ApplyGradient
+        })
+    else
+        warn("Failed to load Visual Skins Page")
+    end
 end
 
-local function LoadAdvancedPage(Page)
-    Library:CreateSection(Page, "Survivor")
-    Library:CreateToggle(Page, "Auto Save (Teleport)", false, function(state) end)
-    Library:CreateToggle(Page, "Beast Untie Player", false, function(state) end)
-    Library:CreateToggle(Page, "Anti Ragdoll", false, function(state) end)
-    Library:CreateToggle(Page, "Slow Beast", false, function(state) end)
-    Library:CreateToggle(Page, "Slow Runner Beast", false, function(state) end)
-    Library:CreateToggle(Page, "Slow Beast Aura", false, function(state) end)
-    Library:CreateSlider(Page, "Slow Beast Aura Range", 5, 30, 15, function(val) end)
-    Library:CreateToggle(Page, "Touch Fling", false, function(state) end)
-    Library:CreateToggle(Page, "No Hack Fail", false, function(state) end)
-
-    Library:CreateSection(Page, "Beast")
-    Library:CreateToggle(Page, "Beast Camera Mode", false, function(state) end)
-    Library:CreateToggle(Page, "Auto Tie", false, function(state) end)
-    Library:CreateSlider(Page, "Auto Tie Range", 5, 30, 15, function(val) end)
-    Library:CreateToggle(Page, "Hit Aura", false, function(state) end)
-    Library:CreateSlider(Page, "Hit Aura Range", 5, 15, 10, function(val) end)
-    Library:CreateToggle(Page, "Hitbox Extender", false, function(state) end)
-    Library:CreateInput(Page, "Hitbox Size", 2, function(val) end)
-    Library:CreateToggle(Page, "Show Hitbox", false, function(state) end)
-    Library:CreateToggle(Page, "No Jump Delay", false, function(state) end)
-
-    Library:CreateSection(Page, "Players")
-    Library:CreateToggle(Page, "Fast Double Jump", false, function(state) end)
-    Library:CreateToggleKeybind(Page, "Walkspeed", false, "None", function(state) end)
-    Library:CreateSlider(Page, "Speed Value", 16, 200, 16, function(val) end)
-    Library:CreateToggleKeybind(Page, "Jump Power", false, "None", function(state) end)
-    Library:CreateSlider(Page, "Jump Power Val", 50, 300, 120, function(val) end)
-    Library:CreateToggleKeybind(Page, "Fly", false, "None", function(state) end)
-    Library:CreateSlider(Page, "Fly Speed", 10, 200, 50, function(val) end)
-    Library:CreateToggleKeybind(Page, "Noclip", false, "None", function(state) end)
-    Library:CreateToggle(Page, "ShiftLock", false, function(state) end)
-    Library:CreateToggle(Page, "Inf Jump", false, function(state) end)
+local function LoadAutoFarmPage(pageObj)
+    local s, code = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/1D4vid/teste/refs/heads/main/autofarm2.7.lua") end)
+    if s and code then
+        loadstring(code)()({
+            Library = Library,
+            Page = pageObj,
+            Players = Players,
+            LocalPlayer = LocalPlayer,
+            Workspace = Workspace,
+            ReplicatedStorage = ReplicatedStorage,
+            SendNotification = SendNotification
+        })
+    else
+        warn("Failed to load Auto Farm Page")
+    end
 end
 
 -- ==========================================
@@ -3669,9 +2688,6 @@ Library:CreateButton(SettingsPage, "Random Servers", function()
     SendNotification("Server Hop triggered (Framework only)", 2)
 end)
 
--- ==========================================
--- MODAL DE INFO (Cards) Restaurado
--- ==========================================
 local function createInfoCard(titleText, items)
     local Card = Instance.new("Frame")
     Card.Size = UDim2.new(1, -15, 0, 40 + (#items * 25))
@@ -3749,7 +2765,6 @@ local serverCard, serverLabels = createInfoCard("SERVER INFO", {
 })
 serverCard.Parent = InfoScroll
 
--- Atualização Dinâmica da Rolagem
 InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     InfoScroll.CanvasSize = UDim2.new(0, 0, 0, InfoLayout.AbsoluteContentSize.Y + 20)
 end)
