@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then
@@ -1444,6 +1445,16 @@ function Library:CreateSlider(Page, Text, Min, Max, Default, Callback)
         end 
     end)
 	UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then Update(input) end end)
+
+    local function Set(val)
+        currentVal = math.clamp(val, Min, Max)
+        local pos = (currentVal - Min) / (Max - Min)
+        TweenService:Create(Fill, TweenInfo.new(0.2), {Size = UDim2.new(pos, 0, 1, 0)}):Play()
+        ValueLabel.Text = tostring(currentVal)
+        UserConfigs[Flag] = currentVal
+        pcall(Callback, currentVal)
+    end
+    return { Set = Set }
 end
 
 function Library:CreateInput(Page, Text, Default, Callback)
@@ -2164,200 +2175,260 @@ function Library:CreatePlayerCard(Page, Player, Callback)
     end)
 end
 
-local function LoadTeleportPage(Page) 
-    local savedCFrame = nil
-    local checkpointMarker = nil
-    local currentPCIndex = 0
-    local currentDoorIndex = 0
-    local currentPodIndex = 0
-    local tpKeybindConn = nil
-
-    Library:CreateSection(Page, "Map Objects", "Left")
+local function LoadFogPage(Page)
+    -- [ COLUNA ESQUERDA: Fog Settings ] --
+    Library:CreateSection(Page, "Fog Settings", "Left")
     
-    local CheckpointFrame = Instance.new("Frame")
-    CheckpointFrame.Name = "CheckpointFrame"
-    CheckpointFrame.Size = UDim2.new(0, 40, 0, 90)
-    CheckpointFrame.Position = UDim2.new(0, 2, 0.5, -45)
-    CheckpointFrame.BackgroundTransparency = 1
-    CheckpointFrame.Visible = false
-    CheckpointFrame.ZIndex = 50
-    CheckpointFrame.Parent = ScreenGui
+    local noFogEnabled = false
+    local originalAtmos = setmetatable({}, {__mode = "k"})
+    local originalSky = setmetatable({}, {__mode = "k"})
+    local noFogAddedConn = nil
 
-    local CPListLayout = Instance.new("UIListLayout")
-    CPListLayout.Parent = CheckpointFrame
-    CPListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    CPListLayout.Padding = UDim.new(0, 8)
-
-    local SetBtn = Instance.new("ImageButton")
-    SetBtn.Size = UDim2.new(1, 0, 0, 40)
-    SetBtn.BackgroundTransparency = 1
-    SetBtn.Image = "rbxassetid://6723742952"
-    SetBtn.Parent = CheckpointFrame
-
-    local TpBtn = Instance.new("ImageButton")
-    TpBtn.Size = UDim2.new(1, 0, 0, 40)
-    TpBtn.BackgroundTransparency = 1
-    TpBtn.Image = "rbxassetid://6723921202"
-    TpBtn.Parent = CheckpointFrame
-
-    local function createMarker(cframe)
-        if checkpointMarker and checkpointMarker.Parent then
-            checkpointMarker:Destroy()
+    local function arrumarAtmosphere(atm)
+        if not noFogEnabled then return end
+        if not originalAtmos[atm] then
+            originalAtmos[atm] = {
+                Color = atm.Color, Glare = atm.Glare, Haze = atm.Haze, Decay = atm.Decay, Density = atm.Density, Offset = atm.Offset
+            }
         end
-        checkpointMarker = Instance.new("Part")
-        checkpointMarker.Name = "FleeCheckpointMarker"
-        checkpointMarker.Shape = Enum.PartType.Cylinder
-        checkpointMarker.Size = Vector3.new(0.2, 4, 4)
-        checkpointMarker.CFrame = cframe * CFrame.new(0, -2.5, 0) * CFrame.Angles(0, 0, math.rad(90))
-        checkpointMarker.Anchored = true
-        checkpointMarker.CanCollide = false
-        checkpointMarker.Material = Enum.Material.Neon
-        checkpointMarker.Color = Color3.fromRGB(0, 255, 128)
-        checkpointMarker.Transparency = 0.4
-        checkpointMarker.Parent = Workspace
-        
-        local light = Instance.new("PointLight")
-        light.Color = checkpointMarker.Color
-        light.Range = 8
-        light.Brightness = 2
-        light.Parent = checkpointMarker
-    end
-
-    local function teleportToCheckpoint()
-        if savedCFrame then
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = savedCFrame
-                TpBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
-                task.delay(0.15, function() TpBtn.ImageColor3 = Color3.fromRGB(255, 255, 255) end)
-            end
-        else
-            SendNotification("No checkpoint set!", 2)
+        atm.Color = Color3.fromRGB(0, 0, 0)
+        atm.Glare = 0
+        atm.Haze = 10
+        atm.Decay = Color3.fromRGB(0, 0, 0)
+        atm.Density = 0
+        atm.Offset = 0
+        if not atm:FindFirstChild("NoFogLock") then
+            local lock = Instance.new("Folder")
+            lock.Name = "NoFogLock"
+            lock.Parent = atm
+            atm:GetPropertyChangedSignal("Density"):Connect(function()
+                if noFogEnabled and atm.Density ~= 0 then
+                    atm.Density = 0
+                end
+            end)
         end
     end
 
-    SetBtn.MouseButton1Click:Connect(function()
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            savedCFrame = char.HumanoidRootPart.CFrame
-            createMarker(savedCFrame)
-            SetBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
-            task.delay(0.15, function() SetBtn.ImageColor3 = Color3.fromRGB(255, 255, 255) end)
-            SendNotification("Checkpoint Set!", 2)
+    local function arrumarSky(sky)
+        if not noFogEnabled then return end
+        if not originalSky[sky] then
+            originalSky[sky] = { MoonAngularSize = sky.MoonAngularSize, StarCount = sky.StarCount }
         end
-    end)
+        sky.MoonAngularSize = 10
+        sky.StarCount = 0
+    end
 
-    TpBtn.MouseButton1Click:Connect(teleportToCheckpoint)
-
-    Library:CreateToggle(Page, "Checkpoint (UI+R)", false, function(state) 
-        CheckpointFrame.Visible = state 
+    Library:CreateToggle(Page, "No fog", false, function(state)
+        noFogEnabled = state
         if state then
-            if not tpKeybindConn then
-                tpKeybindConn = UserInputService.InputBegan:Connect(function(input, gp)
-                    if gp then return end
-                    if input.KeyCode == Enum.KeyCode.R then
-                        teleportToCheckpoint()
+            local atm = Lighting:FindFirstChildOfClass("Atmosphere")
+            if atm then arrumarAtmosphere(atm) end
+            local sky = Lighting:FindFirstChildOfClass("Sky")
+            if sky then arrumarSky(sky) end
+            noFogAddedConn = Lighting.ChildAdded:Connect(function(filho)
+                task.defer(function()
+                    if filho:IsA("Atmosphere") then
+                        arrumarAtmosphere(filho)
+                    elseif filho:IsA("Sky") then
+                        arrumarSky(filho)
                     end
                 end)
-            end
+            end)
         else
-            if tpKeybindConn then 
-                tpKeybindConn:Disconnect() 
-                tpKeybindConn = nil 
+            if noFogAddedConn then noFogAddedConn:Disconnect(); noFogAddedConn = nil end
+            for atm, data in pairs(originalAtmos) do
+                if atm and atm.Parent then
+                    atm.Color = data.Color; atm.Glare = data.Glare; atm.Haze = data.Haze
+                    atm.Decay = data.Decay; atm.Density = data.Density; atm.Offset = data.Offset
+                end
             end
-            if checkpointMarker then
-                checkpointMarker:Destroy()
-                checkpointMarker = nil
+            for sky, data in pairs(originalSky) do
+                if sky and sky.Parent then
+                    sky.MoonAngularSize = data.MoonAngularSize; sky.StarCount = data.StarCount
+                end
             end
-            savedCFrame = nil
+            table.clear(originalAtmos)
+            table.clear(originalSky)
         end
     end)
 
-    Library:CreateButton(Page, "TP Computer", function() 
-        local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-        local pcs = {}
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj.Name == "ComputerTable" then table.insert(pcs, obj) end
-        end
-        if #pcs == 0 then SendNotification("Map not loaded!", 2) return end
-        currentPCIndex = currentPCIndex + 1
-        if currentPCIndex > #pcs then currentPCIndex = 1 end
-        local pc = pcs[currentPCIndex]
-        local pcCFrame
-        if pc:IsA("Model") then pcCFrame = pc:GetPivot() else
-            local part = pc:FindFirstChildWhichIsA("BasePart")
-            if part then pcCFrame = part.CFrame end
-        end
-        if pcCFrame then char.HumanoidRootPart.CFrame = pcCFrame * CFrame.new(0, 3, -3) end
-    end)
+    local BlackFogLoop = nil
+    local OriginalAtmosphereData = nil
 
-    Library:CreateButton(Page, "TP Exitdoor", function() 
-        local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-        local doors = {}
-        for _, obj in ipairs(Workspace:GetDescendants()) do
-            if obj:IsA("Model") then
-                local name = string.lower(obj.Name)
-                if string.find(name, "exit") and string.find(name, "door") then table.insert(doors, obj) end
+    Library:CreateToggle(Page, "Black Fog", false, function(state)
+        if state then
+            local atm = Lighting:FindFirstChildOfClass("Atmosphere")
+            if atm then
+                OriginalAtmosphereData = {
+                    Color = atm.Color, Glare = atm.Glare, Haze = atm.Haze,
+                    Decay = atm.Decay, Density = atm.Density, Offset = atm.Offset
+                }
+            else
+                OriginalAtmosphereData = "None"
             end
-        end
-        if #doors == 0 then SendNotification("ExitDoors not found!", 2) return end
-        currentDoorIndex = currentDoorIndex + 1
-        if currentDoorIndex > #doors then currentDoorIndex = 1 end
-        local door = doors[currentDoorIndex]
-        local part = door.PrimaryPart or door:FindFirstChildWhichIsA("BasePart")
-        if part then char.HumanoidRootPart.CFrame = part.CFrame + Vector3.new(0, 3, 0) end
-    end)
-
-    Library:CreateButton(Page, "TP Freezepods", function() 
-        local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-        local pods = {}
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj.Name == "FreezePod" then table.insert(pods, obj) end
-        end
-        if #pods == 0 then SendNotification("Map not loaded!", 2) return end
-        currentPodIndex = currentPodIndex + 1
-        if currentPodIndex > #pods then currentPodIndex = 1 end
-        local pod = pods[currentPodIndex]
-        local base = pod:FindFirstChild("BasePart") or pod:FindFirstChildWhichIsA("Part")
-        if base then char.HumanoidRootPart.CFrame = base.CFrame * CFrame.new(0, 1, -3) end
-    end)
-
-    Library:CreateSection(Page, "Players", "Right")
-    local TargetContainer = Library.CurrentSections[Page]
-
-    local function UpdateTeleportList()
-        if not TargetContainer then return end
-        for _, child in pairs(TargetContainer:GetChildren()) do 
-            if child.Name == "PlayerCard" then 
-                child:Destroy() 
-            end 
-        end
-
-        for _, player in pairs(Players:GetPlayers()) do 
-            if player ~= LocalPlayer then 
-                Library.CurrentSections[Page] = TargetContainer
-                Library:CreatePlayerCard(Page, player, function()
-                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0) 
+            BlackFogLoop = task.spawn(function()
+                while state do
+                    task.wait(1)
+                    local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+                    if not atmosphere then
+                        atmosphere = Instance.new("Atmosphere")
+                        atmosphere.Parent = Lighting
                     end
-                end) 
-            end 
+                    if atmosphere.Density ~= 0.75 or atmosphere.Haze ~= 2.46 then
+                        atmosphere.Color = Color3.fromRGB(0, 0, 0)
+                        atmosphere.Glare = 0
+                        atmosphere.Haze = 2.46
+                        atmosphere.Decay = Color3.fromRGB(0, 0, 0)
+                        atmosphere.Density = 0.75
+                        atmosphere.Offset = 0
+                    end
+                end
+            end)
+        else
+            if BlackFogLoop then task.cancel(BlackFogLoop); BlackFogLoop = nil end
+            local atm = Lighting:FindFirstChildOfClass("Atmosphere")
+            if OriginalAtmosphereData == "None" then
+                if atm then atm:Destroy() end
+            elseif OriginalAtmosphereData and type(OriginalAtmosphereData) == "table" then
+                if atm then
+                    atm.Color = OriginalAtmosphereData.Color; atm.Glare = OriginalAtmosphereData.Glare
+                    atm.Haze = OriginalAtmosphereData.Haze; atm.Decay = OriginalAtmosphereData.Decay
+                    atm.Density = OriginalAtmosphereData.Density; atm.Offset = OriginalAtmosphereData.Offset
+                end
+            end
         end
+    end)
+
+    local originalExposure = Lighting.ExposureCompensation
+    local flashlightLoop = nil
+    Library:CreateToggle(Page, "FlashLight", false, function(state)
+        if state then
+            pcall(function() Lighting.ExposureCompensation = 2.8 end)
+            flashlightLoop = task.spawn(function()
+                while true do
+                    pcall(function() Lighting.ExposureCompensation = 2.8 end)
+                    task.wait(1)
+                end
+            end)
+        else
+            if flashlightLoop then task.cancel(flashlightLoop); flashlightLoop = nil end
+            pcall(function() Lighting.ExposureCompensation = originalExposure end)
+        end
+    end)
+
+    local CalibratorState = { enabled = false, fullbright = false, contrast = 0, brightness = 0, saturation = 0, hue = 0, opacity = 1 }
+    local origAmbient = Lighting.Ambient
+    local origColorShiftBottom = Lighting.ColorShift_Bottom
+    local origColorShiftTop = Lighting.ColorShift_Top
+    local origGlobalShadows = Lighting.GlobalShadows
+    local origFogEnd = Lighting.FogEnd
+
+    local FullbrightLoopPro = nil
+    Library:CreateToggle(Page, "Enable FullBright", false, function(state)
+        CalibratorState.fullbright = state
+        if state then
+            FullbrightLoopPro = RunService.RenderStepped:Connect(function()
+                Lighting.Ambient = Color3.new(1, 1, 1)
+                Lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
+                Lighting.ColorShift_Top = Color3.new(1, 1, 1)
+                Lighting.GlobalShadows = false
+                Lighting.FogEnd = 100000
+            end)
+        else
+            if FullbrightLoopPro then FullbrightLoopPro:Disconnect(); FullbrightLoopPro = nil end
+            Lighting.Ambient = origAmbient
+            Lighting.ColorShift_Bottom = origColorShiftBottom
+            Lighting.ColorShift_Top = origColorShiftTop
+            Lighting.GlobalShadows = origGlobalShadows
+            Lighting.FogEnd = origFogEnd
+        end
+    end)
+
+    -- [ COLUNA DIREITA: Color Calibrator ] --
+    Library:CreateSection(Page, "Color Calibrator", "Right")
+    
+    Lighting.Changed:Connect(function(prop)
+        if not CalibratorState.fullbright then
+            if prop == "Ambient" then origAmbient = Lighting.Ambient end
+            if prop == "ColorShift_Bottom" then origColorShiftBottom = Lighting.ColorShift_Bottom end
+            if prop == "ColorShift_Top" then origColorShiftTop = Lighting.ColorShift_Top end
+            if prop == "GlobalShadows" then origGlobalShadows = Lighting.GlobalShadows end
+            if prop == "FogEnd" then origFogEnd = Lighting.FogEnd end
+        end
+    end)
+
+    local EFFECT_NAME = "NexVoid_ColorCalibrator"
+    local function getOrCreateEffect()
+        local eff = Lighting:FindFirstChild(EFFECT_NAME)
+        if not eff then
+            pcall(function() eff = Instance.new("ColorCorrectionEffect"); eff.Name = EFFECT_NAME; eff.Parent = Lighting end)
+        end
+        return eff
     end
 
-    Library:CreateButton(Page, "Refresh List", function()
-        UpdateTeleportList()
-        SendNotification("Player list updated!", 2)
+    local function ApplyCalibrator()
+        local eff = getOrCreateEffect()
+        if not eff then return end
+        
+        if not CalibratorState.enabled then
+            eff.Enabled = false
+            return
+        end
+
+        local op = math.clamp(CalibratorState.opacity, 0, 1)
+        eff.Brightness = CalibratorState.brightness * op
+        eff.Contrast = CalibratorState.contrast * op
+        eff.Saturation = CalibratorState.saturation * op
+        
+        local hueUnit = (((CalibratorState.hue % 360) + 360) % 360) / 360
+        local tintSat = math.clamp(math.abs(CalibratorState.hue) / 180 * 0.5, 0, 1)
+        local tintCol = Color3.fromHSV(hueUnit, tintSat, 1)
+        eff.TintColor = Color3.new(1 + (tintCol.R - 1)*op, 1 + (tintCol.G - 1)*op, 1 + (tintCol.B - 1)*op)
+        eff.Enabled = true
+    end
+
+    Library:CreateToggle(Page, "Enable Calibrator", false, function(state)
+        CalibratorState.enabled = state
+        ApplyCalibrator()
     end)
-    
-    UpdateTeleportList()
+
+    local s1 = Library:CreateSlider(Page, "Contrast", -100, 100, 0, function(val)
+        CalibratorState.contrast = val / 100
+        ApplyCalibrator()
+    end)
+
+    local s2 = Library:CreateSlider(Page, "Brightness", -100, 100, 0, function(val)
+        CalibratorState.brightness = val / 100
+        ApplyCalibrator()
+    end)
+
+    local s3 = Library:CreateSlider(Page, "Saturation", -100, 300, 0, function(val)
+        CalibratorState.saturation = val / 100
+        ApplyCalibrator()
+    end)
+
+    local s4 = Library:CreateSlider(Page, "Hue Filter", -180, 180, 0, function(val)
+        CalibratorState.hue = val
+        ApplyCalibrator()
+    end)
+
+    local s5 = Library:CreateSlider(Page, "Filter Opacity", 0, 100, 100, function(val)
+        CalibratorState.opacity = val / 100
+        ApplyCalibrator()
+    end)
+
+    Library:CreateButton(Page, "Reset Calibrator", function()
+        if s1 and s1.Set then s1.Set(0) end
+        if s2 and s2.Set then s2.Set(0) end
+        if s3 and s3.Set then s3.Set(0) end
+        if s4 and s4.Set then s4.Set(0) end
+        if s5 and s5.Set then s5.Set(100) end
+        SendNotification("Color Calibrator Reset!", 2)
+    end)
 end
 
 -- ==========================================
--- PAGE LOADERS PLACEHOLDERS (MANTIDOS VAZIOS COMO O SCRIPT ORIGINAL)
+-- PAGE LOADERS PLACEHOLDERS 
 -- ==========================================
 
 local function LoadProgressPage(Page)
@@ -2623,69 +2694,6 @@ local function LoadVisualSkinsPage(Page)
 
     Library:CreateSection(Page, "Bundle Changer")
     Library:CreateInput(Page, "Bundle ID...", "", function(val) end)
-end
-
-local function LoadFogPage(Page)
-    Library:CreateSection(Page, "Fog Settings")
-    Library:CreateToggle(Page, "No fog", false, function(state) end)
-    Library:CreateToggle(Page, "Black Fog", false, function(state) end)
-    Library:CreateToggle(Page, "FlashLight", false, function(state) end)
-
-    local targetParentCalib = GetParentTarget(Page)
-    local CalibratorMaster = Instance.new("Frame")
-    CalibratorMaster.Size = UDim2.new(1, 0, 0, 470)
-    CalibratorMaster.BackgroundTransparency = 1
-    CalibratorMaster.Parent = targetParentCalib
-
-    local MasterLayout = Instance.new("UIListLayout")
-    MasterLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    MasterLayout.Padding = UDim.new(0, 0) 
-    MasterLayout.Parent = CalibratorMaster
-
-    local TitleRow = Instance.new("Frame")
-    TitleRow.Size = UDim2.new(1, 0, 0, 30)
-    TitleRow.BackgroundTransparency = 1
-    TitleRow.Parent = CalibratorMaster
-    
-    local DashTitle = Instance.new("TextLabel")
-    DashTitle.Size = UDim2.new(1, 0, 1, 0)
-    DashTitle.BackgroundTransparency = 1
-    DashTitle.Text = "Advanced Color Calibrator"
-    DashTitle.Font = Enum.Font.GothamBold
-    DashTitle.TextSize = 11
-    DashTitle.TextColor3 = Theme.Text
-    DashTitle.TextXAlignment = Enum.TextXAlignment.Center
-    DashTitle.Parent = TitleRow
-    ApplyAnimatedTextGradient(DashTitle)
-    
-    local row = Instance.new("Frame")
-    row.Size = UDim2.new(1, 0, 0, 30)
-    row.BackgroundTransparency = 1
-    row.Parent = CalibratorMaster
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0.7, 0, 1, 0)
-    lbl.Position = UDim2.new(0, 5, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = "Enable Calibrator"
-    lbl.Font = Theme.Font
-    lbl.TextSize = 11
-    lbl.TextColor3 = Theme.TextDark
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = row
-
-    local Bg = Instance.new("Frame")
-    Bg.Size = UDim2.new(0, 30, 0, 14)
-    Bg.Position = UDim2.new(1, -30, 0.5, -7)
-    Bg.BackgroundColor3 = Theme.SwitchOff
-    Bg.Parent = row
-    Instance.new("UICorner", Bg).CornerRadius = UDim.new(1, 0)
-    local Cir = Instance.new("Frame")
-    Cir.Size = UDim2.new(0, 12, 0, 12)
-    Cir.Position = UDim2.new(0, 1, 0.5, -6)
-    Cir.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-    Cir.Parent = Bg
-    Instance.new("UICorner", Cir).CornerRadius = UDim.new(1, 0)
 end
 
 local function LoadAutoFarmPage(Page)
