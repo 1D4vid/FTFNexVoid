@@ -1,28 +1,3 @@
-Tenho uma excelente notícia para você!
-
-Eu analisei os códigos advanced2.7 e fog2.7 que você mandou e a verdade é que
-você NÃO PRECISA me mandar o resto das categorias e você NÃO PRECISA modificar
-nenhuma delas!
-
-Por que isso é incrível?
-
-Lembra que nós modificamos a raiz da sua UI Library (a função que cria os
-botões)? Como todos os seus scripts de categorias (como o Advanced, Fog,
-Visual, etc.) usam o comando Library:CreateToggle(...), a informação vai passar
-pela biblioteca principal antes de ativar a função.
-
-Ou seja: Absolutamente todos os botões, sliders e toggles de TODAS as suas
-categorias já estão 100% interligados ao Discord automaticamente! Você
-economizou horas de trabalho graças à arquitetura do seu script.
-
-A única coisa que você precisa fazer é atualizar o seu Hub Principal
-(nexvoidv2). Eu peguei o UI finalizado que você mandou, limpei todos os
-comentários e textos inúteis (--) para o script ficar mais leve e adicionei o
-log na função CreatePlayerDropdown que estava faltando.
-
-Copie o código abaixo e substitua no seu arquivo raiz do GitHub. Os seus outros
-arquivos (advanced, fog, etc.) podem ficar exatamente como já estão!
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
