@@ -5,9 +5,9 @@
 ]]
 
 -- Target Time setup
--- 20:00 BRT (Brasília Time) on June 10th is equal to 23:00 UTC.
+-- 20:30 BRT (Brasília Time) on June 10th is equal to 23:30 UTC.
 -- We use UTC to ensure the countdown is correct regardless of the player's local timezone.
-local TargetUnixTime = DateTime.fromUniversalTime(2026, 6, 10, 23, 0, 0).UnixTimestamp 
+local TargetUnixTime = DateTime.fromUniversalTime(2026, 6, 10, 23, 30, 0).UnixTimestamp 
 
 -- Image requested
 local ImageID = "rbxassetid://14875954674"
@@ -22,7 +22,7 @@ local Color_Discord = Color3.fromRGB(88, 101, 242)    -- Discord Blurple
 local Translations = {
     PT = {
         Title = "MANUTENÇÃO DO SISTEMA",
-        Desc = "Pedimos desculpas pelo transtorno, mas o script está em manutenção para correção de bugs.\nRetornando em 10/06 às 20:00 (BRT).",
+        Desc = "Pedimos desculpas pelo transtorno, mas o script está em manutenção para correção de bugs.\nRetornando em 10/06 às 20:30 (BRT).",
         CountdownDesc = "DIAS : HORAS : MINS : SEG",
         Discord = "DISCORD",
         Close = "FECHAR",
@@ -31,7 +31,7 @@ local Translations = {
     },
     EN = {
         Title = "SYSTEM MAINTENANCE",
-        Desc = "We apologize for the inconvenience, but the script is currently down for bug fixes.\nReturning on June 10th at 20:00 (BRT).",
+        Desc = "We apologize for the inconvenience, but the script is currently down for bug fixes.\nReturning on June 10th at 20:30 (BRT).",
         CountdownDesc = "DAYS : HOURS : MINS : SECS",
         Discord = "DISCORD",
         Close = "CLOSE",
@@ -40,7 +40,7 @@ local Translations = {
     },
     ES = {
         Title = "MANTENIMIENTO DEL SISTEMA",
-        Desc = "Pedimos disculpas por las molestias, pero el script está en mantenimiento para corregir errores.\nVolvemos el 10 de junio a las 20:00 (BRT).",
+        Desc = "Pedimos disculpas por las molestias, pero el script está en mantenimiento para corregir errores.\nVolvemos el 10 de junio a las 20:30 (BRT).",
         CountdownDesc = "DÍAS : HORAS : MINS : SEG",
         Discord = "DISCORD",
         Close = "CERRAR",
