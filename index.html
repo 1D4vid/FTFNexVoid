@@ -2,209 +2,257 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexVoid | Intelligence Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NexVoid | Security Panel</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
         body {
             background: url('https://cdn.discordapp.com/attachments/1478479989803323392/1488641677529710652/8269893be15f4dc76e1e9060eda6f7bd.jpg') no-repeat center center fixed;
-            background-size: cover; color: white; display: flex; height: 100vh; overflow: hidden;
+            background-size: cover; display: flex; align-items: center; justify-content: center; height: 100vh; color: white; overflow: hidden;
         }
 
-        .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: -1; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 0; }
 
-        /* --- TELA DE LOGIN --- */
-        #login-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(15,15,15,0.8); backdrop-filter: blur(15px); padding: 40px;
-            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 350px; text-align: center; z-index: 100;
+        .glass-panel {
+            position: relative; z-index: 1; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            display: flex; flex-direction: column; transition: all 0.3s ease;
         }
-        #login-screen h1 { font-size: 26px; font-weight: 700; margin-bottom: 20px; letter-spacing: 2px;}
-        #login-screen input {
-            width: 100%; padding: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; text-align: center;
-        }
-        #login-screen button {
-            width: 100%; padding: 12px; background: white; color: black; font-weight: 700;
-            border: none; border-radius: 6px; cursor: pointer; transition: 0.3s;
-        }
-        #login-screen button:hover { background: #ccc; }
 
-        /* --- DASHBOARD PRINCIPAL --- */
-        #dashboard { display: none; width: 100%; height: 100%; z-index: 10; display: none; }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px; background: rgba(10,10,10,0.8); border-right: 1px solid rgba(255,255,255,0.05);
-            padding: 30px 20px; display: flex; flex-direction: column; gap: 15px;
-        }
-        .sidebar h2 { font-size: 20px; letter-spacing: 2px; margin-bottom: 30px; text-align: center; color: #fff;}
-        .menu-btn {
-            background: transparent; color: #aaa; border: none; text-align: left; padding: 15px;
-            font-size: 14px; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: 500; letter-spacing: 1px;
-        }
-        .menu-btn:hover, .menu-btn.active { background: rgba(255,255,255,0.1); color: white; }
-
-        /* Content Area */
-        .content { flex-grow: 1; padding: 40px; display: flex; flex-direction: column; overflow: hidden;}
+        /* TELA DE LOGIN */
+        #login-screen { width: 90%; max-width: 400px; text-align: center; }
+        .logo-title { font-weight: 800; font-size: 32px; letter-spacing: 2px; margin-bottom: 5px; }
+        .logo-title span { color: #fff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+        .subtitle { font-size: 12px; color: #888; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h3 { font-size: 24px; font-weight: 500;}
-        .stats-badge { background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); font-size: 14px;}
-        .stats-badge span { color: #4ade80; font-weight: 700; font-size: 18px; margin-right: 10px;}
-
-        /* Tables */
-        .table-wrap { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .table-wrap::-webkit-scrollbar { width: 5px; }
-        .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(15,15,15,0.9); padding: 15px; text-align: left; font-size: 12px; color: #888; text-transform: uppercase; position: sticky; top: 0;}
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc;}
-        tr:hover td { background: rgba(255,255,255,0.02); color: white;}
-
-        .status-dot { display: inline-block; width: 8px; height: 8px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 10px #4ade80; margin-right: 8px;}
-        .hwid-text { font-family: monospace; font-size: 11px; color: #666;}
+        input {
+            width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.7); color: white; outline: none; font-size: 15px; text-align: center; transition: 0.3s;
+        }
+        input:focus { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
         
-        .page { display: none; height: 100%; flex-direction: column; }
-        .page.active { display: flex; }
+        button.btn-primary {
+            width: 100%; padding: 15px; border-radius: 8px; border: none; background: #fff; color: #000;
+            font-weight: 800; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: 0.3s;
+        }
+        button.btn-primary:hover { background: #ccc; transform: translateY(-2px); }
+
+        /* DASHBOARD PRINCIPAL */
+        #dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; }
         
-        .log-action { color: #facc15; font-weight: 700; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .dash-header h1 { font-size: 20px; }
+        
+        .nav-tabs { display: flex; gap: 10px; }
+        .nav-tabs button {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 20px;
+            border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s;
+        }
+        .nav-tabs button.active { background: #fff; color: #000; }
+        
+        .stats-box { background: rgba(0, 0, 0, 0.5); padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; gap: 15px; }
+        .stats-box h2 { font-size: 24px; color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.4); margin: 0;}
+        .stats-box p { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2;}
+
+        /* TABELAS RESPONSIVAS */
+        .tab-content { display: none; flex-grow: 1; overflow: hidden; flex-direction: column; }
+        .tab-content.active { display: flex; }
+        
+        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: auto; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+        th { background: rgba(10,10,10,0.9); padding: 15px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 2; }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc; white-space: nowrap; }
+        tr:hover td { background: rgba(255,255,255,0.05); color: #fff; }
+        
+        .online-dot { display: inline-block; width: 8px; height: 8px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 10px #4ade80; margin-right: 8px; }
+        .badge { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; }
+        .badge.action { background: rgba(138, 43, 226, 0.2); color: #d8b4fe; border: 1px solid rgba(138, 43, 226, 0.3); }
+        .time-counter { color: #facc15; font-weight: 600; }
+
+        /* ADAPTAÇÃO PARA CELULAR */
+        @media (max-width: 768px) {
+            .glass-panel { padding: 20px; }
+            .dash-header { flex-direction: column; align-items: stretch; }
+            .nav-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+            .stats-box { justify-content: center; }
+            td, th { padding: 12px 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
 
-    <div id="login-screen">
-        <h1>NEXVOID</h1>
-        <input type="password" id="password" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkPass()">
-        <button onclick="checkPass()">ENTER</button>
+    <div class="glass-panel" id="login-screen">
+        <div class="logo-title">NEX<span>VOID</span></div>
+        <p class="subtitle">Systems Database</p>
+        <input type="password" id="password" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkPassword()">
+        <button class="btn-primary" onclick="checkPassword()">AUTHORIZE</button>
     </div>
 
-    <div id="dashboard">
-        <div class="sidebar">
-            <h2>NEXVOID</h2>
-            <button class="menu-btn active" onclick="switchTab('live')">📡 LIVE PLAYERS</button>
-            <button class="menu-btn" onclick="switchTab('history')">📜 ACTION LOGS</button>
-        </div>
-        
-        <div class="content">
-            <!-- TELA: LIVE PLAYERS -->
-            <div id="live" class="page active">
-                <div class="header">
-                    <h3>Atualmente Injetados</h3>
-                    <div class="stats-badge"><span id="online-count">0</span> ONLINE</div>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th>User</th><th>Device</th><th>Executor</th><th>HWID</th><th>Status</th></tr>
-                        </thead>
-                        <tbody id="live-table"></tbody>
-                    </table>
-                </div>
+    <div class="glass-panel" id="dashboard">
+        <div class="dash-header">
+            <div class="logo-title" style="font-size: 24px;">NEX<span>VOID</span></div>
+            <div class="nav-tabs">
+                <button id="btn-tab-online" class="active" onclick="switchTab('online')">Ao Vivo</button>
+                <button id="btn-tab-history" onclick="switchTab('history')">Histórico</button>
             </div>
+            <div class="stats-box">
+                <h2 id="online-count">0</h2>
+                <p>Usuários<br>Online</p>
+            </div>
+        </div>
 
-            <!-- TELA: HISTORY LOGS -->
-            <div id="history" class="page">
-                <div class="header">
-                    <h3>Histórico de Ações Global</h3>
-                    <button style="width: auto; padding: 10px 20px; font-size: 12px; background: rgba(255,255,255,0.1); color: white; border:1px solid rgba(255,255,255,0.2);" onclick="clearLogs()">CLEAR LOGS</button>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th>Time</th><th>User</th><th>Action</th><th>Value / Status</th></tr>
-                        </thead>
-                        <tbody id="history-table"></tbody>
-                    </table>
-                </div>
+        <!-- ABA ONLINE -->
+        <div id="tab-online" class="tab-content active">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jogador</th>
+                            <th>Aparelho</th>
+                            <th>Executor</th>
+                            <th>Tempo Online</th>
+                        </tr>
+                    </thead>
+                    <tbody id="online-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA HISTÓRICO -->
+        <div id="tab-history" class="tab-content">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Jogador</th>
+                            <th>Ação Executada</th>
+                            <th>Jogo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
-        const SENHA = "david111";
-        const FIREBASE = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
+        const SENHA_ACESSO = "david111";
+        const FIREBASE_URL = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
 
-        function checkPass() {
-            if(document.getElementById("password").value === SENHA) {
+        let onlineInterval;
+
+        function checkPassword() {
+            let val = document.getElementById("password").value;
+            if(val === SENHA_ACESSO) {
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("dashboard").style.display = "flex";
                 startSystem();
-            } else { alert("Access Denied"); }
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        async function fetchLive() {
-            try {
-                let res = await fetch(FIREBASE + "live.json", { cache: "no-store" });
-                let data = await res.json();
-                let tbody = document.getElementById("live-table");
-                tbody.innerHTML = "";
-                let count = 0;
-                let now = Math.floor(Date.now() / 1000);
-
-                for (let key in data) {
-                    let p = data[key];
-                    if (now - p.LastSeen < 30) {
-                        count++;
-                        tbody.innerHTML += `<tr>
-                            <td><span class="status-dot"></span><b>${p.Name}</b></td>
-                            <td>${p.Device}</td>
-                            <td>${p.Exec}</td>
-                            <td class="hwid-text">${p.HWID.substring(0,25)}...</td>
-                            <td>Injected</td>
-                        </tr>`;
-                    }
-                }
-                document.getElementById("online-count").innerText = count;
-            } catch (e) { console.log(e); }
-        }
-
-        async function fetchLogs() {
-            try {
-                // Pega os logs em ordem decrescente (mais novos primeiro)
-                let res = await fetch(FIREBASE + "history.json?orderBy=\"$key\"&limitToLast=100", { cache: "no-store" });
-                let data = await res.json();
-                let tbody = document.getElementById("history-table");
-                tbody.innerHTML = "";
-                
-                if(data) {
-                    // Reverte para mostrar do mais novo pro mais velho
-                    let keys = Object.keys(data).reverse();
-                    for(let k of keys) {
-                        let log = data[k];
-                        tbody.innerHTML += `<tr>
-                            <td style="color:#888;">${log.Time}</td>
-                            <td><b>${log.User}</b></td>
-                            <td><span class="log-action">${log.Action}</span></td>
-                            <td>${log.Details}</td>
-                        </tr>`;
-                    }
-                }
-            } catch(e) { console.log(e); }
-        }
-
-        async function clearLogs() {
-            if(confirm("Tem certeza que deseja apagar TODO o histórico?")) {
-                await fetch(FIREBASE + "history.json", { method: "DELETE" });
-                fetchLogs();
+            } else {
+                alert("Acesso Negado.");
+                document.getElementById("password").value = "";
             }
         }
 
+        function switchTab(tab) {
+            document.getElementById('btn-tab-online').classList.remove('active');
+            document.getElementById('btn-tab-history').classList.remove('active');
+            document.getElementById('tab-online').classList.remove('active');
+            document.getElementById('tab-history').classList.remove('active');
+            
+            document.getElementById('btn-tab-' + tab).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            if(tab === 'history') fetchHistory();
+        }
+
+        function formatSessionTime(startTimestamp) {
+            let diff = Math.floor(Date.now() / 1000) - startTimestamp;
+            if (diff < 0) diff = 0;
+            let h = Math.floor(diff / 3600);
+            let m = Math.floor((diff % 3600) / 60);
+            let s = diff % 60;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            return `${m}m ${s}s`;
+        }
+
+        async function fetchOnline() {
+            try {
+                let res = await fetch(FIREBASE_URL + "online.json", { cache: "no-store" });
+                let data = await res.json();
+                
+                let tbody = document.getElementById("online-list");
+                tbody.innerHTML = "";
+                let count = 0;
+                let currentTime = Math.floor(Date.now() / 1000); 
+
+                if(data) {
+                    for (let userId in data) {
+                        let player = data[userId];
+                        if (currentTime - player.LastSeen < 30) {
+                            count++;
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td><span class="online-dot"></span><b style="color: white;">${player.Name}</b></td>
+                                <td>${player.Device}</td>
+                                <td><span class="badge">${player.Exec}</span></td>
+                                <td class="time-counter">⏱️ ${formatSessionTime(player.SessionStart)}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    }
+                }
+                document.getElementById("online-count").innerText = count;
+            } catch (err) { console.error(err); }
+        }
+
+        async function fetchHistory() {
+            try {
+                let res = await fetch(FIREBASE_URL + "logs.json", { cache: "no-store" });
+                let data = await res.json();
+                
+                let tbody = document.getElementById("history-list");
+                tbody.innerHTML = "";
+                
+                let allLogs = [];
+                if(data) {
+                    // Achatar o banco de dados para criar uma lista única de logs
+                    for(let userId in data) {
+                        for(let logId in data[userId]) {
+                            allLogs.push(data[userId][logId]);
+                        }
+                    }
+                }
+                
+                // Ordenar do mais recente pro mais antigo
+                allLogs.sort((a, b) => b.Timestamp - a.Timestamp);
+                
+                // Mostrar os últimos 150 registros para não travar o celular
+                let displayLogs = allLogs.slice(0, 150);
+                
+                displayLogs.forEach(log => {
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="color: #888; font-family: monospace;">${log.Time}</td>
+                        <td><b style="color: white;">${log.Name}</b></td>
+                        <td><span class="badge action">${log.Action}</span></td>
+                        <td style="font-size: 11px;">${log.Game}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { console.error(err); }
+        }
+
         function startSystem() {
-            fetchLive();
-            fetchLogs();
-            setInterval(fetchLive, 5000);
-            setInterval(fetchLogs, 10000); // Atualiza os logs a cada 10 seg
+            fetchOnline();
+            onlineInterval = setInterval(fetchOnline, 1000); // Atualiza o tempo de sessão a cada segundo
         }
     </script>
 </body>
