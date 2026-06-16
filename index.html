@@ -39,9 +39,11 @@
         /* TELA DE LOGIN */
         #login-screen { width: 90%; max-width: 380px; text-align: center; }
         .logo-title { font-weight: 900; font-size: 34px; letter-spacing: 2px; margin-bottom: 5px; }
+        .logo-title span { color: var(--accent); text-shadow: 0 0 15px rgba(216, 180, 254, 0.5); }
+        .logo-title.admin span { color: var(--danger); text-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
         .subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
         
-        .input-group { position: relative; margin-bottom: 25px; }
+        .input-group { position: relative; margin-bottom: 25px; display: flex; gap: 10px;}
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px; }
         input {
             width: 100%; padding: 15px 15px 15px 45px; border-radius: 8px; border: 1px solid var(--border-glass);
@@ -54,9 +56,11 @@
             font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;
         }
         button.btn-primary:hover { background: var(--accent); color: white; }
+        button.btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        button.btn-danger:hover { background: var(--danger); color: white; }
 
-        /* DASHBOARD */
-        #dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; padding: 25px; }
+        /* DASHBOARD GERAL */
+        #dashboard, #admin-dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; padding: 25px; }
         .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         
         .global-search { flex-grow: 1; max-width: 300px; position: relative; }
@@ -89,6 +93,10 @@
         .action-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         .action-item { background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; font-size: 12px; border-left: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center;}
         
+        .badge { background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-glass); }
+        .badge.used { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        .badge.free { background: rgba(74, 222, 128, 0.15); color: var(--success); border-color: rgba(74, 222, 128, 0.3); }
+
         @media (max-width: 768px) {
             .glass-panel { padding: 15px; border-radius: 0; height: 100vh; width: 100%; border: none; }
             #login-screen { height: auto; border-radius: 16px; border: 1px solid var(--border-glass); }
@@ -96,7 +104,7 @@
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { display: none; }
             .table-wrapper { padding: 10px; background: transparent; border: none; }
-            .online-row { margin-bottom: 12px; background: rgba(15, 15, 15, 0.9); border-radius: 10px; padding: 12px; border: 1px solid var(--border-glass); }
+            .online-row, .admin-row { margin-bottom: 12px; background: rgba(15, 15, 15, 0.9); border-radius: 10px; padding: 12px; border: 1px solid var(--border-glass); }
             td { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);}
             td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); font-size: 10px; }
         }
@@ -105,20 +113,49 @@
 <body>
     <div class="overlay"></div>
 
+    <!-- LOGIN PRINCIPAL -->
     <div class="glass-panel" id="login-screen">
         <div class="logo-title">NEX<span>VOID</span></div>
         <p class="subtitle">Secure Database</p>
+        
         <div class="input-group">
             <i class="ph ph-key"></i>
-            <input type="text" id="access-key" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkKey()">
+            <input type="password" id="access-key" placeholder="Enter Access Key" onkeypress="if(event.key === 'Enter') checkKey()">
         </div>
-        <button class="btn-primary" onclick="checkKey()"><i class="ph ph-sign-in"></i> AUTHORIZE</button>
+        
+        <button class="btn-primary" onclick="checkKey()">
+            <i class="ph ph-sign-in"></i> AUTHORIZE
+        </button>
     </div>
 
+    <!-- DASHBOARD ADMIN (CTRL + ALT + G) -->
+    <div class="glass-panel" id="admin-dashboard">
+        <div class="dash-header">
+            <div class="logo-title admin" style="font-size: 20px;">NEX<span>ADMIN</span></div>
+            <div style="flex-grow: 1;"></div>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="closeAdmin()">Voltar ao Site</button>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <i class="ph ph-pencil-simple"></i>
+            <input type="text" id="custom-key-name" placeholder="Nome da Key Personalizada (Opcional)" style="margin-bottom: 0;">
+            <button class="btn-primary" style="width: auto; padding: 0 20px;" onclick="generateKey(true)">CRIAR</button>
+            <button class="btn-primary" style="width: auto; padding: 0 20px; background: var(--accent);" onclick="generateKey(false)">ALEATÓRIA</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>Chave (Key)</th><th>Status</th><th>Data de Criação</th><th>Ação</th></tr></thead>
+                <tbody id="admin-keys-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DASHBOARD USUÁRIO -->
     <div class="glass-panel" id="dashboard">
         <div class="dash-header">
             <div class="logo-title" style="font-size: 20px;">NEX<span>VOID</span></div>
-            <div class="global-search"><i class="ph ph-magnifying-glass"></i><input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar jogador..."></div>
+            <div class="global-search"><i class="ph ph-magnifying-glass"></i><input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar..."></div>
             <div class="nav-tabs">
                 <button id="btn-tab-online" class="active" onclick="switchTab('online')"><i class="ph ph-broadcast"></i> Ao Vivo</button>
                 <button id="btn-tab-history" onclick="switchTab('history')"><i class="ph ph-clock-counter-clockwise"></i> Histórico</button>
@@ -141,17 +178,35 @@
     </div>
 
     <script>
-        // === SUAS CONFIGURAÇÕES ===
+        // === CONFIGURAÇÕES ===
         const FIREBASE_URL = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
-        const WEBHOOK_ALERTAS = "https://discord.com/api/webhooks/1516568612029075541/dx8RwgFd5EhklEu8uC6iMBIDOvzrWDkfT4AfQ2uRICLt7mMUw-JUe36uVW0FT1zXzLx0"; // Webhook para mandar logs se tentarem tirar print ou roubar
+        const WEBHOOK_ALERTAS = "COLOQUE_SEU_WEBHOOK_AQUI"; // Discord Webhook para logs de print
+        const ADMIN_PASSWORD = "ZGF2aWRhZG1pbg=="; // Base64 para "davidadmin"
+        
+        let onlineInterval;
 
-        // Auto Login se o token já estiver salvo no navegador
-        if(localStorage.getItem("nexvoid_token")) {
-            document.getElementById("login-screen").style.display = "none";
-            document.getElementById("dashboard").style.display = "flex";
-            startSystem();
-        }
+        // INÍCIO - Auto Login Seguro
+        window.onload = async function() {
+            let savedKey = localStorage.getItem("nexvoid_token");
+            if(savedKey) {
+                try {
+                    let res = await fetch(FIREBASE_URL + "keys/" + savedKey + ".json");
+                    let data = await res.json();
+                    if(data) {
+                        // A Key ainda existe no banco, então pode entrar
+                        document.getElementById("login-screen").style.display = "none";
+                        document.getElementById("dashboard").style.display = "flex";
+                        startSystem();
+                    } else {
+                        // A Key foi revogada/apagada pelo Admin!
+                        localStorage.removeItem("nexvoid_token");
+                        alert("Sua chave de acesso foi revogada pelo Administrador.");
+                    }
+                } catch(e) {}
+            }
+        };
 
+        // SISTEMA DE LOGIN (CHAVES)
         async function checkKey() {
             let keyInput = document.getElementById("access-key").value.trim();
             if(!keyInput) return alert("Insira a chave!");
@@ -160,82 +215,127 @@
                 let res = await fetch(FIREBASE_URL + "keys/" + keyInput + ".json");
                 let data = await res.json();
 
-                if(data && data.used === false) {
-                    // Marca a Key como usada no banco de dados para ninguém mais usar
-                    await fetch(FIREBASE_URL + "keys/" + keyInput + ".json", {
-                        method: 'PATCH',
-                        body: JSON.stringify({ used: true })
-                    });
-                    
+                if(data) {
+                    if(data.used === false) {
+                        // Primeira vez usando a key
+                        await fetch(FIREBASE_URL + "keys/" + keyInput + ".json", {
+                            method: 'PATCH', body: JSON.stringify({ used: true, usedAt: new Date().toLocaleString() })
+                        });
+                    }
                     localStorage.setItem("nexvoid_token", keyInput);
                     document.getElementById("login-screen").style.display = "none";
                     document.getElementById("dashboard").style.display = "flex";
                     startSystem();
                 } else {
-                    alert("Chave inválida ou já utilizada.");
+                    alert("Chave inválida ou inexistente.");
                 }
             } catch(e) { alert("Erro de conexão."); }
         }
 
         // ==========================================
-        // GERADOR SECRETO DE KEYS (CTRL + ALT + G)
+        // ÁREA DE ADMIN (CTRL + ALT + G)
         // ==========================================
-        document.addEventListener('keydown', async function(e) {
+        document.addEventListener('keydown', function(e) {
             if(e.ctrlKey && e.altKey && e.key === 'g') {
-                let adminPass = prompt("Área de Admin: Digite a senha Mestra:");
-                if(adminPass === "davidadmin") {
-                    let newKey = "NEX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-                    await fetch(FIREBASE_URL + "keys/" + newKey + ".json", {
-                        method: 'PUT',
-                        body: JSON.stringify({ used: false })
-                    });
-                    alert("Nova Key Criada (Já copiada para área de transferência): \n\n" + newKey);
-                    navigator.clipboard.writeText(newKey);
+                let adminPass = prompt("SISTEMA DE SEGURANÇA NEXVOID\nInsira a senha mestra:");
+                if(btoa(adminPass) === ADMIN_PASSWORD) {
+                    document.getElementById("login-screen").style.display = "none";
+                    document.getElementById("dashboard").style.display = "none";
+                    document.getElementById("admin-dashboard").style.display = "flex";
+                    fetchKeys();
+                } else if(adminPass !== null) {
+                    alert("Acesso Negado.");
                 }
             }
         });
 
+        function closeAdmin() {
+            document.getElementById("admin-dashboard").style.display = "none";
+            if(localStorage.getItem("nexvoid_token")) {
+                document.getElementById("dashboard").style.display = "flex";
+            } else {
+                document.getElementById("login-screen").style.display = "flex";
+            }
+        }
+
+        async function generateKey(isCustom) {
+            let newKey = "";
+            if(isCustom) {
+                newKey = document.getElementById("custom-key-name").value.trim();
+                if(!newKey) return alert("Digite um nome para a chave personalizada!");
+            } else {
+                newKey = "NEX-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+            }
+
+            await fetch(FIREBASE_URL + "keys/" + newKey + ".json", {
+                method: 'PUT',
+                body: JSON.stringify({ used: false, createdAt: new Date().toLocaleString() })
+            });
+            document.getElementById("custom-key-name").value = "";
+            alert("Chave Gerada: " + newKey);
+            fetchKeys();
+        }
+
+        async function revokeKey(keyName) {
+            if(confirm("Tem certeza que deseja REVOGAR e deletar a chave: " + keyName + "?\nO usuário perderá o acesso instantaneamente.")) {
+                await fetch(FIREBASE_URL + "keys/" + keyName + ".json", { method: 'DELETE' });
+                fetchKeys();
+            }
+        }
+
+        async function fetchKeys() {
+            let res = await fetch(FIREBASE_URL + "keys.json", { cache: "no-store" });
+            let data = await res.json();
+            let tbody = document.getElementById("admin-keys-list");
+            tbody.innerHTML = "";
+            
+            if(data) {
+                for(let key in data) {
+                    let info = data[key];
+                    let statusBadge = info.used ? `<span class="badge used">Em Uso</span>` : `<span class="badge free">Disponível</span>`;
+                    let tr = document.createElement("tr");
+                    tr.className = "admin-row";
+                    tr.innerHTML = `
+                        <td data-label="Key"><b style="color:white; font-family:monospace;">${key}</b></td>
+                        <td data-label="Status">${statusBadge}</td>
+                        <td data-label="Criação" style="font-size: 11px; color: #888;">${info.createdAt || "N/A"}</td>
+                        <td data-label="Ação"><button class="btn-primary btn-danger" style="padding: 8px 15px; width: auto; float:right;" onclick="revokeKey('${key}')"><i class="ph ph-trash"></i> Revogar</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
         // ==========================================
-        // SISTEMAS DE PROTEÇÃO ANTI-PRINT E ANTI-ROUBO
+        // SISTEMAS DE PROTEÇÃO E MONITORAMENTO
         // ==========================================
         function sendWebhookAlert(motivo) {
-            let token = localStorage.getItem("nexvoid_token") || "Não logado";
+            let token = localStorage.getItem("nexvoid_token") || "Desconhecido";
             fetch(WEBHOOK_ALERTAS, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    content: `🚨 **TENTATIVA DE VIOLAÇÃO NO SITE** 🚨\n**Motivo:** ${motivo}\n**Token do Usuário:** \`${token}\``
-                })
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ content: `🚨 **ALERTA DE SEGURANÇA WEB** 🚨\n**Motivo:** ${motivo}\n**Key do Infrator:** \`${token}\`` })
             }).catch(e=>{});
         }
 
-        // Bloqueia clique direito (Inspecionar/Salvar Imagem)
         document.addEventListener('contextmenu', e => e.preventDefault());
-
-        // Bloqueia F12 e PrintScreen
         document.onkeydown = function(e) {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) {
-                sendWebhookAlert("Tentou abrir o painel de Desenvolvedor (F12)");
+                sendWebhookAlert("Tentativa de F12 (Inspecionar Elemento)");
                 return false;
             }
             if(e.key === 'PrintScreen') {
-                navigator.clipboard.writeText("Nice try! :)"); // Limpa o print da pessoa
-                sendWebhookAlert("Apertou a tecla PrintScreen no painel.");
+                navigator.clipboard.writeText("NexVoid Security: Acesso Negado.");
+                sendWebhookAlert("Apertou PrintScreen para tirar print da Database.");
             }
         };
 
-        // Efeito de BLUR (Desfoque) se o cara minimizar o Chrome pra tentar usar gravador
         document.addEventListener("visibilitychange", () => {
             if(document.hidden) {
-                document.body.style.filter = "blur(20px)";
-                document.body.style.background = "#000";
+                document.body.style.filter = "blur(30px) grayscale(100%)";
             } else {
                 document.body.style.filter = "none";
-                document.body.style.background = "url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed";
-                document.body.style.backgroundSize = "cover";
             }
         });
-
 
         // ==========================================
         // LÓGICA DO DASHBOARD
@@ -249,9 +349,7 @@
             filterGlobal(); 
         }
 
-        function toggleCard(id) {
-            document.getElementById('card-' + id).classList.toggle('open');
-        }
+        function toggleCard(id) { document.getElementById('card-' + id).classList.toggle('open'); }
 
         function filterActions(val, listId) {
             let filter = val.toLowerCase();
@@ -263,22 +361,15 @@
 
         function filterGlobal() {
             let filter = document.getElementById('global-search').value.toLowerCase();
-            document.querySelectorAll('.online-row').forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
-            });
-            document.querySelectorAll('.history-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(filter) ? "" : "none";
-            });
+            document.querySelectorAll('.online-row').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none"; });
+            document.querySelectorAll('.history-card').forEach(card => { card.style.display = card.innerText.toLowerCase().includes(filter) ? "" : "none"; });
         }
 
         function formatSessionTime(startTimestamp) {
             let diff = Math.floor(Date.now() / 1000) - startTimestamp;
             if (diff < 0) diff = 0;
-            let h = Math.floor(diff / 3600);
-            let m = Math.floor((diff % 3600) / 60);
-            let s = diff % 60;
-            let mStr = m < 10 ? "0"+m : m;
-            let sStr = s < 10 ? "0"+s : s;
+            let h = Math.floor(diff / 3600); let m = Math.floor((diff % 3600) / 60); let s = diff % 60;
+            let mStr = m < 10 ? "0"+m : m; let sStr = s < 10 ? "0"+s : s;
             return h > 0 ? `${h}:${mStr}:${sStr}` : `${mStr}:${sStr}`;
         }
 
@@ -301,15 +392,14 @@
                             tr.innerHTML = `
                                 <td data-label="Jogador"><div style="color:white; font-weight:600;"><span style="color:#4ade80;">●</span> ${player.Name}</div></td>
                                 <td data-label="Aparelho" style="color:#aaa;">${player.Device}</td>
-                                <td data-label="Executor"><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px;">${player.Exec}</span></td>
-                                <td data-label="Tempo"><span style="color:#facc15; font-weight:bold;">⏱️ ${formatSessionTime(player.SessionStart)}</span></td>
+                                <td data-label="Executor"><span class="badge">${player.Exec}</span></td>
+                                <td data-label="Tempo"><span style="color:#facc15; font-weight:bold; font-family:monospace; font-size:14px;">⏱️ ${formatSessionTime(player.SessionStart)}</span></td>
                             `;
                             tbody.appendChild(tr);
                         }
                     }
                 }
                 document.getElementById("online-count").innerText = count;
-                filterGlobal(); 
             } catch (err) {}
         }
 
@@ -317,13 +407,9 @@
             try {
                 let res = await fetch(FIREBASE_URL + "logs.json", { cache: "no-store" });
                 let data = await res.json();
-                
                 let container = document.getElementById("history-list");
-                
-                // Sistema para não fechar as abas quando atualiza!
                 let openCards = [];
                 document.querySelectorAll('.history-card.open').forEach(card => openCards.push(card.id));
-
                 container.innerHTML = "";
                 if(!data) return;
 
@@ -333,38 +419,32 @@
                         let log = data[userId][logId];
                         let sId = log.SessionID || "Legacy";
                         let key = log.Name + "_" + sId;
-                        if(!sessions[key]) {
-                            sessions[key] = { Name: log.Name, Game: log.Game, StartTime: log.Time, Timestamp: log.Timestamp, Actions: [] };
-                        }
+                        if(!sessions[key]) { sessions[key] = { Name: log.Name, Game: log.Game, StartTime: log.Time, Timestamp: log.Timestamp, Actions: [] }; }
                         sessions[key].Actions.push(log);
                     }
                 }
 
                 let sessionsArray = Object.values(sessions).sort((a,b) => b.Timestamp - a.Timestamp).slice(0, 150);
-                
                 sessionsArray.forEach((sess, index) => {
                     sess.Actions.sort((a,b) => b.Timestamp - a.Timestamp);
                     let actionsHtml = sess.Actions.map(a => `<div class="action-item"><span style="color:#eee;">${a.Action}</span><span style="color:#888; font-size:10px;">${a.Time.split(' ')[1]}</span></div>`).join('');
-
                     let cardId = "card-" + index;
                     let card = document.createElement("div");
                     card.className = "history-card";
                     card.id = cardId;
-                    if(openCards.includes(cardId)) card.classList.add('open'); // Mantém aberto se estava aberto
-
+                    if(openCards.includes(cardId)) card.classList.add('open'); 
                     card.innerHTML = `
                         <div class="history-card-header" onclick="toggleCard(${index})">
                             <div><b style="font-size:15px; color:#fff;">${sess.Name}</b><br><span style="font-size:11px; color:#aaa;">🗓️ ${sess.StartTime} &nbsp;🎮 ${sess.Game}</span></div>
                             <div style="background:rgba(138,43,226,0.15); color:#d8b4fe; padding:5px 10px; border-radius:6px; font-size:11px;">📋 ${sess.Actions.length} Funções ▼</div>
                         </div>
                         <div class="history-card-body">
-                            <input type="text" class="mini-search" placeholder="Buscar função ativada..." onkeyup="filterActions(this.value, 'act-list-${index}')">
+                            <input type="text" class="mini-search" placeholder="Pesquisar ação ativada..." onkeyup="filterActions(this.value, 'act-list-${index}')">
                             <div class="action-list" id="act-list-${index}">${actionsHtml}</div>
                         </div>
                     `;
                     container.appendChild(card);
                 });
-                filterGlobal(); 
             } catch (err) {}
         }
 
@@ -372,7 +452,7 @@
             fetchOnline();
             fetchHistory();
             setInterval(fetchOnline, 1000); 
-            setInterval(fetchHistory, 5000); // Atualiza o histórico ao vivo sem piscar a tela
+            setInterval(fetchHistory, 5000); 
         }
     </script>
 </body>
