@@ -16,13 +16,15 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --success: #4ade80;
+            --danger: #ef4444;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; user-select: none; }
         
         body {
             background: url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed;
             background-size: cover; display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text-main); overflow: hidden;
+            transition: filter 0.3s;
         }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.9)); z-index: 0; }
@@ -34,7 +36,7 @@
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; transition: 0.4s ease;
         }
 
-        /* --- TELA DE LOGIN --- */
+        /* TELA DE LOGIN */
         #login-screen { width: 90%; max-width: 380px; text-align: center; }
         .logo-title { font-weight: 900; font-size: 34px; letter-spacing: 2px; margin-bottom: 5px; }
         .subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
@@ -43,7 +45,7 @@
         .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px; }
         input {
             width: 100%; padding: 15px 15px 15px 45px; border-radius: 8px; border: 1px solid var(--border-glass);
-            background: rgba(0, 0, 0, 0.5); color: white; outline: none; font-size: 14px; transition: 0.3s;
+            background: rgba(0, 0, 0, 0.5); color: white; outline: none; font-size: 14px; transition: 0.3s; user-select: text;
         }
         input:focus { border-color: var(--accent); }
         
@@ -53,11 +55,9 @@
         }
         button.btn-primary:hover { background: var(--accent); color: white; }
 
-        /* --- DASHBOARD PRINCIPAL --- */
+        /* DASHBOARD */
         #dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; padding: 25px; }
-        
         .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .dash-header .logo-title { font-size: 22px; margin: 0; }
         
         .global-search { flex-grow: 1; max-width: 300px; position: relative; }
         .global-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -68,63 +68,37 @@
         .nav-tabs button.active { background: rgba(255,255,255,0.1); color: var(--text-main); }
         
         .stats-box { background: rgba(0, 0, 0, 0.4); padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border-glass); display: flex; align-items: center; gap: 12px; }
-        .stats-box i { font-size: 24px; color: var(--success); }
-        .stats-info h2 { font-size: 20px; color: var(--success); margin: 0; font-weight: 800; line-height: 1;}
-        .stats-info p { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0;}
-
-        /* TABELAS E CARDS */
+        .stats-box h2 { font-size: 20px; color: var(--success); margin: 0;}
+        
         .tab-content { display: none; flex-grow: 1; overflow: hidden; flex-direction: column; }
         .tab-content.active { display: flex; }
-        
-        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; border-radius: 10px; background: transparent; }
+        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); }
         .table-wrapper::-webkit-scrollbar { width: 4px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
 
-        /* ABA ONLINE (Tabela) */
-        table { width: 100%; border-collapse: collapse; text-align: left; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;}
-        th { background: rgba(5,5,5,0.9); padding: 14px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 2; font-weight: 600;}
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: rgba(5,5,5,0.9); padding: 14px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; position: sticky; top: 0; z-index: 2;}
         td { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc; }
-        .player-name { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 600; }
-        .online-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
-        .icon-text { display: flex; align-items: center; gap: 6px; }
-        .badge { background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-glass); }
-        .badge.action { background: rgba(138, 43, 226, 0.15); color: var(--accent); border-color: rgba(138, 43, 226, 0.3); }
-        .time-counter { color: #facc15; font-weight: 600; font-family: monospace; font-size: 13px; }
-
-        /* ABA HISTÓRICO (CARDS) */
-        .history-card { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-glass); border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: 0.3s; }
-        .history-card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s;}
-        .history-card-header:hover { background: rgba(255,255,255,0.05); }
-        .history-info { display: flex; flex-direction: column; gap: 5px; }
-        .history-stats { display: flex; align-items: center; gap: 15px; }
         
+        .history-card { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-glass); border-radius: 12px; margin-bottom: 12px; overflow: hidden;}
+        .history-card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02);}
         .history-card-body { display: none; padding: 15px 20px; border-top: 1px solid var(--border-glass); background: rgba(5,5,5,0.6); }
         .history-card.open .history-card-body { display: flex; flex-direction: column; }
-        .history-card.open .caret-icon { transform: rotate(180deg); color: var(--accent); }
         
-        .mini-search { width: 100%; padding: 10px 10px 10px 35px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-glass); color: white; border-radius: 6px; outline: none; font-size: 12px;}
-        .action-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px;}
-        .action-list::-webkit-scrollbar { width: 4px; }
-        .action-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .action-item { background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; font-size: 12px; border-left: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; color: #eee;}
-        .action-time { color: #888; font-family: monospace; font-size: 10px; }
-
+        .mini-search { width: 100%; padding: 10px 10px 10px 35px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border-radius: 6px; }
+        .action-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .action-item { background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; font-size: 12px; border-left: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center;}
+        
         @media (max-width: 768px) {
             .glass-panel { padding: 15px; border-radius: 0; height: 100vh; width: 100%; border: none; }
             #login-screen { height: auto; border-radius: 16px; border: 1px solid var(--border-glass); }
-            .dash-header { flex-direction: column; align-items: stretch; gap: 12px; }
-            .dash-header .logo-title { text-align: center; }
-            .nav-tabs { display: grid; grid-template-columns: 1fr 1fr; }
-            .nav-tabs button { justify-content: center; }
-            
+            .dash-header { flex-direction: column; align-items: stretch; }
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { display: none; }
-            table { background: transparent; }
+            .table-wrapper { padding: 10px; background: transparent; border: none; }
             .online-row { margin-bottom: 12px; background: rgba(15, 15, 15, 0.9); border-radius: 10px; padding: 12px; border: 1px solid var(--border-glass); }
-            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; text-align: right; font-size: 12px;}
-            td:last-child { border-bottom: none; padding-bottom: 0; }
-            td:first-child { padding-top: 0; }
-            td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 10px; }
+            td { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);}
+            td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); font-size: 10px; }
         }
     </style>
 </head>
@@ -134,41 +108,24 @@
     <div class="glass-panel" id="login-screen">
         <div class="logo-title">NEX<span>VOID</span></div>
         <p class="subtitle">Secure Database</p>
-        
         <div class="input-group">
-            <i class="ph ph-lock-key"></i>
-            <input type="password" id="password" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkPassword()">
+            <i class="ph ph-key"></i>
+            <input type="text" id="access-key" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkKey()">
         </div>
-        
-        <button class="btn-primary" onclick="checkPassword()">
-            <i class="ph ph-sign-in"></i> AUTHORIZE
-        </button>
+        <button class="btn-primary" onclick="checkKey()"><i class="ph ph-sign-in"></i> AUTHORIZE</button>
     </div>
 
     <div class="glass-panel" id="dashboard">
         <div class="dash-header">
             <div class="logo-title" style="font-size: 20px;">NEX<span>VOID</span></div>
-            
-            <div class="global-search">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar jogador...">
-            </div>
-
+            <div class="global-search"><i class="ph ph-magnifying-glass"></i><input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar jogador..."></div>
             <div class="nav-tabs">
                 <button id="btn-tab-online" class="active" onclick="switchTab('online')"><i class="ph ph-broadcast"></i> Ao Vivo</button>
                 <button id="btn-tab-history" onclick="switchTab('history')"><i class="ph ph-clock-counter-clockwise"></i> Histórico</button>
             </div>
-            
-            <div class="stats-box">
-                <i class="ph-fill ph-users"></i>
-                <div class="stats-info">
-                    <h2 id="online-count">0</h2>
-                    <p>Online</p>
-                </div>
-            </div>
+            <div class="stats-box"><i class="ph-fill ph-users"></i><div class="stats-info"><h2 id="online-count">0</h2><p>Online</p></div></div>
         </div>
 
-        <!-- ABA ONLINE -->
         <div id="tab-online" class="tab-content active">
             <div class="table-wrapper">
                 <table>
@@ -178,30 +135,111 @@
             </div>
         </div>
 
-        <!-- ABA HISTÓRICO (CARDS) -->
         <div id="tab-history" class="tab-content">
-            <div class="table-wrapper" id="history-list">
-                <!-- Gerado por JS -->
-            </div>
+            <div class="table-wrapper" id="history-list"></div>
         </div>
     </div>
 
     <script>
-        const SENHA_ACESSO = "david111"; 
+        // === SUAS CONFIGURAÇÕES ===
         const FIREBASE_URL = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
-        let onlineInterval;
+        const WEBHOOK_ALERTAS = "COLOQUE_SEU_WEBHOOK_AQUI"; // Webhook para mandar logs se tentarem tirar print ou roubar
 
-        function checkPassword() {
-            if(document.getElementById("password").value === SENHA_ACESSO) {
-                document.getElementById("login-screen").style.display = "none";
-                document.getElementById("dashboard").style.display = "flex";
-                startSystem();
-            } else {
-                alert("Acesso Negado.");
-                document.getElementById("password").value = "";
-            }
+        // Auto Login se o token já estiver salvo no navegador
+        if(localStorage.getItem("nexvoid_token")) {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("dashboard").style.display = "flex";
+            startSystem();
         }
 
+        async function checkKey() {
+            let keyInput = document.getElementById("access-key").value.trim();
+            if(!keyInput) return alert("Insira a chave!");
+
+            try {
+                let res = await fetch(FIREBASE_URL + "keys/" + keyInput + ".json");
+                let data = await res.json();
+
+                if(data && data.used === false) {
+                    // Marca a Key como usada no banco de dados para ninguém mais usar
+                    await fetch(FIREBASE_URL + "keys/" + keyInput + ".json", {
+                        method: 'PATCH',
+                        body: JSON.stringify({ used: true })
+                    });
+                    
+                    localStorage.setItem("nexvoid_token", keyInput);
+                    document.getElementById("login-screen").style.display = "none";
+                    document.getElementById("dashboard").style.display = "flex";
+                    startSystem();
+                } else {
+                    alert("Chave inválida ou já utilizada.");
+                }
+            } catch(e) { alert("Erro de conexão."); }
+        }
+
+        // ==========================================
+        // GERADOR SECRETO DE KEYS (CTRL + ALT + G)
+        // ==========================================
+        document.addEventListener('keydown', async function(e) {
+            if(e.ctrlKey && e.altKey && e.key === 'g') {
+                let adminPass = prompt("Área de Admin: Digite a senha Mestra:");
+                if(adminPass === "davidadmin") {
+                    let newKey = "NEX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+                    await fetch(FIREBASE_URL + "keys/" + newKey + ".json", {
+                        method: 'PUT',
+                        body: JSON.stringify({ used: false })
+                    });
+                    alert("Nova Key Criada (Já copiada para área de transferência): \n\n" + newKey);
+                    navigator.clipboard.writeText(newKey);
+                }
+            }
+        });
+
+        // ==========================================
+        // SISTEMAS DE PROTEÇÃO ANTI-PRINT E ANTI-ROUBO
+        // ==========================================
+        function sendWebhookAlert(motivo) {
+            let token = localStorage.getItem("nexvoid_token") || "Não logado";
+            fetch(WEBHOOK_ALERTAS, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    content: `🚨 **TENTATIVA DE VIOLAÇÃO NO SITE** 🚨\n**Motivo:** ${motivo}\n**Token do Usuário:** \`${token}\``
+                })
+            }).catch(e=>{});
+        }
+
+        // Bloqueia clique direito (Inspecionar/Salvar Imagem)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Bloqueia F12 e PrintScreen
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) {
+                sendWebhookAlert("Tentou abrir o painel de Desenvolvedor (F12)");
+                return false;
+            }
+            if(e.key === 'PrintScreen') {
+                navigator.clipboard.writeText("Nice try! :)"); // Limpa o print da pessoa
+                sendWebhookAlert("Apertou a tecla PrintScreen no painel.");
+            }
+        };
+
+        // Efeito de BLUR (Desfoque) se o cara minimizar o Chrome pra tentar usar gravador
+        document.addEventListener("visibilitychange", () => {
+            if(document.hidden) {
+                document.body.style.filter = "blur(20px)";
+                document.body.style.background = "#000";
+            } else {
+                document.body.style.filter = "none";
+                document.body.style.background = "url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed";
+                document.body.style.backgroundSize = "cover";
+            }
+        });
+
+
+        // ==========================================
+        // LÓGICA DO DASHBOARD
+        // ==========================================
         function switchTab(tab) {
             document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -225,18 +263,11 @@
 
         function filterGlobal() {
             let filter = document.getElementById('global-search').value.toLowerCase();
-            
-            // Online
-            let onlineRows = document.querySelectorAll('.online-row');
-            onlineRows.forEach(row => {
+            document.querySelectorAll('.online-row').forEach(row => {
                 row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
             });
-
-            // Historico Cards
-            let histCards = document.querySelectorAll('.history-card');
-            histCards.forEach(card => {
-                let textToSearch = card.innerText.toLowerCase();
-                card.style.display = textToSearch.includes(filter) ? "" : "none";
+            document.querySelectorAll('.history-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(filter) ? "" : "none";
             });
         }
 
@@ -251,16 +282,10 @@
             return h > 0 ? `${h}:${mStr}:${sStr}` : `${mStr}:${sStr}`;
         }
 
-        function getDeviceIcon(deviceStr) {
-            if(deviceStr.toLowerCase().includes("mobile")) return '<i class="ph ph-device-mobile"></i>';
-            return '<i class="ph ph-desktop"></i>';
-        }
-
         async function fetchOnline() {
             try {
                 let res = await fetch(FIREBASE_URL + "online.json", { cache: "no-store" });
                 let data = await res.json();
-                
                 let tbody = document.getElementById("online-list");
                 tbody.innerHTML = "";
                 let count = 0;
@@ -274,10 +299,10 @@
                             let tr = document.createElement("tr");
                             tr.className = "online-row";
                             tr.innerHTML = `
-                                <td data-label="Jogador"><div class="player-name"><span class="online-dot"></span>${player.Name}</div></td>
-                                <td data-label="Aparelho"><div class="icon-text">${getDeviceIcon(player.Device)} ${player.Device}</div></td>
-                                <td data-label="Executor"><span class="badge">${player.Exec}</span></td>
-                                <td data-label="Sessão"><span class="time-counter">⏱️ ${formatSessionTime(player.SessionStart)}</span></td>
+                                <td data-label="Jogador"><div style="color:white; font-weight:600;"><span style="color:#4ade80;">●</span> ${player.Name}</div></td>
+                                <td data-label="Aparelho" style="color:#aaa;">${player.Device}</td>
+                                <td data-label="Executor"><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px;">${player.Exec}</span></td>
+                                <td data-label="Tempo"><span style="color:#facc15; font-weight:bold;">⏱️ ${formatSessionTime(player.SessionStart)}</span></td>
                             `;
                             tbody.appendChild(tr);
                         }
@@ -285,7 +310,7 @@
                 }
                 document.getElementById("online-count").innerText = count;
                 filterGlobal(); 
-            } catch (err) { console.error(err); }
+            } catch (err) {}
         }
 
         async function fetchHistory() {
@@ -294,6 +319,11 @@
                 let data = await res.json();
                 
                 let container = document.getElementById("history-list");
+                
+                // Sistema para não fechar as abas quando atualiza!
+                let openCards = [];
+                document.querySelectorAll('.history-card.open').forEach(card => openCards.push(card.id));
+
                 container.innerHTML = "";
                 if(!data) return;
 
@@ -303,57 +333,46 @@
                         let log = data[userId][logId];
                         let sId = log.SessionID || "Legacy";
                         let key = log.Name + "_" + sId;
-                        
                         if(!sessions[key]) {
-                            sessions[key] = {
-                                Name: log.Name, Game: log.Game, SessionID: sId,
-                                StartTime: log.Time, Timestamp: log.Timestamp, Actions: []
-                            };
+                            sessions[key] = { Name: log.Name, Game: log.Game, StartTime: log.Time, Timestamp: log.Timestamp, Actions: [] };
                         }
                         sessions[key].Actions.push(log);
                     }
                 }
 
-                let sessionsArray = Object.values(sessions).sort((a,b) => b.Timestamp - a.Timestamp);
+                let sessionsArray = Object.values(sessions).sort((a,b) => b.Timestamp - a.Timestamp).slice(0, 150);
                 
                 sessionsArray.forEach((sess, index) => {
                     sess.Actions.sort((a,b) => b.Timestamp - a.Timestamp);
-                    let actionsHtml = sess.Actions.map(a => `<div class="action-item"><span>${a.Action}</span><span class="action-time">${a.Time.split(' ')[1]}</span></div>`).join('');
+                    let actionsHtml = sess.Actions.map(a => `<div class="action-item"><span style="color:#eee;">${a.Action}</span><span style="color:#888; font-size:10px;">${a.Time.split(' ')[1]}</span></div>`).join('');
 
+                    let cardId = "card-" + index;
                     let card = document.createElement("div");
                     card.className = "history-card";
-                    card.id = "card-" + index;
+                    card.id = cardId;
+                    if(openCards.includes(cardId)) card.classList.add('open'); // Mantém aberto se estava aberto
+
                     card.innerHTML = `
                         <div class="history-card-header" onclick="toggleCard(${index})">
-                            <div class="history-info">
-                                <b style="font-size: 15px; color: #fff;">${sess.Name}</b>
-                                <span style="font-size: 11px; color: #aaa;"><i class="ph ph-calendar-blank"></i> ${sess.StartTime} &nbsp;•&nbsp; <i class="ph ph-game-controller"></i> ${sess.Game}</span>
-                            </div>
-                            <div class="history-stats">
-                                <span class="badge action"><i class="ph ph-list"></i> ${sess.Actions.length} Registros</span>
-                                <i class="ph ph-caret-down caret-icon" style="transition: 0.3s; font-size: 16px;"></i>
-                            </div>
+                            <div><b style="font-size:15px; color:#fff;">${sess.Name}</b><br><span style="font-size:11px; color:#aaa;">🗓️ ${sess.StartTime} &nbsp;🎮 ${sess.Game}</span></div>
+                            <div style="background:rgba(138,43,226,0.15); color:#d8b4fe; padding:5px 10px; border-radius:6px; font-size:11px;">📋 ${sess.Actions.length} Funções ▼</div>
                         </div>
                         <div class="history-card-body">
-                            <div style="position: relative;">
-                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
-                                <input type="text" class="mini-search" placeholder="Pesquisar ação ativada..." onkeyup="filterActions(this.value, 'act-list-${index}')">
-                            </div>
-                            <div class="action-list" id="act-list-${index}">
-                                ${actionsHtml}
-                            </div>
+                            <input type="text" class="mini-search" placeholder="Buscar função ativada..." onkeyup="filterActions(this.value, 'act-list-${index}')">
+                            <div class="action-list" id="act-list-${index}">${actionsHtml}</div>
                         </div>
                     `;
                     container.appendChild(card);
                 });
-                
                 filterGlobal(); 
-            } catch (err) { console.error(err); }
+            } catch (err) {}
         }
 
         function startSystem() {
             fetchOnline();
-            onlineInterval = setInterval(fetchOnline, 1000); 
+            fetchHistory();
+            setInterval(fetchOnline, 1000); 
+            setInterval(fetchHistory, 5000); // Atualiza o histórico ao vivo sem piscar a tela
         }
     </script>
 </body>
