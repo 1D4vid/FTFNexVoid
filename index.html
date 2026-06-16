@@ -21,7 +21,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         
         body {
-            background: url('https://cdn.discordapp.com/attachments/1478479989803323392/1488641677529710652/8269893be15f4dc76e1e9060eda6f7bd.jpg') no-repeat center center fixed;
+            background: url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed;
             background-size: cover; display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text-main); overflow: hidden;
         }
 
@@ -72,43 +72,43 @@
         .stats-info h2 { font-size: 20px; color: var(--success); margin: 0; font-weight: 800; line-height: 1;}
         .stats-info p { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0;}
 
-        /* TABELAS & CONTEÚDO */
+        /* TABELAS E CARDS */
         .tab-content { display: none; flex-grow: 1; overflow: hidden; flex-direction: column; }
         .tab-content.active { display: flex; }
         
-        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); }
+        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; border-radius: 10px; background: transparent; }
         .table-wrapper::-webkit-scrollbar { width: 4px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; }
+        /* ABA ONLINE (Tabela) */
+        table { width: 100%; border-collapse: collapse; text-align: left; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;}
         th { background: rgba(5,5,5,0.9); padding: 14px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 2; font-weight: 600;}
         td { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc; }
+        .player-name { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 600; }
+        .online-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
+        .icon-text { display: flex; align-items: center; gap: 6px; }
+        .badge { background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-glass); }
+        .badge.action { background: rgba(138, 43, 226, 0.15); color: var(--accent); border-color: rgba(138, 43, 226, 0.3); }
+        .time-counter { color: #facc15; font-weight: 600; font-family: monospace; font-size: 13px; }
+
+        /* ABA HISTÓRICO (CARDS) */
+        .history-card { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-glass); border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: 0.3s; }
+        .history-card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.3s;}
+        .history-card-header:hover { background: rgba(255,255,255,0.05); }
+        .history-info { display: flex; flex-direction: column; gap: 5px; }
+        .history-stats { display: flex; align-items: center; gap: 15px; }
         
-        /* LINHAS EXPANSÍVEIS (DROPDOWN) */
-        .expandable-row { cursor: pointer; transition: background 0.3s; }
-        .expandable-row:hover { background: rgba(255,255,255,0.05); }
-        .expandable-row td i.caret { transition: transform 0.3s; }
-        .expandable-row.open td i.caret { transform: rotate(180deg); color: var(--accent); }
+        .history-card-body { display: none; padding: 15px 20px; border-top: 1px solid var(--border-glass); background: rgba(5,5,5,0.6); }
+        .history-card.open .history-card-body { display: flex; flex-direction: column; }
+        .history-card.open .caret-icon { transform: rotate(180deg); color: var(--accent); }
         
-        .details-row { display: none; background: rgba(5, 5, 5, 0.6); }
-        .details-row.open { display: table-row; }
-        
-        .details-container { padding: 15px 20px; border-bottom: 1px solid var(--border-glass); }
         .mini-search { width: 100%; padding: 10px 10px 10px 35px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-glass); color: white; border-radius: 6px; outline: none; font-size: 12px;}
-        
         .action-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 5px;}
         .action-list::-webkit-scrollbar { width: 4px; }
         .action-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
         .action-item { background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; font-size: 12px; border-left: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; color: #eee;}
         .action-time { color: #888; font-family: monospace; font-size: 10px; }
 
-        .player-name { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 600; }
-        .online-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
-        .icon-text { display: flex; align-items: center; gap: 6px; }
-        .badge { background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-glass); }
-        .badge.action { background: rgba(138, 43, 226, 0.15); color: var(--accent); border-color: rgba(138, 43, 226, 0.3); }
-
-        /* ADAPTAÇÃO MOBILE */
         @media (max-width: 768px) {
             .glass-panel { padding: 15px; border-radius: 0; height: 100vh; width: 100%; border: none; }
             #login-screen { height: auto; border-radius: 16px; border: 1px solid var(--border-glass); }
@@ -119,22 +119,12 @@
             
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { display: none; }
-            .table-wrapper { padding: 10px; background: transparent; border: none; overflow-x: hidden;}
-            
-            .expandable-row, .online-row { 
-                margin-bottom: 12px; background: rgba(15, 15, 15, 0.9); 
-                border-radius: 10px; padding: 12px; border: 1px solid var(--border-glass);
-            }
-            .expandable-row.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; margin-bottom: 0;}
-            
-            .details-row.open { display: block; background: rgba(10, 10, 10, 0.95); border: 1px solid var(--border-glass); border-top: none; border-radius: 0 0 10px 10px; margin-bottom: 12px; }
-            .details-container { padding: 10px; }
-            
+            table { background: transparent; }
+            .online-row { margin-bottom: 12px; background: rgba(15, 15, 15, 0.9); border-radius: 10px; padding: 12px; border: 1px solid var(--border-glass); }
             td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; text-align: right; font-size: 12px;}
             td:last-child { border-bottom: none; padding-bottom: 0; }
             td:first-child { padding-top: 0; }
             td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 10px; }
-            .caret { display: none; } /* Oculta setinha no mobile pois o bloco inteiro já é clicável */
         }
     </style>
 </head>
@@ -161,7 +151,7 @@
             
             <div class="global-search">
                 <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar jogador ou executor...">
+                <input type="text" id="global-search" onkeyup="filterGlobal()" placeholder="Pesquisar jogador...">
             </div>
 
             <div class="nav-tabs">
@@ -188,13 +178,10 @@
             </div>
         </div>
 
-        <!-- ABA HISTÓRICO (AGRUPADO) -->
+        <!-- ABA HISTÓRICO (CARDS) -->
         <div id="tab-history" class="tab-content">
-            <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Data/Hora Inicial</th><th>Jogador</th><th>Registros Totais</th><th>Jogo</th></tr></thead>
-                    <tbody id="history-list"></tbody>
-                </table>
+            <div class="table-wrapper" id="history-list">
+                <!-- Gerado por JS -->
             </div>
         </div>
     </div>
@@ -221,18 +208,15 @@
             document.getElementById('btn-tab-' + tab).classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
             if(tab === 'history') fetchHistory();
-            filterGlobal(); // Reaplica pesquisa ao trocar de aba
+            filterGlobal(); 
         }
 
-        function toggleRow(id) {
-            let rowMain = document.getElementById('main-' + id);
-            let rowDetails = document.getElementById('details-' + id);
-            rowMain.classList.toggle('open');
-            rowDetails.classList.toggle('open');
+        function toggleCard(id) {
+            document.getElementById('card-' + id).classList.toggle('open');
         }
 
-        function filterActions(inputId, listId) {
-            let filter = document.getElementById(inputId).value.toLowerCase();
+        function filterActions(val, listId) {
+            let filter = val.toLowerCase();
             let items = document.getElementById(listId).getElementsByClassName('action-item');
             for(let i=0; i<items.length; i++) {
                 items[i].style.display = items[i].innerText.toLowerCase().includes(filter) ? "flex" : "none";
@@ -242,24 +226,17 @@
         function filterGlobal() {
             let filter = document.getElementById('global-search').value.toLowerCase();
             
-            // Filtrar Aba Online
+            // Online
             let onlineRows = document.querySelectorAll('.online-row');
             onlineRows.forEach(row => {
                 row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
             });
 
-            // Filtrar Aba Historico
-            let histRows = document.querySelectorAll('.expandable-row');
-            histRows.forEach(row => {
-                let details = row.nextElementSibling;
-                let textToSearch = row.innerText.toLowerCase() + (details ? details.innerText.toLowerCase() : "");
-                if (textToSearch.includes(filter)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                    row.classList.remove('open');
-                    if(details) details.classList.remove('open');
-                }
+            // Historico Cards
+            let histCards = document.querySelectorAll('.history-card');
+            histCards.forEach(card => {
+                let textToSearch = card.innerText.toLowerCase();
+                card.style.display = textToSearch.includes(filter) ? "" : "none";
             });
         }
 
@@ -272,6 +249,11 @@
             let mStr = m < 10 ? "0"+m : m;
             let sStr = s < 10 ? "0"+s : s;
             return h > 0 ? `${h}:${mStr}:${sStr}` : `${mStr}:${sStr}`;
+        }
+
+        function getDeviceIcon(deviceStr) {
+            if(deviceStr.toLowerCase().includes("mobile")) return '<i class="ph ph-device-mobile"></i>';
+            return '<i class="ph ph-desktop"></i>';
         }
 
         async function fetchOnline() {
@@ -293,7 +275,7 @@
                             tr.className = "online-row";
                             tr.innerHTML = `
                                 <td data-label="Jogador"><div class="player-name"><span class="online-dot"></span>${player.Name}</div></td>
-                                <td data-label="Aparelho"><div class="icon-text">${player.Device}</div></td>
+                                <td data-label="Aparelho"><div class="icon-text">${getDeviceIcon(player.Device)} ${player.Device}</div></td>
                                 <td data-label="Executor"><span class="badge">${player.Exec}</span></td>
                                 <td data-label="Sessão"><span class="time-counter">⏱️ ${formatSessionTime(player.SessionStart)}</span></td>
                             `;
@@ -302,7 +284,7 @@
                     }
                 }
                 document.getElementById("online-count").innerText = count;
-                filterGlobal(); // Aplica pesquisa se estiver digitado
+                filterGlobal(); 
             } catch (err) { console.error(err); }
         }
 
@@ -311,12 +293,10 @@
                 let res = await fetch(FIREBASE_URL + "logs.json", { cache: "no-store" });
                 let data = await res.json();
                 
-                let tbody = document.getElementById("history-list");
-                tbody.innerHTML = "";
-                
+                let container = document.getElementById("history-list");
+                container.innerHTML = "";
                 if(!data) return;
 
-                // Agrupando Logs por Sessão
                 let sessions = {};
                 for(let userId in data) {
                     for(let logId in data[userId]) {
@@ -334,50 +314,40 @@
                     }
                 }
 
-                // Transformar em array e ordenar da sessão mais recente para a mais antiga
                 let sessionsArray = Object.values(sessions).sort((a,b) => b.Timestamp - a.Timestamp);
                 
                 sessionsArray.forEach((sess, index) => {
-                    // Linha Principal (Card)
-                    let trMain = document.createElement("tr");
-                    trMain.id = 'main-' + index;
-                    trMain.className = "expandable-row";
-                    trMain.onclick = () => toggleRow(index);
-                    trMain.innerHTML = `
-                        <td data-label="Data Inicial"><div class="icon-text"><i class="ph ph-calendar-blank"></i>${sess.StartTime}</div></td>
-                        <td data-label="Jogador"><b style="color: white;">${sess.Name}</b></td>
-                        <td data-label="Registros"><span class="badge action"><i class="ph ph-list" style="margin-right:4px;"></i>${sess.Actions.length} Funções</span></td>
-                        <td data-label="Jogo"><div class="icon-text"><i class="ph ph-game-controller"></i>${sess.Game} <i class="ph ph-caret-down caret" style="margin-left: auto;"></i></div></td>
-                    `;
-                    
-                    // Ordenar as ações internamente da mais recente para a mais antiga
                     sess.Actions.sort((a,b) => b.Timestamp - a.Timestamp);
-                    
                     let actionsHtml = sess.Actions.map(a => `<div class="action-item"><span>${a.Action}</span><span class="action-time">${a.Time.split(' ')[1]}</span></div>`).join('');
 
-                    // Linha Dropdown (Sanfona)
-                    let trDetails = document.createElement("tr");
-                    trDetails.id = 'details-' + index;
-                    trDetails.className = "details-row";
-                    trDetails.innerHTML = `
-                        <td colspan="4" style="padding: 0;">
-                            <div class="details-container">
-                                <div style="position: relative;">
-                                    <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
-                                    <input type="text" class="mini-search" placeholder="Buscar função ativada..." onkeyup="filterActions(this.id, 'act-list-${index}')" id="search-${index}">
-                                </div>
-                                <div class="action-list" id="act-list-${index}">
-                                    ${actionsHtml}
-                                </div>
+                    let card = document.createElement("div");
+                    card.className = "history-card";
+                    card.id = "card-" + index;
+                    card.innerHTML = `
+                        <div class="history-card-header" onclick="toggleCard(${index})">
+                            <div class="history-info">
+                                <b style="font-size: 15px; color: #fff;">${sess.Name}</b>
+                                <span style="font-size: 11px; color: #aaa;"><i class="ph ph-calendar-blank"></i> ${sess.StartTime} &nbsp;•&nbsp; <i class="ph ph-game-controller"></i> ${sess.Game}</span>
                             </div>
-                        </td>
+                            <div class="history-stats">
+                                <span class="badge action"><i class="ph ph-list"></i> ${sess.Actions.length} Registros</span>
+                                <i class="ph ph-caret-down caret-icon" style="transition: 0.3s; font-size: 16px;"></i>
+                            </div>
+                        </div>
+                        <div class="history-card-body">
+                            <div style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                                <input type="text" class="mini-search" placeholder="Pesquisar ação ativada..." onkeyup="filterActions(this.value, 'act-list-${index}')">
+                            </div>
+                            <div class="action-list" id="act-list-${index}">
+                                ${actionsHtml}
+                            </div>
+                        </div>
                     `;
-                    
-                    tbody.appendChild(trMain);
-                    tbody.appendChild(trDetails);
+                    container.appendChild(card);
                 });
                 
-                filterGlobal(); // Aplica a pesquisa global
+                filterGlobal(); 
             } catch (err) { console.error(err); }
         }
 
