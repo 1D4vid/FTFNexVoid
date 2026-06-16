@@ -24,7 +24,7 @@
         body {
             background: url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed;
             background-size: cover; display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text-main); overflow: hidden;
-            transition: filter 0.3s;
+            transition: filter 0.2s;
         }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.9)); z-index: 0; }
@@ -180,8 +180,8 @@
     <script>
         // === CONFIGURAÇÕES ===
         const FIREBASE_URL = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
-        const WEBHOOK_ALERTAS = "COLOQUE_SEU_WEBHOOK_AQUI"; // Discord Webhook para logs de print
-        const ADMIN_PASSWORD = "ZGF2aWRhZG1pbg=="; // Base64 para "davidadmin"
+        const WEBHOOK_ALERTAS = "https://discord.com/api/webhooks/1516568612029075541/dx8RwgFd5EhklEu8uC6iMBIDOvzrWDkfT4AfQ2uRICLt7mMUw-JUe36uVW0FT1zXzLx0"; 
+        const ADMIN_PASSWORD = "ZGF2aWRhZG1pbg=="; 
         
         let onlineInterval;
 
@@ -193,12 +193,12 @@
                     let res = await fetch(FIREBASE_URL + "keys/" + savedKey + ".json");
                     let data = await res.json();
                     if(data) {
-                        // A Key ainda existe no banco, então pode entrar
+                        // A Key ainda existe no banco
                         document.getElementById("login-screen").style.display = "none";
                         document.getElementById("dashboard").style.display = "flex";
                         startSystem();
                     } else {
-                        // A Key foi revogada/apagada pelo Admin!
+                        // Key revogada
                         localStorage.removeItem("nexvoid_token");
                         alert("Sua chave de acesso foi revogada pelo Administrador.");
                     }
@@ -217,7 +217,6 @@
 
                 if(data) {
                     if(data.used === false) {
-                        // Primeira vez usando a key
                         await fetch(FIREBASE_URL + "keys/" + keyInput + ".json", {
                             method: 'PATCH', body: JSON.stringify({ used: true, usedAt: new Date().toLocaleString() })
                         });
@@ -236,9 +235,10 @@
         // ÁREA DE ADMIN (CTRL + ALT + G)
         // ==========================================
         document.addEventListener('keydown', function(e) {
-            if(e.ctrlKey && e.altKey && e.key === 'g') {
+            if(e.ctrlKey && e.altKey && (e.key === 'g' || e.key === 'G')) {
                 let adminPass = prompt("SISTEMA DE SEGURANÇA NEXVOID\nInsira a senha mestra:");
-                if(btoa(adminPass) === ADMIN_PASSWORD) {
+                // Agora o admin deve digitar EXATAMENTE ZGF2aWRhZG1pbg==
+                if(adminPass === ADMIN_PASSWORD) {
                     document.getElementById("login-screen").style.display = "none";
                     document.getElementById("dashboard").style.display = "none";
                     document.getElementById("admin-dashboard").style.display = "flex";
@@ -317,15 +317,31 @@
             }).catch(e=>{});
         }
 
+        // Bloqueia clique direito (Inspecionar/Salvar Imagem)
         document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Bloqueia F12, PrintScreen, Win+Shift+S e Alt+Shift+S
         document.onkeydown = function(e) {
-            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) {
-                sendWebhookAlert("Tentativa de F12 (Inspecionar Elemento)");
+            // Bloqueia o Console (F12 ou Ctrl+Shift+I)
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'))) {
+                e.preventDefault();
+                sendWebhookAlert("Tentativa de abrir o Console (F12/Inspecionar)");
                 return false;
             }
-            if(e.key === 'PrintScreen') {
+            
+            // Bloqueia PrintScreen, Windows+Shift+S ou Alt+Shift+S
+            if(e.key === 'PrintScreen' || 
+              (e.shiftKey && e.metaKey && (e.key === 's' || e.key === 'S')) || 
+              (e.shiftKey && e.altKey && (e.key === 's' || e.key === 'S'))) {
+                
+                e.preventDefault();
                 navigator.clipboard.writeText("NexVoid Security: Acesso Negado.");
-                sendWebhookAlert("Apertou PrintScreen para tirar print da Database.");
+                
+                // Embaça a tela agressivamente por 3 segundos
+                document.body.style.filter = "blur(30px) grayscale(100%)";
+                setTimeout(() => { document.body.style.filter = "none"; }, 3000);
+                
+                sendWebhookAlert("Tentou usar a Ferramenta de Captura / PrintScreen no Site.");
             }
         };
 
