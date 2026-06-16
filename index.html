@@ -4,107 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NexVoid | Security Panel</title>
+    
+    <!-- Fonte e Ícones Modernos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        
+        :root {
+            --bg-glass: rgba(10, 10, 12, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent: #d8b4fe; /* Roxo claro */
+            --accent-glow: rgba(168, 85, 247, 0.4);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         
         body {
-            background: url('https://cdn.discordapp.com/attachments/1478479989803323392/1488641677529710652/8269893be15f4dc76e1e9060eda6f7bd.jpg') no-repeat center center fixed;
-            background-size: cover; display: flex; align-items: center; justify-content: center; height: 100vh; color: white; overflow: hidden;
+            /* Fundo com o Wallpaper que você escolheu */
+            background: url('https://raw.githubusercontent.com/1D4vid/FTFNexVoid/main/RequestProGuild-6.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex; align-items: center; justify-content: center; height: 100vh; color: var(--text-main); overflow: hidden;
         }
 
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 0; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)); z-index: 0; }
 
         .glass-panel {
-            position: relative; z-index: 1; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-            display: flex; flex-direction: column; transition: all 0.3s ease;
+            position: relative; z-index: 1; background: var(--bg-glass);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-glass); border-radius: 16px; padding: 35px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; transition: 0.4s ease;
         }
 
-        /* TELA DE LOGIN */
-        #login-screen { width: 90%; max-width: 400px; text-align: center; }
-        .logo-title { font-weight: 800; font-size: 32px; letter-spacing: 2px; margin-bottom: 5px; }
-        .logo-title span { color: #fff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
-        .subtitle { font-size: 12px; color: #888; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        /* --- TELA DE LOGIN --- */
+        #login-screen { width: 90%; max-width: 380px; text-align: center; }
+        .logo-title { font-weight: 900; font-size: 34px; letter-spacing: 2px; margin-bottom: 5px; }
+        .logo-title span { color: var(--text-main); text-shadow: 0 0 20px var(--text-main); }
+        .subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; font-weight: 500; }
         
+        .input-group { position: relative; margin-bottom: 25px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px; }
         input {
-            width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.7); color: white; outline: none; font-size: 15px; text-align: center; transition: 0.3s;
+            width: 100%; padding: 15px 15px 15px 45px; border-radius: 8px; border: 1px solid var(--border-glass);
+            background: rgba(0, 0, 0, 0.5); color: white; outline: none; font-size: 15px; transition: 0.3s;
         }
-        input:focus { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
         
         button.btn-primary {
-            width: 100%; padding: 15px; border-radius: 8px; border: none; background: #fff; color: #000;
-            font-weight: 800; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 15px; border-radius: 8px; border: none; background: var(--text-main); color: #000;
+            font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;
         }
-        button.btn-primary:hover { background: #ccc; transform: translateY(-2px); }
+        button.btn-primary:hover { background: var(--accent); color: white; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
 
-        /* DASHBOARD PRINCIPAL */
-        #dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; }
+        /* --- DASHBOARD PRINCIPAL --- */
+        #dashboard { display: none; width: 95%; max-width: 1100px; height: 90vh; padding: 25px; }
         
-        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .dash-header h1 { font-size: 20px; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .dash-header .logo-title { font-size: 24px; margin: 0; }
         
-        .nav-tabs { display: flex; gap: 10px; }
+        .nav-tabs { display: flex; gap: 10px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; border: 1px solid var(--border-glass);}
         .nav-tabs button {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 20px;
-            border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s;
+            background: transparent; border: none; color: var(--text-muted); padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 6px;
         }
-        .nav-tabs button.active { background: #fff; color: #000; }
+        .nav-tabs button:hover { color: var(--text-main); }
+        .nav-tabs button.active { background: rgba(255,255,255,0.1); color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         
-        .stats-box { background: rgba(0, 0, 0, 0.5); padding: 10px 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; gap: 15px; }
-        .stats-box h2 { font-size: 24px; color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.4); margin: 0;}
-        .stats-box p { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2;}
+        .stats-box { background: rgba(0, 0, 0, 0.4); padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border-glass); display: flex; align-items: center; gap: 15px; }
+        .stats-box i { font-size: 28px; color: var(--success); }
+        .stats-info h2 { font-size: 22px; color: var(--success); margin: 0; font-weight: 800; line-height: 1;}
+        .stats-info p { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0;}
 
-        /* TABELAS RESPONSIVAS */
+        /* TABELAS & CONTEÚDO */
         .tab-content { display: none; flex-grow: 1; overflow: hidden; flex-direction: column; }
         .tab-content.active { display: flex; }
         
-        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: auto; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
-        .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .table-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); }
+        .table-wrapper::-webkit-scrollbar { width: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
 
-        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
-        th { background: rgba(10,10,10,0.9); padding: 15px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 2; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc; white-space: nowrap; }
-        tr:hover td { background: rgba(255,255,255,0.05); color: #fff; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: rgba(5,5,5,0.9); padding: 16px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 2; font-weight: 600;}
+        td { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; color: #ccc; }
+        tr:hover td { background: rgba(255,255,255,0.03); color: #fff; }
         
-        .online-dot { display: inline-block; width: 8px; height: 8px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 10px #4ade80; margin-right: 8px; }
-        .badge { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 11px; }
-        .badge.action { background: rgba(138, 43, 226, 0.2); color: #d8b4fe; border: 1px solid rgba(138, 43, 226, 0.3); }
-        .time-counter { color: #facc15; font-weight: 600; }
+        /* Badges e Ícones na Tabela */
+        .player-name { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
+        .online-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
+        .icon-text { display: flex; align-items: center; gap: 6px; }
+        .icon-text i { font-size: 16px; color: var(--text-muted); }
+        .badge { background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-glass); }
+        .badge.action { background: rgba(138, 43, 226, 0.1); color: var(--accent); border-color: rgba(138, 43, 226, 0.3); }
+        .time-counter { color: #facc15; font-weight: 600; font-family: monospace; font-size: 13px; }
 
-        /* ADAPTAÇÃO PARA CELULAR */
+        /* === MÁGICA PARA O CELULAR (MOBILE CARD VIEW) === */
         @media (max-width: 768px) {
-            .glass-panel { padding: 20px; }
-            .dash-header { flex-direction: column; align-items: stretch; }
+            .glass-panel { padding: 20px; border-radius: 0; height: 100vh; width: 100%; border: none; }
+            #login-screen { height: auto; border-radius: 16px; border: 1px solid var(--border-glass); }
+            .dash-header { flex-direction: column; align-items: stretch; gap: 15px; }
+            .dash-header .logo-title { text-align: center; }
             .nav-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+            .nav-tabs button { justify-content: center; }
             .stats-box { justify-content: center; }
-            td, th { padding: 12px 10px; font-size: 12px; }
+            
+            /* Transforma a Tabela em Cartões no Celular */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { display: none; /* Esconde o cabeçalho no celular */ }
+            
+            .table-wrapper { padding: 10px; background: transparent; border: none; }
+            
+            tr { 
+                margin-bottom: 15px; background: rgba(15, 15, 15, 0.8); 
+                border-radius: 12px; padding: 15px; border: 1px solid var(--border-glass);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+            
+            td { 
+                display: flex; justify-content: space-between; align-items: center; 
+                border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; text-align: right; 
+            }
+            td:last-child { border-bottom: none; padding-bottom: 0; }
+            td:first-child { padding-top: 0; }
+            
+            /* Cria as etiquetas automaticamente baseadas no data-label */
+            td::before { 
+                content: attr(data-label); 
+                font-weight: 600; color: var(--text-muted); 
+                text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
 
+    <!-- TELA DE LOGIN -->
     <div class="glass-panel" id="login-screen">
         <div class="logo-title">NEX<span>VOID</span></div>
-        <p class="subtitle">Systems Database</p>
-        <input type="password" id="password" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkPassword()">
-        <button class="btn-primary" onclick="checkPassword()">AUTHORIZE</button>
+        <p class="subtitle">Security Authentication</p>
+        
+        <div class="input-group">
+            <i class="ph ph-lock-key"></i>
+            <input type="password" id="password" placeholder="Access Key" onkeypress="if(event.key === 'Enter') checkPassword()">
+        </div>
+        
+        <button class="btn-primary" onclick="checkPassword()">
+            <i class="ph ph-sign-in"></i> AUTHORIZE
+        </button>
     </div>
 
+    <!-- PAINEL -->
     <div class="glass-panel" id="dashboard">
         <div class="dash-header">
-            <div class="logo-title" style="font-size: 24px;">NEX<span>VOID</span></div>
+            <div class="logo-title" style="font-size: 22px;">NEX<span>VOID</span></div>
+            
             <div class="nav-tabs">
-                <button id="btn-tab-online" class="active" onclick="switchTab('online')">Ao Vivo</button>
-                <button id="btn-tab-history" onclick="switchTab('history')">Histórico</button>
+                <button id="btn-tab-online" class="active" onclick="switchTab('online')">
+                    <i class="ph ph-broadcast"></i> Ao Vivo
+                </button>
+                <button id="btn-tab-history" onclick="switchTab('history')">
+                    <i class="ph ph-clock-counter-clockwise"></i> Histórico Global
+                </button>
             </div>
+            
             <div class="stats-box">
-                <h2 id="online-count">0</h2>
-                <p>Usuários<br>Online</p>
+                <i class="ph-fill ph-users"></i>
+                <div class="stats-info">
+                    <h2 id="online-count">0</h2>
+                    <p>Usuários Online</p>
+                </div>
             </div>
         </div>
 
@@ -116,11 +186,13 @@
                         <tr>
                             <th>Jogador</th>
                             <th>Aparelho</th>
-                            <th>Executor</th>
-                            <th>Tempo Online</th>
+                            <th>Engine / Exec</th>
+                            <th>Tempo Injetado</th>
                         </tr>
                     </thead>
-                    <tbody id="online-list"></tbody>
+                    <tbody id="online-list">
+                        <!-- Gerado por JS -->
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -131,20 +203,23 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Data e Hora</th>
+                            <th>Horário</th>
                             <th>Jogador</th>
                             <th>Ação Executada</th>
                             <th>Jogo</th>
                         </tr>
                     </thead>
-                    <tbody id="history-list"></tbody>
+                    <tbody id="history-list">
+                        <!-- Gerado por JS -->
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        const SENHA_ACESSO = "david111";
+        // === CONFIGURAÇÃO ===
+        const SENHA_ACESSO = "david111"; 
         const FIREBASE_URL = "https://nexvoid-7fe5d-default-rtdb.firebaseio.com/";
 
         let onlineInterval;
@@ -179,8 +254,15 @@
             let h = Math.floor(diff / 3600);
             let m = Math.floor((diff % 3600) / 60);
             let s = diff % 60;
-            if (h > 0) return `${h}h ${m}m ${s}s`;
-            return `${m}m ${s}s`;
+            let mStr = m < 10 ? "0"+m : m;
+            let sStr = s < 10 ? "0"+s : s;
+            if (h > 0) return `${h}:${mStr}:${sStr}`;
+            return `${mStr}:${sStr}`;
+        }
+
+        function getDeviceIcon(deviceStr) {
+            if(deviceStr.toLowerCase().includes("mobile")) return '<i class="ph ph-device-mobile"></i>';
+            return '<i class="ph ph-desktop"></i>';
         }
 
         async function fetchOnline() {
@@ -196,20 +278,33 @@
                 if(data) {
                     for (let userId in data) {
                         let player = data[userId];
+                        
+                        // Heartbeat: 30 segundos
                         if (currentTime - player.LastSeen < 30) {
                             count++;
                             let tr = document.createElement("tr");
+                            // Adicionamos "data-label" para o CSS Mobile funcionar perfeitamente
                             tr.innerHTML = `
-                                <td><span class="online-dot"></span><b style="color: white;">${player.Name}</b></td>
-                                <td>${player.Device}</td>
-                                <td><span class="badge">${player.Exec}</span></td>
-                                <td class="time-counter">⏱️ ${formatSessionTime(player.SessionStart)}</td>
+                                <td data-label="Jogador">
+                                    <div class="player-name"><span class="online-dot"></span>${player.Name}</div>
+                                </td>
+                                <td data-label="Aparelho">
+                                    <div class="icon-text">${getDeviceIcon(player.Device)} ${player.Device}</div>
+                                </td>
+                                <td data-label="Executor">
+                                    <span class="badge"><i class="ph ph-terminal" style="margin-right:4px;"></i>${player.Exec}</span>
+                                </td>
+                                <td data-label="Sessão">
+                                    <span class="time-counter"><i class="ph ph-timer" style="margin-right:4px; vertical-align: middle;"></i>${formatSessionTime(player.SessionStart)}</span>
+                                </td>
                             `;
                             tbody.appendChild(tr);
                         }
                     }
                 }
+                
                 document.getElementById("online-count").innerText = count;
+
             } catch (err) { console.error(err); }
         }
 
@@ -223,7 +318,6 @@
                 
                 let allLogs = [];
                 if(data) {
-                    // Achatar o banco de dados para criar uma lista única de logs
                     for(let userId in data) {
                         for(let logId in data[userId]) {
                             allLogs.push(data[userId][logId]);
@@ -234,16 +328,24 @@
                 // Ordenar do mais recente pro mais antigo
                 allLogs.sort((a, b) => b.Timestamp - a.Timestamp);
                 
-                // Mostrar os últimos 150 registros para não travar o celular
+                // Exibe os últimos 150 registros
                 let displayLogs = allLogs.slice(0, 150);
                 
                 displayLogs.forEach(log => {
                     let tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td style="color: #888; font-family: monospace;">${log.Time}</td>
-                        <td><b style="color: white;">${log.Name}</b></td>
-                        <td><span class="badge action">${log.Action}</span></td>
-                        <td style="font-size: 11px;">${log.Game}</td>
+                        <td data-label="Data/Hora" style="color: #888; font-family: monospace; font-size: 11px;">
+                            <div class="icon-text"><i class="ph ph-calendar-blank"></i>${log.Time}</div>
+                        </td>
+                        <td data-label="Jogador">
+                            <b style="color: white;">${log.Name}</b>
+                        </td>
+                        <td data-label="Ação">
+                            <span class="badge action"><i class="ph ph-lightning" style="margin-right:4px;"></i>${log.Action}</span>
+                        </td>
+                        <td data-label="Jogo" style="font-size: 11px; color: #aaa;">
+                            <div class="icon-text"><i class="ph ph-game-controller"></i>${log.Game}</div>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -252,7 +354,8 @@
 
         function startSystem() {
             fetchOnline();
-            onlineInterval = setInterval(fetchOnline, 1000); // Atualiza o tempo de sessão a cada segundo
+            // Atualiza a tela a cada segundo para o contador de tempo rodar ao vivo
+            onlineInterval = setInterval(fetchOnline, 1000); 
         }
     </script>
 </body>
