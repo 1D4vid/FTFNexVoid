@@ -1,4 +1,24 @@
 return function(env)
+    -- Localização de APIs e Globais para ganho de performance (Luau Fast-path)
+    local Instance_new = Instance.new
+    local Color3_new = Color3.new
+    local Color3_fromRGB = Color3.fromRGB
+    local UDim2_new = UDim2.new
+    local UDim_new = UDim.new
+    local task_wait = task.wait
+    local task_spawn = task.spawn
+    local task_defer = task.defer
+    local os_clock = os.clock
+    local table_insert = table.insert
+    local table_clear = table.clear
+    local pairs = pairs
+    local ipairs = ipairs
+    local pcall = pcall
+    local string_find = string.find
+    local string_lower = string.lower
+    local setmetatable = setmetatable
+    local game = game
+
     -- Importando as variáveis enviadas pelo script principal
     local Library = env.Library
     local Page = env.Page
@@ -20,21 +40,23 @@ return function(env)
     local Lighting = game:GetService("Lighting")
     local Mouse = LocalPlayer:GetMouse()
 
+    local GetPlayerFromCharacter = Players.GetPlayerFromCharacter
+
     local formatID = function(id)
         if type(id) == "number" and id > 0 then return "rbxassetid://" .. id
         elseif type(id) == "string" and id ~= "" and id ~= "0" then
-            if not id:find("rbxassetid://") then return "rbxassetid://" .. id else return id end
+            if not string_find(id, "rbxassetid://") then return "rbxassetid://" .. id else return id end
         end
         return nil
     end
 
-    -- Processador de altíssima performance baseado em Orçamento de Tempo (Frame Budget de 1.5ms)
+    -- Processador de performance baseado em Orçamento de Tempo (Frame Budget de 1.5ms)
     local function batchProcess(items, processFunc, onComplete)
         local total = #items
         local index = 1
         
         local function run()
-            local startTime = os.clock()
+            local startTime = os_clock()
             while index <= total do
                 local item = items[index]
                 if item then
@@ -42,51 +64,49 @@ return function(env)
                 end
                 index = index + 1
                 
-                -- Se a execução deste frame passar de 1.5ms, pausa para o próximo frame
-                if os.clock() - startTime >= 0.0015 then
-                    task.wait()
-                    startTime = os.clock() -- Reseta o cronômetro para o novo frame
+                if os_clock() - startTime >= 0.0015 then
+                    task_wait()
+                    startTime = os_clock()
                 end
             end
             if onComplete then onComplete() end
         end
-        task.spawn(run)
+        task_spawn(run)
     end
 
-    -- [ RESOLVIDO BUG VISUAL DA CROSSHAIR ]
+    -- Criação otimizada do container da Grid
     local function createGridContainer(parentTarget)
-        local bg = Instance.new("Frame")
-        bg.Size = UDim2.new(1, -2, 0, 1) -- Inicializado com 1px para evitar falha no cálculo nativo
-        bg.Position = UDim2.new(0, 1, 0, 0)
-        bg.BackgroundColor3 = Color3.new(0, 0, 0)
+        local bg = Instance_new("Frame")
+        bg.Size = UDim2_new(1, -2, 0, 1)
+        bg.Position = UDim2_new(0, 1, 0, 0)
+        bg.BackgroundColor3 = Color3_new(0, 0, 0)
         bg.BackgroundTransparency = 0.45
         bg.Visible = true
         bg.Parent = parentTarget
         
-        Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 6)
-        local str = Instance.new("UIStroke", bg)
-        str.Color = Color3.fromRGB(40, 40, 40)
+        Instance_new("UICorner", bg).CornerRadius = UDim_new(0, 6)
+        local str = Instance_new("UIStroke", bg)
+        str.Color = Color3_fromRGB(40, 40, 40)
         str.Thickness = 1
 
-        local wrapper = Instance.new("Frame")
-        wrapper.Size = UDim2.new(1, 0, 0, 1)
+        local wrapper = Instance_new("Frame")
+        wrapper.Size = UDim2_new(1, 0, 0, 1)
         wrapper.BackgroundTransparency = 1
         wrapper.Parent = bg
         
-        local grid = Instance.new("UIGridLayout")
-        grid.CellSize = UDim2.new(0, 36, 0, 36)
-        grid.CellPadding = UDim2.new(0, 8, 0, 8)
+        local grid = Instance_new("UIGridLayout")
+        grid.CellSize = UDim2_new(0, 36, 0, 36)
+        grid.CellPadding = UDim2_new(0, 8, 0, 8)
         grid.SortOrder = Enum.SortOrder.LayoutOrder
         grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
         grid.Parent = wrapper
         
-        local pad = Instance.new("UIPadding")
-        pad.PaddingTop = UDim.new(0, 8)
-        pad.PaddingBottom = UDim.new(0, 8)
+        local pad = Instance_new("UIPadding")
+        pad.PaddingTop = UDim_new(0, 8)
+        pad.PaddingBottom = UDim_new(0, 8)
         pad.Parent = wrapper
 
-        -- Recalculador diferido de layout (Força a correção de cores e dimensões imediatamente)
-        task.defer(function()
+        task_defer(function()
             bg.AutomaticSize = Enum.AutomaticSize.Y
             wrapper.AutomaticSize = Enum.AutomaticSize.Y
             bg.Visible = false
@@ -96,13 +116,17 @@ return function(env)
         return wrapper
     end
 
-    -- Controle dinâmico de visibilidade do cursor do mouse padrão
+    -- Controle dinâmico de visibilidade do cursor (Otimizado sem escritas redundantes)
     local cursorLoopConn = nil
     local function updateMouseVisibility()
         local savedPC = UserConfigs["TexturesPage_Crosshair_PC"]
         if savedPC and savedPC ~= "RESET" and not isMobile then
-            UserInputService.MouseIconEnabled = false
-            Mouse.Icon = "rbxassetid://0" -- Força textura vazia/invisível para anular o cursor padrão
+            if UserInputService.MouseIconEnabled then
+                UserInputService.MouseIconEnabled = false
+            end
+            if Mouse.Icon ~= "rbxassetid://0" then
+                Mouse.Icon = "rbxassetid://0"
+            end
         else
             if Mouse.Icon == "rbxassetid://0" then
                 Mouse.Icon = ""
@@ -122,7 +146,7 @@ return function(env)
     
     local originalMapStates = setmetatable({}, {__mode = "k"})
     local originalLightStates = setmetatable({}, {__mode = "k"})
-    local mcTexturesCache = setmetatable({}, {__mode = "k"}) -- Cache local das texturas 3D do Minecraft
+    local mcTexturesCache = setmetatable({}, {__mode = "k"})
 
     local wbEnabled = false
     local snowEnabled = false
@@ -151,13 +175,9 @@ return function(env)
     local function isPlayerPart(part)
         local parent = part.Parent
         if not parent then return false end
-        if parent:IsA("Model") and Players:GetPlayerFromCharacter(parent) then
-            return true
-        end
+        if GetPlayerFromCharacter(Players, parent) then return true end
         local grand = parent.Parent
-        if grand and grand:IsA("Model") and Players:GetPlayerFromCharacter(grand) then
-            return true
-        end
+        if grand and GetPlayerFromCharacter(Players, grand) then return true end
         return false
     end
 
@@ -187,11 +207,11 @@ return function(env)
         if snowEnabled then
             if part.Anchored and not IgnoreNames[part.Name] then
                 targetMaterial = Enum.Material.Snow
-                targetColor = Color3.fromRGB(255, 255, 255)
+                targetColor = Color3_fromRGB(255, 255, 255)
             end
         elseif wbEnabled then
             targetMaterial = Enum.Material.Brick
-            targetColor = Color3.fromRGB(255, 255, 255)
+            targetColor = Color3_fromRGB(255, 255, 255)
         elseif mcEnabled then
             local textureId = mcMaterials[bkp.Material]
             if textureId then
@@ -203,7 +223,7 @@ return function(env)
                     texGroup = {}
                     for i = 1, 6 do
                         local face = mcFaces[i]
-                        local tex = Instance.new("Texture")
+                        local tex = Instance_new("Texture")
                         tex.Name = "McTexture_" .. face
                         tex.ZIndex = 2147483647
                         tex.Face = Enum.NormalId[face]
@@ -265,37 +285,37 @@ return function(env)
         end)
     end
 
-    task.spawn(function()
+    task_spawn(function()
         local desc = Workspace:GetDescendants()
-        local startTime = os.clock()
+        local startTime = os_clock()
         for i = 1, #desc do
             local v = desc[i]
             local class = v.ClassName
             
             if class == "Part" or class == "MeshPart" or class == "WedgePart" or class == "CornerWedgePart" then
                 if not isPlayerPart(v) then
-                    table.insert(cachedParts, v)
+                    table_insert(cachedParts, v)
                 end
             elseif class == "PointLight" or class == "SpotLight" or class == "SurfaceLight" then
-                table.insert(cachedLights, v)
+                table_insert(cachedLights, v)
             end
             
-            if os.clock() - startTime >= 0.0015 then
-                task.wait()
-                startTime = os.clock()
+            if os_clock() - startTime >= 0.0015 then
+                task_wait()
+                startTime = os_clock()
             end
         end
 
         Workspace.DescendantAdded:Connect(function(child)
-            task.defer(function()
+            task_defer(function()
                 local class = child.ClassName
                 if class == "Part" or class == "MeshPart" or class == "WedgePart" or class == "CornerWedgePart" then
                     if not isPlayerPart(child) then
-                        table.insert(cachedParts, child)
+                        table_insert(cachedParts, child)
                         refreshPartVisual(child)
                     end
                 elseif class == "PointLight" or class == "SpotLight" or class == "SurfaceLight" then
-                    table.insert(cachedLights, child)
+                    table_insert(cachedLights, child)
                     refreshLightVisual(child)
                 end
             end)
@@ -318,7 +338,7 @@ return function(env)
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
-    -- NOVO SISTEMA LOCALE: REMOVE TEXTURES (COMPACTO E TOTALMENTE REVERSÍVEL)
+    -- REMOVE TEXTURES OTIMIZADO
     local removeTexturesEnabled = false
     local removeTexturesConn = nil
     local textureBackups = setmetatable({}, {__mode = "k"})
@@ -327,7 +347,8 @@ return function(env)
         if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChildOfClass("Humanoid") then
             return false
         end
-        if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
+        local className = v.ClassName
+        if className == "Camera" or v:IsA("GuiObject") or className == "Highlight" then
             return false
         end
         return true
@@ -337,18 +358,19 @@ return function(env)
         if not v or not v.Parent then return end
         if not isMapAsset(v) then return end
 
-        if v:IsA("Decal") or v:IsA("Texture") then
+        local class = v.ClassName
+        if class == "Decal" or class == "Texture" then
             if not textureBackups[v] then
                 textureBackups[v] = { Texture = v.Texture }
             end
             v.Texture = ""
-        elseif v:IsA("MeshPart") then
+        elseif class == "MeshPart" then
             if not textureBackups[v] then
                 textureBackups[v] = { TextureID = v.TextureID, Material = v.Material }
             end
             v.TextureID = ""
             v.Material = Enum.Material.SmoothPlastic
-        elseif v:IsA("SpecialMesh") then
+        elseif class == "SpecialMesh" then
             if not textureBackups[v] then
                 textureBackups[v] = { TextureId = v.TextureId }
             end
@@ -365,12 +387,13 @@ return function(env)
         for v, data in pairs(textureBackups) do
             if v and v.Parent then
                 pcall(function()
-                    if v:IsA("Decal") or v:IsA("Texture") then
+                    local class = v.ClassName
+                    if class == "Decal" or class == "Texture" then
                         v.Texture = data.Texture
-                    elseif v:IsA("MeshPart") then
+                    elseif class == "MeshPart" then
                         v.TextureID = data.TextureID
                         v.Material = data.Material
-                    elseif v:IsA("SpecialMesh") then
+                    elseif class == "SpecialMesh" then
                         v.TextureId = data.TextureId
                     elseif v:IsA("BasePart") then
                         v.Material = data.Material
@@ -378,7 +401,7 @@ return function(env)
                 end)
             end
         end
-        table.clear(textureBackups)
+        table_clear(textureBackups)
     end
 
     Library:CreateToggle(Page, "Remove Textures", false, function(state) 
@@ -388,7 +411,7 @@ return function(env)
             batchProcess(descendants, applyRemoveTexture)
 
             removeTexturesConn = Workspace.DescendantAdded:Connect(function(v)
-                task.defer(function()
+                task_defer(function()
                     if removeTexturesEnabled then
                         applyRemoveTexture(v)
                     end
@@ -414,7 +437,7 @@ return function(env)
     -- ==========================================
     Library:CreateSection(Page, "FPS Settings", "Right")
     
-    -- SISTEMA REVERSÍVEL: FPS BOOSTER INTEGRADO LOCALMENTE
+    -- FPS BOOSTER REVERSÍVEL OTIMIZADO
     local fpsBoosterEnabled = false
     local fpsBoosterConn = nil
     local fpsBoosterBackups = setmetatable({}, {__mode = "k"})
@@ -423,7 +446,6 @@ return function(env)
     Library:CreateToggle(Page, "FpsBooster", false, function(state) 
         fpsBoosterEnabled = state
         if state then
-            -- Salvar configurações de Renderização Originais antes de alterar
             local s = UserSettings():GetService("UserGameSettings")
             local settings = settings()
             
@@ -444,27 +466,26 @@ return function(env)
 
             local function optimize(v)
                 if not v or not v.Parent then return end
-                -- Ignora personagens e ferramentas dos jogadores
                 if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then 
                     return 
                 end
-                if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
+                local className = v.ClassName
+                if className == "Camera" or v:IsA("GuiObject") or className == "Highlight" then
                     return
                 end
 
-                -- Fazer backup seguro das propriedades antes de otimizar
                 if not fpsBoosterBackups[v] then
                     fpsBoosterBackups[v] = {}
-                    if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                    if badClasses[className] then
                         fpsBoosterBackups[v].Enabled = v.Enabled
-                    elseif v:IsA("Decal") or v:IsA("Texture") then
+                    elseif className == "Decal" or className == "Texture" then
                         fpsBoosterBackups[v].Texture = v.Texture
-                    elseif v:IsA("MeshPart") then
+                    elseif className == "MeshPart" then
                         fpsBoosterBackups[v].TextureID = v.TextureID
                         fpsBoosterBackups[v].Material = v.Material
                         fpsBoosterBackups[v].CastShadow = v.CastShadow
                         fpsBoosterBackups[v].CollisionFidelity = v.CollisionFidelity
-                    elseif v:IsA("SpecialMesh") then
+                    elseif className == "SpecialMesh" then
                         fpsBoosterBackups[v].TextureId = v.TextureId
                     elseif v:IsA("BasePart") then
                         fpsBoosterBackups[v].Material = v.Material
@@ -473,17 +494,16 @@ return function(env)
                     end
                 end
 
-                -- Aplicar otimização não destrutiva (desativa em vez de deletar)
-                if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                if badClasses[className] then
                     v.Enabled = false
-                elseif v:IsA("Decal") or v:IsA("Texture") then
+                elseif className == "Decal" or className == "Texture" then
                     v.Texture = ""
-                elseif v:IsA("MeshPart") then
+                elseif className == "MeshPart" then
                     v.TextureID = ""
                     v.Material = Enum.Material.Plastic
                     v.CastShadow = false
                     v.CollisionFidelity = Enum.CollisionFidelity.Box
-                elseif v:IsA("SpecialMesh") then
+                elseif className == "SpecialMesh" then
                     v.TextureId = ""
                 elseif v:IsA("BasePart") then
                     v.Material = Enum.Material.Plastic
@@ -492,10 +512,9 @@ return function(env)
                 end
             end
 
-            -- Varredura Ultra Rápida (Time Budget 16ms)
             local function fastSweep()
                 local descendants = Workspace:GetDescendants()
-                local start = os.clock()
+                local start = os_clock()
 
                 for i = 1, #descendants do
                     if not fpsBoosterEnabled then break end
@@ -505,24 +524,22 @@ return function(env)
                     end
                     
                     if i % 300 == 0 then
-                        if os.clock() - start > 0.016 then
-                            task.wait()
-                            start = os.clock()
+                        if os_clock() - start > 0.016 then
+                            task_wait()
+                            start = os_clock()
                         end
                     end
                 end
             end
-            task.spawn(fastSweep)
+            task_spawn(fastSweep)
 
-            -- Ouvir entrada de novos itens no mapa
             fpsBoosterConn = Workspace.DescendantAdded:Connect(function(v)
-                task.wait(0.5)
+                task_wait(0.5)
                 if fpsBoosterEnabled and v and v.Parent then
                     optimize(v)
                 end
             end)
 
-            -- Otimizar Terreno
             local t = Workspace:FindFirstChildOfClass("Terrain")
             if t then
                 if not originalSettings.Terrain then
@@ -541,26 +558,25 @@ return function(env)
                 end)
             end
         else
-            -- DESATIVAR FPS BOOSTER (Restaurar Tudo)
             if fpsBoosterConn then
                 fpsBoosterConn:Disconnect()
                 fpsBoosterConn = nil
             end
 
-            -- Restaurar instâncias modificadas
             for v, backup in pairs(fpsBoosterBackups) do
                 if v and v.Parent then
                     pcall(function()
-                        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                        local className = v.ClassName
+                        if backup.Enabled ~= nil then
                             v.Enabled = backup.Enabled
-                        elseif v:IsA("Decal") or v:IsA("Texture") then
+                        elseif className == "Decal" or className == "Texture" then
                             v.Texture = backup.Texture
-                        elseif v:IsA("MeshPart") then
+                        elseif className == "MeshPart" then
                             v.TextureID = backup.TextureID
                             v.Material = backup.Material
                             v.CastShadow = backup.CastShadow
                             v.CollisionFidelity = backup.CollisionFidelity
-                        elseif v:IsA("SpecialMesh") then
+                        elseif className == "SpecialMesh" then
                             v.TextureId = backup.TextureId
                         elseif v:IsA("BasePart") then
                             v.Material = backup.Material
@@ -570,9 +586,8 @@ return function(env)
                     end)
                 end
             end
-            table.clear(fpsBoosterBackups)
+            table_clear(fpsBoosterBackups)
 
-            -- Restaurar configurações gráficas nativas
             pcall(function()
                 local s = UserSettings():GetService("UserGameSettings")
                 local settings = settings()
@@ -581,7 +596,6 @@ return function(env)
                 if originalSettings.SavedQualityLevel then s.SavedQualityLevel = originalSettings.SavedQualityLevel end
             end)
 
-            -- Restaurar Terreno
             local t = Workspace:FindFirstChildOfClass("Terrain")
             if t and originalSettings.Terrain then
                 pcall(function()
@@ -612,7 +626,8 @@ return function(env)
         local function processItem(i)
             if not i or not i.Parent then return end
             
-            if (i:IsA("BasePart") or i:IsA("MeshPart")) and i.Name ~= "HumanoidRootPart" then
+            local class = i.ClassName
+            if (i:IsA("BasePart") or class == "MeshPart") and i.Name ~= "HumanoidRootPart" then
                 local isAcc = i:FindFirstAncestorOfClass("Accessory")
                 if isAcc then
                     if i.Name == "Handle" and not backup.Accessories[i] then
@@ -622,10 +637,10 @@ return function(env)
                             TextureID = nil,
                             MeshInstance = nil
                         }
-                        i.Color = Color3.fromRGB(150, 150, 150)
+                        i.Color = Color3_fromRGB(150, 150, 150)
                         i.Material = Enum.Material.SmoothPlastic
                         
-                        if i:IsA("MeshPart") then
+                        if class == "MeshPart" then
                             handleBackup.TextureID = i.TextureID
                             i.TextureID = ""
                         else
@@ -644,16 +659,16 @@ return function(env)
                             Color = i.Color,
                             Material = i.Material
                         }
-                        i.Color = Color3.fromRGB(150, 150, 150)
+                        i.Color = Color3_fromRGB(150, 150, 150)
                         i.Material = Enum.Material.SmoothPlastic
                     end
                 end
-            elseif i:IsA("Pants") or i:IsA("Shirt") or i:IsA("ShirtGraphic") or i.Name == "Shirt Graphic" then
+            elseif i:IsA("Clothing") or class == "ShirtGraphic" or i.Name == "Shirt Graphic" then
                 if not backup.Clothes[i] then
                     backup.Clothes[i] = i.Parent
-                    task.defer(function() i.Parent = nil end)
+                    task_defer(function() i.Parent = nil end)
                 end
-            elseif i:IsA("SpecialMesh") or i:IsA("Mesh") then
+            elseif class == "SpecialMesh" or i:IsA("FileMesh") then
                 local p = i.Parent
                 if p and p.Name == "Handle" and backup.Accessories[p] then
                     local hBkp = backup.Accessories[p]
@@ -671,12 +686,12 @@ return function(env)
         end
 
         local conn = char.DescendantAdded:Connect(function(desc)
-            task.wait()
+            task_wait()
             if grayOutfitsEnabled then
                 processItem(desc)
             end
         end)
-        table.insert(backup.Connections, conn)
+        table_insert(backup.Connections, conn)
         
         characterBackups[char] = backup
     end
@@ -719,7 +734,7 @@ return function(env)
 
     local function handleCharacterLoading(char)
         if not char then return end
-        local player = Players:GetPlayerFromCharacter(char)
+        local player = GetPlayerFromCharacter(Players, char)
         if player then
             if not player:HasAppearanceLoaded() then
                 local loaded = false
@@ -729,14 +744,14 @@ return function(env)
                     if appearanceConn then appearanceConn:Disconnect() end
                 end)
                 
-                local start = os.clock()
-                while not loaded and os.clock() - start < 5 do
-                    task.wait(0.1)
+                local start = os_clock()
+                while not loaded and os_clock() - start < 5 do
+                    task_wait(0.1)
                 end
                 if appearanceConn then appearanceConn:Disconnect() end
             end
         end
-        task.wait(0.1)
+        task_wait(0.1)
         if grayOutfitsEnabled then
             applyGreyCharacter(char)
         end
@@ -747,31 +762,31 @@ return function(env)
         if state then
             for _, player in ipairs(Players:GetPlayers()) do
                 if player.Character then
-                    task.spawn(handleCharacterLoading, player.Character)
+                    task_spawn(handleCharacterLoading, player.Character)
                 end
                 local conn = player.CharacterAdded:Connect(function(char)
-                    task.spawn(handleCharacterLoading, char)
+                    task_spawn(handleCharacterLoading, char)
                 end)
-                table.insert(grayCharacterConns, conn)
+                table_insert(grayCharacterConns, conn)
             end
             
             local conn2 = Players.PlayerAdded:Connect(function(player)
                 local conn = player.CharacterAdded:Connect(function(char)
-                    task.spawn(handleCharacterLoading, char)
+                    task_spawn(handleCharacterLoading, char)
                 end)
-                table.insert(grayCharacterConns, conn)
+                table_insert(grayCharacterConns, conn)
             end)
-            table.insert(grayCharacterConns, conn2)
+            table_insert(grayCharacterConns, conn2)
         else
             for _, conn in ipairs(grayCharacterConns) do
                 conn:Disconnect()
             end
-            table.clear(grayCharacterConns)
+            table_clear(grayCharacterConns)
             
             for char, _ in pairs(characterBackups) do
                 restoreCharacter(char)
             end
-            table.clear(characterBackups)
+            table_clear(characterBackups)
         end
     end)
 
@@ -805,12 +820,13 @@ return function(env)
     local function applyParticleRemoval(objeto)
         if not removeParticlesEnabled then return end
         
-        local isParticle = objeto:IsA("ParticleEmitter") or 
-                           objeto:IsA("Sparkles") or 
-                           objeto:IsA("Fire") or 
-                           objeto:IsA("Smoke") or 
-                           objeto:IsA("Trail") or 
-                           objeto:IsA("Beam") or 
+        local class = objeto.ClassName
+        local isParticle = class == "ParticleEmitter" or 
+                           class == "Sparkles" or 
+                           class == "Fire" or 
+                           class == "Smoke" or 
+                           class == "Trail" or 
+                           class == "Beam" or 
                            objeto:IsA("PostEffect")
         
         if isParticle then
@@ -828,7 +844,7 @@ return function(env)
                 }
             end
             pcall(function() objeto.Enabled = false end)
-        elseif objeto:IsA("Explosion") then
+        elseif class == "Explosion" then
             pcall(function() objeto:Destroy() end)
         end
     end
@@ -847,10 +863,10 @@ return function(env)
             end)
 
             particlesDescConnW = Workspace.DescendantAdded:Connect(function(child)
-                if removeParticlesEnabled then task.defer(applyParticleRemoval, child) end
+                if removeParticlesEnabled then task_defer(applyParticleRemoval, child) end
             end)
             particlesDescConnL = Lighting.DescendantAdded:Connect(function(child)
-                if removeParticlesEnabled then task.defer(applyParticleRemoval, child) end
+                if removeParticlesEnabled then task_defer(applyParticleRemoval, child) end
             end)
         else
             if particlesDescConnW then particlesDescConnW:Disconnect() particlesDescConnW = nil end
@@ -860,7 +876,7 @@ return function(env)
             particleBkp = setmetatable({}, {__mode = "k"})
             local toRevert = {}
             for obj, data in pairs(currentBkp) do
-                table.insert(toRevert, {obj = obj, data = data})
+                table_insert(toRevert, {obj = obj, data = data})
             end
 
             batchProcess(toRevert, function(item)
@@ -882,7 +898,7 @@ return function(env)
 
 
     -- ==========================================================
-    -- DOUBLE JUMP EFFECTS P1 & P2 (Alinhados na Esquerda - Left)
+    -- DOUBLE JUMP EFFECTS P1 & P2
     -- ==========================================================
     Library:CreateSection(Page, "Double Jump Effects (P1)", "Left")
     local targetParentDJ1 = GetParentTarget(Page)
@@ -891,7 +907,7 @@ return function(env)
     local targetParentDJ2 = GetParentTarget(Page)
 
     -- ==========================================================
-    -- CROSSHAIRS P1 & P2 (Alinhados na Direita - Right)
+    -- CROSSHAIRS P1 & P2
     -- ==========================================================
     Library:CreateSection(Page, "Crosshairs (P1)", "Right")
     Library:CreateSlider(Page, "Cursor Size", 10, 100, 24, UpdateCursorSizes)
@@ -901,7 +917,7 @@ return function(env)
     local targetParentCur2 = GetParentTarget(Page)
 
     -- ==========================================
-    -- POPULATE DOUBLE JUMP EFFECTS
+    -- POPULATE DOUBLE JUMP EFFECTS (Pré-filtragem Otimizada)
     -- ==========================================
     local currentDoubleJumpConns = {}
     local originalTextures = setmetatable({}, {__mode = "k"})
@@ -910,18 +926,19 @@ return function(env)
     local function EnableDoubleJumpEffect(texturaID)
         UserConfigs["TexturesPage_DoubleJump"] = texturaID
         for _, c in ipairs(currentDoubleJumpConns) do c:Disconnect() end
-        table.clear(currentDoubleJumpConns)
+        table_clear(currentDoubleJumpConns)
         
         local function aplicarTextura(obj)
+            local class = obj.ClassName
             if texturaID == "Default" then
                 obj:SetAttribute("CurrentTexture", nil)
-                if obj.ClassName == "ParticleEmitter" then
+                if class == "ParticleEmitter" then
                     if originalTextures[obj] then obj.Texture = originalTextures[obj] end
-                elseif obj.ClassName == "Sparkles" then
+                elseif class == "Sparkles" then
                     local oldClone = obj.Parent:FindFirstChild("CustomSparkleClone_" .. obj.Name)
                     if oldClone then oldClone:Destroy() end
                     if OriginalSparkleColors[obj] then pcall(function() obj.SparkleColor = OriginalSparkleColors[obj] end)
-                    else pcall(function() obj.SparkleColor = Color3.new(1, 1, 1) end) end
+                    else pcall(function() obj.SparkleColor = Color3_new(1, 1, 1) end) end
                 end
                 return
             end
@@ -929,21 +946,20 @@ return function(env)
             if obj:GetAttribute("CurrentTexture") == texturaID then return end
             obj:SetAttribute("CurrentTexture", texturaID)
             
-            local classe = obj.ClassName
-            if classe == "ParticleEmitter" then
+            if class == "ParticleEmitter" then
                 local sucesso, texturaAtual = pcall(function() return obj.Texture end)
-                if sucesso and texturaAtual and string.find(string.lower(texturaAtual), "sparkles_main") then
+                if sucesso and texturaAtual and string_find(string_lower(texturaAtual), "sparkles_main") then
                     if not originalTextures[obj] then originalTextures[obj] = obj.Texture end
                     obj.Texture = texturaID
                 end
-            elseif classe == "Sparkles" then
+            elseif class == "Sparkles" then
                 if not OriginalSparkleColors[obj] then OriginalSparkleColors[obj] = obj.SparkleColor end
-                pcall(function() obj.SparkleColor = Color3.new(0, 0, 0) end)
+                pcall(function() obj.SparkleColor = Color3_new(0, 0, 0) end)
                 
                 local oldClone = obj.Parent:FindFirstChild("CustomSparkleClone_" .. obj.Name)
                 if oldClone then oldClone:Destroy() end
                 
-                local clone = Instance.new("ParticleEmitter")
+                local clone = Instance_new("ParticleEmitter")
                 clone.Name = "CustomSparkleClone_" .. obj.Name
                 clone.Texture = texturaID
                 clone.Rate = 20
@@ -966,66 +982,65 @@ return function(env)
                     if clone then clone:Destroy() end
                 end)
                 
-                table.insert(currentDoubleJumpConns, conexao)
-                table.insert(currentDoubleJumpConns, destConn)
+                table_insert(currentDoubleJumpConns, conexao)
+                table_insert(currentDoubleJumpConns, destConn)
             end
         end
 
-        -- Varredura ultrarrápida focada em players atuais
         for _, plr in ipairs(Players:GetPlayers()) do
             local char = plr.Character
             if char then
-                for _, obj in ipairs(char:GetDescendants()) do
-                    if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then
+                local descendants = char:GetDescendants()
+                for i = 1, #descendants do
+                    local obj = descendants[i]
+                    local class = obj.ClassName
+                    if class == "ParticleEmitter" or class == "Sparkles" then
                         aplicarTextura(obj)
                     end
                 end
             end
         end
 
-        -- Varredura fracionada em segundo plano no Workspace
-        task.spawn(function()
+        task_spawn(function()
             local desc = Workspace:GetDescendants()
-            local total = #desc
-            local index = 1
-            local chunkSize = 150
-
-            while index <= total do
-                for i = 1, chunkSize do
-                    if index > total then break end
-                    local obj = desc[index]
-                    if obj and (obj:IsA("ParticleEmitter") or obj:IsA("Sparkles")) then
-                        aplicarTextura(obj)
+            local targets = {}
+            for i = 1, #desc do
+                local obj = desc[i]
+                if obj then
+                    local class = obj.ClassName
+                    if class == "ParticleEmitter" or class == "Sparkles" then
+                        table_insert(targets, obj)
                     end
-                    index = index + 1
                 end
-                task.wait()
             end
+            batchProcess(targets, aplicarTextura)
         end)
 
-        -- Escuta em tempo real para novos elementos adicionados dinamicamente
         if texturaID ~= "Default" then
-            table.insert(currentDoubleJumpConns, Workspace.DescendantAdded:Connect(function(obj)
-                if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then
-                    task.defer(function() aplicarTextura(obj) end)
+            table_insert(currentDoubleJumpConns, Workspace.DescendantAdded:Connect(function(obj)
+                local class = obj.ClassName
+                if class == "ParticleEmitter" or class == "Sparkles" then
+                    task_defer(function() aplicarTextura(obj) end)
                 end
             end))
 
             for _, plr in ipairs(Players:GetPlayers()) do
-                table.insert(currentDoubleJumpConns, plr.CharacterAdded:Connect(function(char)
-                    table.insert(currentDoubleJumpConns, char.DescendantAdded:Connect(function(obj)
-                        if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then
-                            task.defer(function() aplicarTextura(obj) end)
+                table_insert(currentDoubleJumpConns, plr.CharacterAdded:Connect(function(char)
+                    table_insert(currentDoubleJumpConns, char.DescendantAdded:Connect(function(obj)
+                        local class = obj.ClassName
+                        if class == "ParticleEmitter" or class == "Sparkles" then
+                            task_defer(function() aplicarTextura(obj) end)
                         end
                     end))
                 end))
             end
 
-            table.insert(currentDoubleJumpConns, Players.PlayerAdded:Connect(function(plr)
-                table.insert(currentDoubleJumpConns, plr.CharacterAdded:Connect(function(char)
-                    table.insert(currentDoubleJumpConns, char.DescendantAdded:Connect(function(obj)
-                        if obj:IsA("ParticleEmitter") or obj:IsA("Sparkles") then
-                            task.defer(function() aplicarTextura(obj) end)
+            table_insert(currentDoubleJumpConns, Players.PlayerAdded:Connect(function(plr)
+                table_insert(currentDoubleJumpConns, plr.CharacterAdded:Connect(function(char)
+                    table_insert(currentDoubleJumpConns, char.DescendantAdded:Connect(function(obj)
+                        local class = obj.ClassName
+                        if class == "ParticleEmitter" or class == "Sparkles" then
+                            task_defer(function() aplicarTextura(obj) end)
                         end
                     end))
                 end))
@@ -1033,15 +1048,15 @@ return function(env)
         end
     end
 
-    local CustomInputContainer = Instance.new("Frame")
-    CustomInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-    CustomInputContainer.Position = UDim2.new(0, 1, 0, 0)
+    local CustomInputContainer = Instance_new("Frame")
+    CustomInputContainer.Size = UDim2_new(1, -2, 0, ContentConfig.ItemHeightNew)
+    CustomInputContainer.Position = UDim2_new(0, 1, 0, 0)
     CustomInputContainer.BackgroundTransparency = 1
     CustomInputContainer.Parent = targetParentDJ1
 
-    local CustomInputBox = Instance.new("TextBox")
-    CustomInputBox.Size = UDim2.new(1, -65, 1, 0)
-    CustomInputBox.Position = UDim2.new(0, 5, 0, 0)
+    local CustomInputBox = Instance_new("TextBox")
+    CustomInputBox.Size = UDim2_new(1, -65, 1, 0)
+    CustomInputBox.Position = UDim2_new(0, 5, 0, 0)
     CustomInputBox.BackgroundTransparency = 1
     CustomInputBox.Text = ""
     local savedDJ = UserConfigs["TexturesPage_DoubleJump"]
@@ -1055,19 +1070,19 @@ return function(env)
     CustomInputBox.ClearTextOnFocus = false
     CustomInputBox.Parent = CustomInputContainer
 
-    local ApplyBtn = Instance.new("TextButton")
-    ApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-    ApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-    ApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
+    local ApplyBtn = Instance_new("TextButton")
+    ApplyBtn.Size = UDim2_new(0, 55, 0, 20)
+    ApplyBtn.Position = UDim2_new(1, -60, 0.5, -10)
+    ApplyBtn.BackgroundColor3 = Color3_new(0,0,0)
     ApplyBtn.BackgroundTransparency = 0.45
     ApplyBtn.Text = "Apply"
     ApplyBtn.Font = Enum.Font.GothamBold
     ApplyBtn.TextSize = 10
     ApplyBtn.TextColor3 = Theme.TextDark
     ApplyBtn.Parent = CustomInputContainer
-    Instance.new("UICorner", ApplyBtn).CornerRadius = UDim.new(0, 4)
-    local abStr = Instance.new("UIStroke", ApplyBtn)
-    abStr.Color = Color3.fromRGB(40,40,40)
+    Instance_new("UICorner", ApplyBtn).CornerRadius = UDim_new(0, 4)
+    local abStr = Instance_new("UIStroke", ApplyBtn)
+    abStr.Color = Color3_fromRGB(40,40,40)
 
     ApplyBtn.MouseButton1Click:Connect(function()
         local val = CustomInputBox.Text
@@ -1096,36 +1111,36 @@ return function(env)
     local GridWrapperDJ1 = createGridContainer(targetParentDJ1)
     local GridWrapperDJ2 = createGridContainer(targetParentDJ2)
 
-    local defaultBtn = Instance.new("TextButton")
+    local defaultBtn = Instance_new("TextButton")
     defaultBtn.Text = "Default"
     defaultBtn.Font = Enum.Font.GothamBold
     defaultBtn.TextSize = 9
     defaultBtn.TextColor3 = Theme.TextDark
-    defaultBtn.BackgroundColor3 = Color3.new(0,0,0)
+    defaultBtn.BackgroundColor3 = Color3_new(0,0,0)
     defaultBtn.BackgroundTransparency = 0.45
     defaultBtn.Parent = GridWrapperDJ1
-    Instance.new("UICorner", defaultBtn).CornerRadius = UDim.new(0, 4)
-    local dbStr = Instance.new("UIStroke", defaultBtn)
-    dbStr.Color = Color3.fromRGB(40,40,40)
+    Instance_new("UICorner", defaultBtn).CornerRadius = UDim_new(0, 4)
+    local dbStr = Instance_new("UIStroke", defaultBtn)
+    dbStr.Color = Color3_fromRGB(40,40,40)
     
     defaultBtn.MouseEnter:Connect(function() TweenService:Create(dbStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-    defaultBtn.MouseLeave:Connect(function() TweenService:Create(dbStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
+    defaultBtn.MouseLeave:Connect(function() TweenService:Create(dbStr, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
     defaultBtn.MouseButton1Click:Connect(function() UserConfigs["TexturesPage_DoubleJump"] = "Default" EnableDoubleJumpEffect("Default") end)
 
     for i, id in ipairs(effectIDs) do
         local targetGrid = (i <= 19) and GridWrapperDJ1 or GridWrapperDJ2
-        local btn = Instance.new("ImageButton")
-        btn.BackgroundColor3 = Color3.new(0,0,0)
+        local btn = Instance_new("ImageButton")
+        btn.BackgroundColor3 = Color3_new(0,0,0)
         btn.BackgroundTransparency = 0.45
         btn.Image = "rbxassetid://" .. id
         btn.ScaleType = Enum.ScaleType.Crop 
         btn.Parent = targetGrid
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-        local ebStr = Instance.new("UIStroke", btn)
-        ebStr.Color = Color3.fromRGB(40,40,40)
+        Instance_new("UICorner", btn).CornerRadius = UDim_new(0, 4)
+        local ebStr = Instance_new("UIStroke", btn)
+        ebStr.Color = Color3_fromRGB(40,40,40)
 
         btn.MouseEnter:Connect(function() TweenService:Create(ebStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-        btn.MouseLeave:Connect(function() TweenService:Create(ebStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
+        btn.MouseLeave:Connect(function() TweenService:Create(ebStr, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() end)
         btn.MouseButton1Click:Connect(function() 
             UserConfigs["TexturesPage_DoubleJump"] = "rbxassetid://" .. id
             EnableDoubleJumpEffect("rbxassetid://" .. id)
@@ -1133,7 +1148,7 @@ return function(env)
     end
 
     -- ==========================================================
-    -- MOBILE BUTTON JUMP (DIVIDIDO EM P1 NA ESQUERDA E P2 NA DIREITA)
+    -- MOBILE BUTTON JUMP (P1 & P2)
     -- ==========================================================
     if isMobile then
         Library:CreateSection(Page, "Mobile Button Jump (P1)", "Left")
@@ -1148,7 +1163,7 @@ return function(env)
             if not isMobile then return end
             
             for _, c in ipairs(mobileJumpConns) do c:Disconnect() end
-            table.clear(mobileJumpConns)
+            table_clear(mobileJumpConns)
 
             local playerGui = LocalPlayer:WaitForChild("PlayerGui")
             local function applyCustomButton(touchGui)
@@ -1168,46 +1183,48 @@ return function(env)
                 local existingIcon = jumpButton:FindFirstChild("CustomJumpIcon")
                 if existingIcon then existingIcon:Destroy() end
                 
-                local customIcon = Instance.new("ImageLabel")
+                local customIcon = Instance_new("ImageLabel")
                 customIcon.Name = "CustomJumpIcon"
-                customIcon.Size = UDim2.new(1, 0, 1, 0)
-                customIcon.Position = UDim2.new(0, 0, 0, 0)
+                customIcon.Size = UDim2_new(1, 0, 1, 0)
+                customIcon.Position = UDim2_new(0, 0, 0, 0)
                 customIcon.BackgroundTransparency = 1
                 customIcon.Image = texturaID
                 customIcon.ZIndex = jumpButton.ZIndex + 50
                 customIcon.Parent = jumpButton
                 
                 local c1 = jumpButton.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        customIcon.ImageColor3 = Color3.fromRGB(150, 150, 150)
+                    local ut = input.UserInputType
+                    if ut == Enum.UserInputType.Touch or ut == Enum.UserInputType.MouseButton1 then
+                        customIcon.ImageColor3 = Color3_fromRGB(150, 150, 150)
                     end
                 end)
                 local c2 = jumpButton.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        customIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                    local ut = input.UserInputType
+                    if ut == Enum.UserInputType.Touch or ut == Enum.UserInputType.MouseButton1 then
+                        customIcon.ImageColor3 = Color3_fromRGB(255, 255, 255)
                     end
                 end)
-                table.insert(mobileJumpConns, c1)
-                table.insert(mobileJumpConns, c2)
+                table_insert(mobileJumpConns, c1)
+                table_insert(mobileJumpConns, c2)
             end
 
-            if playerGui:FindFirstChild("TouchGui") then task.spawn(applyCustomButton, playerGui.TouchGui) end
+            if playerGui:FindFirstChild("TouchGui") then task_spawn(applyCustomButton, playerGui.TouchGui) end
             if texturaID ~= "Default" then
-                table.insert(mobileJumpConns, playerGui.ChildAdded:Connect(function(child)
-                    if child.Name == "TouchGui" then task.spawn(applyCustomButton, child) end
+                table_insert(mobileJumpConns, playerGui.ChildAdded:Connect(function(child)
+                    if child.Name == "TouchGui" then task_spawn(applyCustomButton, child) end
                 end))
             end
         end
 
-        local MJInputContainer = Instance.new("Frame")
-        MJInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-        MJInputContainer.Position = UDim2.new(0, 1, 0, 0)
+        local MJInputContainer = Instance_new("Frame")
+        MJInputContainer.Size = UDim2_new(1, -2, 0, ContentConfig.ItemHeightNew)
+        MJInputContainer.Position = UDim2_new(0, 1, 0, 0)
         MJInputContainer.BackgroundTransparency = 1
         MJInputContainer.Parent = targetParentMJ1
 
-        local MJumpTextBox = Instance.new("TextBox")
-        MJumpTextBox.Size = UDim2.new(1, -65, 1, 0)
-        MJumpTextBox.Position = UDim2.new(0, 5, 0, 0)
+        local MJumpTextBox = Instance_new("TextBox")
+        MJumpTextBox.Size = UDim2_new(1, -65, 1, 0)
+        MJumpTextBox.Position = UDim2_new(0, 5, 0, 0)
         MJumpTextBox.BackgroundTransparency = 1
         MJumpTextBox.Text = ""
         local savedMJ = UserConfigs["TexturesPage_MobileJump"]
@@ -1221,19 +1238,19 @@ return function(env)
         MJumpTextBox.ClearTextOnFocus = false
         MJumpTextBox.Parent = MJInputContainer
 
-        local MJumpApplyBtn = Instance.new("TextButton")
-        MJumpApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-        MJumpApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-        MJumpApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
+        local MJumpApplyBtn = Instance_new("TextButton")
+        MJumpApplyBtn.Size = UDim2_new(0, 55, 0, 20)
+        MJumpApplyBtn.Position = UDim2_new(1, -60, 0.5, -10)
+        MJumpApplyBtn.BackgroundColor3 = Color3_new(0,0,0)
         MJumpApplyBtn.BackgroundTransparency = 0.45
         MJumpApplyBtn.Text = "Apply"
         MJumpApplyBtn.Font = Enum.Font.GothamBold
         MJumpApplyBtn.TextSize = 10
         MJumpApplyBtn.TextColor3 = Theme.TextDark
         MJumpApplyBtn.Parent = MJInputContainer
-        Instance.new("UICorner", MJumpApplyBtn).CornerRadius = UDim.new(0, 4)
-        local mbStr = Instance.new("UIStroke", MJumpApplyBtn)
-        mbStr.Color = Color3.fromRGB(40,40,40)
+        Instance_new("UICorner", MJumpApplyBtn).CornerRadius = UDim_new(0, 4)
+        local mbStr = Instance_new("UIStroke", MJumpApplyBtn)
+        mbStr.Color = Color3_fromRGB(40,40,40)
 
         MJumpApplyBtn.MouseButton1Click:Connect(function()
             local val = MJumpTextBox.Text
@@ -1249,66 +1266,64 @@ return function(env)
         local MJGridWrapper1 = createGridContainer(targetParentMJ1)
         local MJGridWrapper2 = createGridContainer(targetParentMJ2)
 
-        local mDefaultBtn = Instance.new("TextButton")
+        local mDefaultBtn = Instance_new("TextButton")
         mDefaultBtn.Text = "Default"
         mDefaultBtn.Font = Enum.Font.GothamBold
         mDefaultBtn.TextSize = 9
         mDefaultBtn.TextColor3 = Theme.TextDark
-        mDefaultBtn.BackgroundColor3 = Color3.new(0,0,0)
+        mDefaultBtn.BackgroundColor3 = Color3_new(0,0,0)
         mDefaultBtn.BackgroundTransparency = 0.45
         mDefaultBtn.Parent = MJGridWrapper1
-        Instance.new("UICorner", mDefaultBtn).CornerRadius = UDim.new(0, 4)
-        local mDStr = Instance.new("UIStroke", mDefaultBtn)
-        mDStr.Color = Color3.fromRGB(40,40,40)
+        Instance_new("UICorner", mDefaultBtn).CornerRadius = UDim_new(0, 4)
+        local mDStr = Instance_new("UIStroke", mDefaultBtn)
+        mDStr.Color = Color3_fromRGB(40,40,40)
         
         mDefaultBtn.MouseEnter:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(mDefaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-        mDefaultBtn.MouseLeave:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
+        mDefaultBtn.MouseLeave:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
         mDefaultBtn.MouseButton1Click:Connect(function() UserConfigs["TexturesPage_MobileJump"] = "Default" EnableMobileButtonJump("Default") end)
 
-        -- [ IDs DA PARTE 1 ]
         local mJumpIDs_P1 = {
             "126321670529682", "77430663366893", "115979689020396", "101678026501268", 
             "100604012502918", "107988778180975", "106355869384286", "119823685069603"
         }
 
         for _, id in ipairs(mJumpIDs_P1) do
-            local btn = Instance.new("ImageButton")
-            btn.BackgroundColor3 = Color3.new(0,0,0)
+            local btn = Instance_new("ImageButton")
+            btn.BackgroundColor3 = Color3_new(0,0,0)
             btn.BackgroundTransparency = 0.45
             btn.Image = "rbxassetid://" .. id
             btn.ScaleType = Enum.ScaleType.Crop 
             btn.Parent = MJGridWrapper1
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            local str = Instance.new("UIStroke", btn)
-            str.Color = Color3.fromRGB(40,40,40)
+            Instance_new("UICorner", btn).CornerRadius = UDim_new(0, 4)
+            local str = Instance_new("UIStroke", btn)
+            str.Color = Color3_fromRGB(40,40,40)
             
             btn.MouseEnter:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-            btn.MouseLeave:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
+            btn.MouseLeave:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() end)
             btn.MouseButton1Click:Connect(function() 
                 UserConfigs["TexturesPage_MobileJump"] = "rbxassetid://" .. id
                 EnableMobileButtonJump("rbxassetid://" .. id)
             end)
         end
 
-        -- [ IDs SOLICITADOS PARA A PARTE 2 ]
         local mJumpIDs_P2 = {
             "70463296258416", "80555494674270", "74056211768119", "115091366896134", 
             "117864251880006", "130200330618832", "77364460442867"
         }
 
         for _, id in ipairs(mJumpIDs_P2) do
-            local btn = Instance.new("ImageButton")
-            btn.BackgroundColor3 = Color3.new(0,0,0)
+            local btn = Instance_new("ImageButton")
+            btn.BackgroundColor3 = Color3_new(0,0,0)
             btn.BackgroundTransparency = 0.45
             btn.Image = "rbxassetid://" .. id
             btn.ScaleType = Enum.ScaleType.Crop 
             btn.Parent = MJGridWrapper2
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            local str = Instance.new("UIStroke", btn)
-            str.Color = Color3.fromRGB(40,40,40)
+            Instance_new("UICorner", btn).CornerRadius = UDim_new(0, 4)
+            local str = Instance_new("UIStroke", btn)
+            str.Color = Color3_fromRGB(40,40,40)
             
             btn.MouseEnter:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() end)
-            btn.MouseLeave:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() end)
+            btn.MouseLeave:Connect(function() TweenService:Create(str, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() end)
             btn.MouseButton1Click:Connect(function() 
                 UserConfigs["TexturesPage_MobileJump"] = "rbxassetid://" .. id
                 EnableMobileButtonJump("rbxassetid://" .. id)
@@ -1317,7 +1332,7 @@ return function(env)
     end
 
     -- ==========================================
-    -- POPULATE CROSSHAIRS (IDs ATUALIZADOS)
+    -- POPULATE CROSSHAIRS
     -- ==========================================
     local CursorList = {
         {Name = "Default", ID = "RESET"},
@@ -1343,15 +1358,15 @@ return function(env)
     }
 
     local function CreateCursorSystem(isMob)
-        local CInputContainer = Instance.new("Frame")
-        CInputContainer.Size = UDim2.new(1, -2, 0, ContentConfig.ItemHeightNew)
-        CInputContainer.Position = UDim2.new(0, 1, 0, 0)
+        local CInputContainer = Instance_new("Frame")
+        CInputContainer.Size = UDim2_new(1, -2, 0, ContentConfig.ItemHeightNew)
+        CInputContainer.Position = UDim2_new(0, 1, 0, 0)
         CInputContainer.BackgroundTransparency = 1
         CInputContainer.Parent = targetParentCur1
         
-        local TextBox = Instance.new("TextBox")
-        TextBox.Size = UDim2.new(1, -65, 1, 0)
-        TextBox.Position = UDim2.new(0, 5, 0, 0)
+        local TextBox = Instance_new("TextBox")
+        TextBox.Size = UDim2_new(1, -65, 1, 0)
+        TextBox.Position = UDim2_new(0, 5, 0, 0)
         TextBox.BackgroundTransparency = 1
         TextBox.Text = ""
         local flagKey = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
@@ -1366,19 +1381,19 @@ return function(env)
         TextBox.ClearTextOnFocus = false
         TextBox.Parent = CInputContainer
         
-        local ApplyBtn = Instance.new("TextButton")
-        ApplyBtn.Size = UDim2.new(0, 55, 0, 20)
-        ApplyBtn.Position = UDim2.new(1, -60, 0.5, -10)
-        ApplyBtn.BackgroundColor3 = Color3.new(0,0,0)
+        local ApplyBtn = Instance_new("TextButton")
+        ApplyBtn.Size = UDim2_new(0, 55, 0, 20)
+        ApplyBtn.Position = UDim2_new(1, -60, 0.5, -10)
+        ApplyBtn.BackgroundColor3 = Color3_new(0,0,0)
         ApplyBtn.BackgroundTransparency = 0.45
         ApplyBtn.Text = "Apply"
         ApplyBtn.Font = Enum.Font.GothamBold
         ApplyBtn.TextSize = 10
         ApplyBtn.TextColor3 = Theme.TextDark
         ApplyBtn.Parent = CInputContainer
-        Instance.new("UICorner", ApplyBtn).CornerRadius = UDim.new(0, 4)
-        local apStr = Instance.new("UIStroke", ApplyBtn)
-        apStr.Color = Color3.fromRGB(40,40,40)
+        Instance_new("UICorner", ApplyBtn).CornerRadius = UDim_new(0, 4)
+        local apStr = Instance_new("UIStroke", ApplyBtn)
+        apStr.Color = Color3_fromRGB(40,40,40)
         
         ApplyBtn.MouseButton1Click:Connect(function() 
             local id = TextBox.Text
@@ -1405,20 +1420,20 @@ return function(env)
             local targetGrid = (i <= 18) and GridWrapperCur1 or GridWrapperCur2
 
             if item.ID == "RESET" then
-                local defaultBtn = Instance.new("TextButton")
+                local defaultBtn = Instance_new("TextButton")
                 defaultBtn.Text = "Default"
                 defaultBtn.Font = Enum.Font.GothamBold
                 defaultBtn.TextSize = 9
                 defaultBtn.TextColor3 = Theme.TextDark
-                defaultBtn.BackgroundColor3 = Color3.new(0,0,0)
+                defaultBtn.BackgroundColor3 = Color3_new(0,0,0)
                 defaultBtn.BackgroundTransparency = 0.45
                 defaultBtn.Parent = targetGrid
-                Instance.new("UICorner", defaultBtn).CornerRadius = UDim.new(0, 4)
-                local dStr = Instance.new("UIStroke", defaultBtn)
-                dStr.Color = Color3.fromRGB(40,40,40)
+                Instance_new("UICorner", defaultBtn).CornerRadius = UDim_new(0, 4)
+                local dStr = Instance_new("UIStroke", defaultBtn)
+                dStr.Color = Color3_fromRGB(40,40,40)
                 
                 defaultBtn.MouseEnter:Connect(function() TweenService:Create(dStr, TweenInfo.new(0.2), {Color=Theme.Accent}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.Accent}):Play() end)
-                defaultBtn.MouseLeave:Connect(function() TweenService:Create(dStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
+                defaultBtn.MouseLeave:Connect(function() TweenService:Create(dStr, TweenInfo.new(0.2), {Color=Color3_fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
                 
                 defaultBtn.MouseButton1Click:Connect(function() 
                     local flag = "TexturesPage_Crosshair_" .. (isMob and "Mobile" or "PC")
@@ -1433,18 +1448,18 @@ return function(env)
                     end 
                 end)
             else
-                local btn = Instance.new("ImageButton")
-                btn.BackgroundColor3 = Color3.new(0,0,0)
+                local btn = Instance_new("ImageButton")
+                btn.BackgroundColor3 = Color3_new(0,0,0)
                 btn.BackgroundTransparency = 0.45
                 btn.Image = "rbxassetid://" .. item.ID
                 btn.ScaleType = Enum.ScaleType.Crop 
                 btn.Parent = targetGrid
-                Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-                local imgStr = Instance.new("UIStroke", btn)
-                imgStr.Color = Color3.fromRGB(40,40,40)
+                Instance_new("UICorner", btn).CornerRadius = UDim_new(0, 4)
+                local imgStr = Instance_new("UIStroke", btn)
+                imgStr.Color = Color3_fromRGB(40,40,40)
                 
                 btn.MouseEnter:Connect(function() imgStr.Color = Theme.Accent end)
-                btn.MouseLeave:Connect(function() imgStr.Color = Color3.fromRGB(40,40,40) end)
+                btn.MouseLeave:Connect(function() imgStr.Color = Color3_fromRGB(40,40,40) end)
                 
                 btn.MouseButton1Click:Connect(function() 
                     local fullID = "rbxassetid://" .. item.ID
@@ -1468,10 +1483,10 @@ return function(env)
     if usePCCursor then CreateCursorSystem(false) else CreateCursorSystem(true) end
 
     -- INICIALIZADOR DE SALVOS
-    if UserConfigs["TexturesPage_DoubleJump"] then task.spawn(function() EnableDoubleJumpEffect(UserConfigs["TexturesPage_DoubleJump"]) end) end
-    if isMobile and UserConfigs["TexturesPage_MobileJump"] then task.spawn(function() EnableMobileButtonJump(UserConfigs["TexturesPage_MobileJump"]) end) end
+    if UserConfigs["TexturesPage_DoubleJump"] then task_spawn(function() EnableDoubleJumpEffect(UserConfigs["TexturesPage_DoubleJump"]) end) end
+    if isMobile and UserConfigs["TexturesPage_MobileJump"] then task_spawn(function() EnableMobileButtonJump(UserConfigs["TexturesPage_MobileJump"]) end) end
 
-    task.spawn(function()
+    task_spawn(function()
         if usePCCursor then
             local saved = UserConfigs["TexturesPage_Crosshair_PC"]
             if saved and saved ~= "RESET" then
