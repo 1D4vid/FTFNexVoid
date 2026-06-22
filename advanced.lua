@@ -20,6 +20,7 @@ return function(env)
     local ipairs = ipairs
     local pairs = pairs
     local pcall = pcall
+    local os_clock = os.clock
     
     local flyEnabled = false
     local flySpeed = 50
@@ -818,33 +819,36 @@ return function(env)
         runnerSpeedBoostEnabled = state
         if state then
             local ultimaEnergia = 1
+            local ultimoDecrescimo = 0 -- Timestamp da última alteração de energia
             if conexaoRunnerBoost then conexaoRunnerBoost:Disconnect() end
+            
             conexaoRunnerBoost = RunService.Stepped:Connect(function()
                 pcall(function()
                     local MeuPersonagem = LocalPlayer.Character
                     if not MeuPersonagem then return end
                     
-                    local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
-                    if not Humanoid then return end
-                    
                     local beastPowers = MeuPersonagem:FindFirstChild("BeastPowers")
                     local numberValue = beastPowers and beastPowers:FindFirstChildOfClass("NumberValue")
+                    if not numberValue then return end
                     
-                    if numberValue then
-                        local energiaAtual = numberValue.Value
-                        if energiaAtual < ultimaEnergia then
-                            -- Modifica a velocidade apenas enquanto usa o runner (energia diminuindo)
+                    local energiaAtual = numberValue.Value
+                    local agora = os_clock()
+                    
+                    if energiaAtual < ultimaEnergia then
+                        ultimoDecrescimo = agora
+                        local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
+                        if Humanoid then
                             Humanoid.WalkSpeed = runnerSpeedVal
-                        else
-                            -- Retorna à velocidade base
+                        end
+                    elseif agora - ultimoDecrescimo > 0.25 then
+                        -- Se a energia não cair por mais de 0.25 segundos, restaura a velocidade normal/customizada
+                        local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
+                        if Humanoid then
                             Humanoid.WalkSpeed = wsEnabled and wsValue or 16
                         end
-                        ultimaEnergia = energiaAtual
-                    else
-                        -- Caso não encontre a energia, mantém o padrão
-                        Humanoid.WalkSpeed = wsEnabled and wsValue or 16
-                        ultimaEnergia = 1
                     end
+                    
+                    ultimaEnergia = energiaAtual
                 end)
             end)
         else
