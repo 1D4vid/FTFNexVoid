@@ -36,59 +36,18 @@ return function(env)
     local MobileCrosshair = env.MobileCrosshair
     local PCSoftwareCursor = env.PCSoftwareCursor
     local Lighting = game:GetService("Lighting")
+    local StarterGui = game:GetService("StarterGui")
     local Mouse = LocalPlayer:GetMouse()
 
     local GetPlayerFromCharacter = Players.GetPlayerFromCharacter
 
     local function showNotification(text)
-        local sg = Instance_new("ScreenGui")
-        sg.Name = "VisualNotification"
-        sg.ResetOnSpawn = false
-        
-        local frame = Instance_new("Frame")
-        frame.Size = UDim2_new(0, 260, 0, 40)
-        frame.Position = UDim2_new(0.5, -130, 0, -50)
-        frame.BackgroundColor3 = Color3_fromRGB(20, 20, 20)
-        frame.BackgroundTransparency = 0.15
-        frame.Parent = sg
-        
-        local corner = Instance_new("UICorner")
-        corner.CornerRadius = UDim_new(0, 6)
-        corner.Parent = frame
-        
-        local stroke = Instance_new("UIStroke")
-        stroke.Color = Color3_fromRGB(45, 45, 45)
-        stroke.Thickness = 1
-        stroke.Parent = frame
-        
-        local label = Instance_new("TextLabel")
-        label.Size = UDim2_new(1, -20, 1, 0)
-        label.Position = UDim2_new(0, 10, 0, 0)
-        label.BackgroundTransparency = 1
-        label.Text = text
-        label.TextColor3 = Color3_fromRGB(240, 240, 240)
-        label.Font = Enum.Font.GothamBold
-        label.TextSize = 11
-        label.TextWrapped = true
-        label.Parent = frame
-        
-        local pGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
-        if pGui then
-            sg.Parent = pGui
-        else
-            sg.Parent = game:GetService("CoreGui")
-        end
-        
-        local t1 = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2_new(0.5, -130, 0, 25)})
-        t1:Play()
-        
-        task_spawn(function()
-            task_wait(3)
-            local t2 = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2_new(0.5, -130, 0, -50)})
-            t2:Play()
-            t2.Completed:Connect(function()
-                sg:Destroy()
-            end)
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
+                Title = "System",
+                Text = text,
+                Duration = 3
+            })
         end)
     end
 
@@ -408,28 +367,30 @@ return function(env)
         if not isMapAsset(v) then return end
 
         local class = v.ClassName
-        if class == "Decal" or class == "Texture" then
-            if not textureBackups[v] then
-                textureBackups[v] = { Texture = v.Texture }
+        pcall(function()
+            if class == "Decal" or class == "Texture" then
+                if not textureBackups[v] then
+                    textureBackups[v] = { Texture = v.Texture }
+                end
+                v.Texture = ""
+            elseif class == "MeshPart" then
+                if not textureBackups[v] then
+                    textureBackups[v] = { TextureID = v.TextureID, Material = v.Material }
+                end
+                v.TextureID = ""
+                v.Material = Enum.Material.SmoothPlastic
+            elseif class == "SpecialMesh" then
+                if not textureBackups[v] then
+                    textureBackups[v] = { TextureId = v.TextureId }
+                end
+                v.TextureId = ""
+            elseif v:IsA("BasePart") then
+                if not textureBackups[v] then
+                    textureBackups[v] = { Material = v.Material }
+                end
+                v.Material = Enum.Material.SmoothPlastic
             end
-            v.Texture = ""
-        elseif class == "MeshPart" then
-            if not textureBackups[v] then
-                textureBackups[v] = { TextureID = v.TextureID, Material = v.Material }
-            end
-            v.TextureID = ""
-            v.Material = Enum.Material.SmoothPlastic
-        elseif class == "SpecialMesh" then
-            if not textureBackups[v] then
-                textureBackups[v] = { TextureId = v.TextureId }
-            end
-            v.TextureId = ""
-        elseif v:IsA("BasePart") then
-            if not textureBackups[v] then
-                textureBackups[v] = { Material = v.Material }
-            end
-            v.Material = Enum.Material.SmoothPlastic
-        end
+        end)
     end
 
     local function restoreTextures()
@@ -509,7 +470,7 @@ return function(env)
 
             local badClasses = {
                 ["ParticleEmitter"] = true, ["Smoke"] = true, ["Fire"] = true, ["Sparkles"] = true, 
-                ["Trail"] = true, ["Decal"] = true, ["Texture"] = true, ["Beam"] = true 
+                ["Trail"] = true, ["Beam"] = true 
             }
 
             local function optimize(v)
@@ -522,42 +483,44 @@ return function(env)
                     return
                 end
 
-                if not fpsBoosterBackups[v] then
-                    fpsBoosterBackups[v] = {}
-                    if badClasses[className] then
-                        fpsBoosterBackups[v].Enabled = v.Enabled
-                    elseif className == "Decal" or className == "Texture" then
-                        fpsBoosterBackups[v].Texture = v.Texture
-                    elseif className == "MeshPart" then
-                        fpsBoosterBackups[v].TextureID = v.TextureID
-                        fpsBoosterBackups[v].Material = v.Material
-                        fpsBoosterBackups[v].CastShadow = v.CastShadow
-                        fpsBoosterBackups[v].CollisionFidelity = v.CollisionFidelity
-                    elseif className == "SpecialMesh" then
-                        fpsBoosterBackups[v].TextureId = v.TextureId
-                    elseif v:IsA("BasePart") then
-                        fpsBoosterBackups[v].Material = v.Material
-                        fpsBoosterBackups[v].Reflectance = v.Reflectance
-                        fpsBoosterBackups[v].CastShadow = v.CastShadow
+                pcall(function()
+                    if not fpsBoosterBackups[v] then
+                        fpsBoosterBackups[v] = {}
+                        if badClasses[className] then
+                            fpsBoosterBackups[v].Enabled = v.Enabled
+                        elseif className == "Decal" or className == "Texture" then
+                            fpsBoosterBackups[v].Texture = v.Texture
+                        elseif className == "MeshPart" then
+                            fpsBoosterBackups[v].TextureID = v.TextureID
+                            fpsBoosterBackups[v].Material = v.Material
+                            fpsBoosterBackups[v].CastShadow = v.CastShadow
+                            fpsBoosterBackups[v].CollisionFidelity = v.CollisionFidelity
+                        elseif className == "SpecialMesh" then
+                            fpsBoosterBackups[v].TextureId = v.TextureId
+                        elseif v:IsA("BasePart") then
+                            fpsBoosterBackups[v].Material = v.Material
+                            fpsBoosterBackups[v].Reflectance = v.Reflectance
+                            fpsBoosterBackups[v].CastShadow = v.CastShadow
+                        end
                     end
-                end
 
-                if badClasses[className] then
-                    v.Enabled = false
-                elseif className == "Decal" or className == "Texture" then
-                    v.Texture = ""
-                elseif className == "MeshPart" then
-                    v.TextureID = ""
-                    v.Material = Enum.Material.Plastic
-                    v.CastShadow = false
-                    v.CollisionFidelity = Enum.CollisionFidelity.Box
-                elseif className == "SpecialMesh" then
-                    v.TextureId = ""
-                elseif v:IsA("BasePart") then
-                    v.Material = Enum.Material.Plastic
-                    v.Reflectance = 0
-                    v.CastShadow = false
-                end
+                    if badClasses[className] then
+                        v.Enabled = false
+                    elseif className == "Decal" or className == "Texture" then
+                        v.Texture = ""
+                    elseif className == "MeshPart" then
+                        v.TextureID = ""
+                        v.Material = Enum.Material.Plastic
+                        v.CastShadow = false
+                        v.CollisionFidelity = Enum.CollisionFidelity.Box
+                    elseif className == "SpecialMesh" then
+                        v.TextureId = ""
+                    elseif v:IsA("BasePart") then
+                        v.Material = Enum.Material.Plastic
+                        v.Reflectance = 0
+                        v.CastShadow = false
+                    end
+                end)
             end
 
             local function fastSweep()
@@ -615,7 +578,7 @@ return function(env)
                 if v and v.Parent then
                     pcall(function()
                         local className = v.ClassName
-                        if backup.Enabled ~= nil then
+                        if className == "ParticleEmitter" or className == "Smoke" or className == "Fire" or className == "Sparkles" or className == "Trail" or className == "Beam" then
                             v.Enabled = backup.Enabled
                         elseif className == "Decal" or className == "Texture" then
                             v.Texture = backup.Texture
