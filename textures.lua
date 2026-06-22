@@ -318,7 +318,7 @@ return function(env)
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
-    -- NOVO SCRIPT LOCAL: REMOVE TEXTURES (NÃO DESTRUTIVO E REVERSÍVEL)
+    -- NOVO SISTEMA LOCALE: REMOVE TEXTURES (COMPACTO E TOTALMENTE REVERSÍVEL)
     local removeTexturesEnabled = false
     local removeTexturesConn = nil
     local textureBackups = setmetatable({}, {__mode = "k"})
@@ -344,14 +344,20 @@ return function(env)
             v.Texture = ""
         elseif v:IsA("MeshPart") then
             if not textureBackups[v] then
-                textureBackups[v] = { TextureID = v.TextureID }
+                textureBackups[v] = { TextureID = v.TextureID, Material = v.Material }
             end
             v.TextureID = ""
+            v.Material = Enum.Material.SmoothPlastic
         elseif v:IsA("SpecialMesh") then
             if not textureBackups[v] then
                 textureBackups[v] = { TextureId = v.TextureId }
             end
             v.TextureId = ""
+        elseif v:IsA("BasePart") then
+            if not textureBackups[v] then
+                textureBackups[v] = { Material = v.Material }
+            end
+            v.Material = Enum.Material.SmoothPlastic
         end
     end
 
@@ -363,8 +369,11 @@ return function(env)
                         v.Texture = data.Texture
                     elseif v:IsA("MeshPart") then
                         v.TextureID = data.TextureID
+                        v.Material = data.Material
                     elseif v:IsA("SpecialMesh") then
                         v.TextureId = data.TextureId
+                    elseif v:IsA("BasePart") then
+                        v.Material = data.Material
                     end
                 end)
             end
@@ -405,66 +414,85 @@ return function(env)
     -- ==========================================
     Library:CreateSection(Page, "FPS Settings", "Right")
     
-    -- SCRIPT INTEGRADO: FPS BOOSTER ENVIADO PELO USUÁRIO (INTEGRAÇÃO NATIVA)
+    -- SISTEMA REVERSÍVEL: FPS BOOSTER INTEGRADO LOCALMENTE
     local fpsBoosterEnabled = false
     local fpsBoosterConn = nil
+    local fpsBoosterBackups = setmetatable({}, {__mode = "k"})
+    local originalSettings = {}
 
     Library:CreateToggle(Page, "FpsBooster", false, function(state) 
         fpsBoosterEnabled = state
         if state then
-            -- 1. Otimização Nativa (Sem mexer em luz/neblina)
+            -- Salvar configurações de Renderização Originais antes de alterar
+            local s = UserSettings():GetService("UserGameSettings")
+            local settings = settings()
+            
             pcall(function()
-                local s = UserSettings():GetService("UserGameSettings")
-                local settings = settings()
+                originalSettings.QualityLevel = settings.Rendering.QualityLevel
+                originalSettings.MeshPartDetailLevel = settings.Rendering.MeshPartDetailLevel
+                originalSettings.SavedQualityLevel = s.SavedQualityLevel
+                
                 settings.Rendering.QualityLevel = Enum.QualityLevel.Level01
                 settings.Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
                 s.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
             end)
 
-            -- 2. Lista de coisas para remover (Apenas visual pesado)
             local badClasses = {
                 ["ParticleEmitter"] = true, ["Smoke"] = true, ["Fire"] = true, ["Sparkles"] = true, 
                 ["Trail"] = true, ["Decal"] = true, ["Texture"] = true, ["Beam"] = true 
             }
 
-            -- 3. Função de Otimização Segura
             local function optimize(v)
                 if not v or not v.Parent then return end
-                -- PROTEÇÃO TOTAL: Ignora personagens, acessórios e ferramentas dos jogadores
+                -- Ignora personagens e ferramentas dos jogadores
                 if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then 
                     return 
                 end
-
-                -- Ignora a Câmera e efeitos de UI
                 if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
                     return
                 end
 
-                local class = v.ClassName
+                -- Fazer backup seguro das propriedades antes de otimizar
+                if not fpsBoosterBackups[v] then
+                    fpsBoosterBackups[v] = {}
+                    if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                        fpsBoosterBackups[v].Enabled = v.Enabled
+                    elseif v:IsA("Decal") or v:IsA("Texture") then
+                        fpsBoosterBackups[v].Texture = v.Texture
+                    elseif v:IsA("MeshPart") then
+                        fpsBoosterBackups[v].TextureID = v.TextureID
+                        fpsBoosterBackups[v].Material = v.Material
+                        fpsBoosterBackups[v].CastShadow = v.CastShadow
+                        fpsBoosterBackups[v].CollisionFidelity = v.CollisionFidelity
+                    elseif v:IsA("SpecialMesh") then
+                        fpsBoosterBackups[v].TextureId = v.TextureId
+                    elseif v:IsA("BasePart") then
+                        fpsBoosterBackups[v].Material = v.Material
+                        fpsBoosterBackups[v].Reflectance = v.Reflectance
+                        fpsBoosterBackups[v].CastShadow = v.CastShadow
+                    end
+                end
 
-                if badClasses[class] then
-                    pcall(function() v:Destroy() end)
-                elseif v:IsA("BasePart") then
-                    pcall(function()
-                        v.Material = Enum.Material.Plastic
-                        v.Reflectance = 0
-                        v.CastShadow = false
-                    end)
+                -- Aplicar otimização não destrutiva (desativa em vez de deletar)
+                if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                    v.Enabled = false
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Texture = ""
                 elseif v:IsA("MeshPart") then
-                    pcall(function()
-                        v.TextureID = ""
-                        v.Material = Enum.Material.Plastic
-                        v.CastShadow = false
-                        v.CollisionFidelity = Enum.CollisionFidelity.Box
-                    end)
+                    v.TextureID = ""
+                    v.Material = Enum.Material.Plastic
+                    v.CastShadow = false
+                    v.CollisionFidelity = Enum.CollisionFidelity.Box
                 elseif v:IsA("SpecialMesh") then
-                    pcall(function()
-                        v.TextureId = ""
-                    end)
+                    v.TextureId = ""
+                elseif v:IsA("BasePart") then
+                    v.Material = Enum.Material.Plastic
+                    v.Reflectance = 0
+                    v.CastShadow = false
                 end
             end
 
-            -- 4. Varredura Ultra Rápida com Budget de Tempo (Não trava Mobile)
+            -- Varredura Ultra Rápida (Time Budget 16ms)
             local function fastSweep()
                 local descendants = Workspace:GetDescendants()
                 local start = os.clock()
@@ -484,10 +512,9 @@ return function(env)
                     end
                 end
             end
-
             task.spawn(fastSweep)
 
-            -- 5. Monitorar novos itens (com pequeno delay de segurança)
+            -- Ouvir entrada de novos itens no mapa
             fpsBoosterConn = Workspace.DescendantAdded:Connect(function(v)
                 task.wait(0.5)
                 if fpsBoosterEnabled and v and v.Parent then
@@ -495,9 +522,17 @@ return function(env)
                 end
             end)
 
-            -- Otimização leve de terreno (sem sethiddenproperty para não crashar)
+            -- Otimizar Terreno
             local t = Workspace:FindFirstChildOfClass("Terrain")
             if t then
+                if not originalSettings.Terrain then
+                    originalSettings.Terrain = {
+                        WaterWaveSize = t.WaterWaveSize,
+                        WaterWaveSpeed = t.WaterWaveSpeed,
+                        WaterReflectance = t.WaterReflectance,
+                        WaterTransparency = t.WaterTransparency
+                    }
+                end
                 pcall(function()
                     t.WaterWaveSize = 0
                     t.WaterWaveSpeed = 0
@@ -506,9 +541,55 @@ return function(env)
                 end)
             end
         else
+            -- DESATIVAR FPS BOOSTER (Restaurar Tudo)
             if fpsBoosterConn then
                 fpsBoosterConn:Disconnect()
                 fpsBoosterConn = nil
+            end
+
+            -- Restaurar instâncias modificadas
+            for v, backup in pairs(fpsBoosterBackups) do
+                if v and v.Parent then
+                    pcall(function()
+                        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Trail") or v:IsA("Beam") then
+                            v.Enabled = backup.Enabled
+                        elseif v:IsA("Decal") or v:IsA("Texture") then
+                            v.Texture = backup.Texture
+                        elseif v:IsA("MeshPart") then
+                            v.TextureID = backup.TextureID
+                            v.Material = backup.Material
+                            v.CastShadow = backup.CastShadow
+                            v.CollisionFidelity = backup.CollisionFidelity
+                        elseif v:IsA("SpecialMesh") then
+                            v.TextureId = backup.TextureId
+                        elseif v:IsA("BasePart") then
+                            v.Material = backup.Material
+                            v.Reflectance = backup.Reflectance
+                            v.CastShadow = backup.CastShadow
+                        end
+                    end)
+                end
+            end
+            table.clear(fpsBoosterBackups)
+
+            -- Restaurar configurações gráficas nativas
+            pcall(function()
+                local s = UserSettings():GetService("UserGameSettings")
+                local settings = settings()
+                if originalSettings.QualityLevel then settings.Rendering.QualityLevel = originalSettings.QualityLevel end
+                if originalSettings.MeshPartDetailLevel then settings.Rendering.MeshPartDetailLevel = originalSettings.MeshPartDetailLevel end
+                if originalSettings.SavedQualityLevel then s.SavedQualityLevel = originalSettings.SavedQualityLevel end
+            end)
+
+            -- Restaurar Terreno
+            local t = Workspace:FindFirstChildOfClass("Terrain")
+            if t and originalSettings.Terrain then
+                pcall(function()
+                    t.WaterWaveSize = originalSettings.Terrain.WaterWaveSize
+                    t.WaterWaveSpeed = originalSettings.Terrain.WaterWaveSpeed
+                    t.WaterReflectance = originalSettings.Terrain.WaterReflectance
+                    t.WaterTransparency = originalSettings.Terrain.WaterTransparency
+                end)
             end
         end
     end)
