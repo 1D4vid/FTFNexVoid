@@ -122,15 +122,12 @@ return function(env)
     
     local originalMapStates = setmetatable({}, {__mode = "k"})
     local originalLightStates = setmetatable({}, {__mode = "k"})
-    local originalTextureTransparencies = setmetatable({}, {__mode = "k"})
-    local originalSpecialMeshTextures = setmetatable({}, {__mode = "k"})
     local mcTexturesCache = setmetatable({}, {__mode = "k"}) -- Cache local das texturas 3D do Minecraft
 
     local wbEnabled = false
     local snowEnabled = false
     local mcEnabled = false
     local removeShadowsEnabled = false
-    local removeTexturesEnabled = false
 
     local IgnoreNames = { ComputerTable = true, ExitDoor = true }
     local mcFaces = {"Front", "Back", "Bottom", "Top", "Right", "Left"}
@@ -172,8 +169,7 @@ return function(env)
             bkp = {
                 Material = part.Material,
                 Color = part.Color,
-                CastShadow = part.CastShadow,
-                TextureID = part:IsA("MeshPart") and part.TextureID or nil
+                CastShadow = part.CastShadow
             }
             originalMapStates[part] = bkp
         end
@@ -181,7 +177,6 @@ return function(env)
         local targetMaterial = bkp.Material
         local targetColor = bkp.Color
         local targetShadow = bkp.CastShadow
-        local targetTextureID = bkp.TextureID
 
         if removeShadowsEnabled then
             targetShadow = false
@@ -189,90 +184,46 @@ return function(env)
 
         local mcApplied = false
 
-        if removeTexturesEnabled then
-            targetMaterial = Enum.Material.SmoothPlastic
-            targetTextureID = ""
-            
-            -- Trata os Decals e Textures internos da parte
-            for _, child in ipairs(part:GetChildren()) do
-                if child:IsA("Decal") or child:IsA("Texture") then
-                    if not originalTextureTransparencies[child] then
-                        originalTextureTransparencies[child] = child.Transparency
-                    end
-                    child.Transparency = 1
-                end
-            end
-
-            -- Trata texturas de SpecialMesh
-            local mesh = part:FindFirstChildWhichIsA("SpecialMesh")
-            if mesh then
-                if not originalSpecialMeshTextures[mesh] then
-                    originalSpecialMeshTextures[mesh] = mesh.TextureId
-                end
-                mesh.TextureId = ""
-            end
-        else
-            -- Restaura texturas internas se existirem
-            for _, child in ipairs(part:GetChildren()) do
-                if child:IsA("Decal") or child:IsA("Texture") then
-                    local origTrans = originalTextureTransparencies[child]
-                    if origTrans then
-                        child.Transparency = origTrans
-                    end
-                end
-            end
-
-            local mesh = part:FindFirstChildWhichIsA("SpecialMesh")
-            if mesh then
-                local origMeshTex = originalSpecialMeshTextures[mesh]
-                if origMeshTex then
-                    mesh.TextureId = origMeshTex
-                end
-            end
-        end
-
-        if not removeTexturesEnabled then
-            if snowEnabled then
-                if part.Anchored and not IgnoreNames[part.Name] then
-                    targetMaterial = Enum.Material.Snow
-                    targetColor = Color3.fromRGB(255, 255, 255)
-                end
-            elseif wbEnabled then
-                targetMaterial = Enum.Material.Brick
+        if snowEnabled then
+            if part.Anchored and not IgnoreNames[part.Name] then
+                targetMaterial = Enum.Material.Snow
                 targetColor = Color3.fromRGB(255, 255, 255)
-            elseif mcEnabled then
-                local textureId = mcMaterials[bkp.Material]
-                if textureId then
-                    targetMaterial = Enum.Material.SmoothPlastic
-                    mcApplied = true
-                    
-                    local texGroup = mcTexturesCache[part]
-                    if not texGroup then
-                        texGroup = {}
-                        for i = 1, 6 do
-                            local face = mcFaces[i]
-                            local tex = Instance.new("Texture")
-                            tex.Name = "McTexture_" .. face
-                            tex.ZIndex = 2147483647
-                            tex.Face = Enum.NormalId[face]
-                            tex.StudsPerTileU = 4
-                            tex.StudsPerTileV = 4
-                            tex.Parent = part
-                            texGroup[i] = tex
-                        end
-                        mcTexturesCache[part] = texGroup
-                    end
-                    
-                    local fullTexId = "rbxassetid://" .. textureId
-                    local partColor = bkp.Color
-                    local partTrans = part.Transparency
+            end
+        elseif wbEnabled then
+            targetMaterial = Enum.Material.Brick
+            targetColor = Color3.fromRGB(255, 255, 255)
+        elseif mcEnabled then
+            local textureId = mcMaterials[bkp.Material]
+            if textureId then
+                targetMaterial = Enum.Material.SmoothPlastic
+                mcApplied = true
+                
+                local texGroup = mcTexturesCache[part]
+                if not texGroup then
+                    texGroup = {}
                     for i = 1, 6 do
-                        local tex = texGroup[i]
-                        if tex and tex.Parent then
-                            if tex.Texture ~= fullTexId then tex.Texture = fullTexId end
-                            if tex.Color3 ~= partColor then tex.Color3 = partColor end
-                            if tex.Transparency ~= partTrans then tex.Transparency = partTrans end
-                        end
+                        local face = mcFaces[i]
+                        local tex = Instance.new("Texture")
+                        tex.Name = "McTexture_" .. face
+                        tex.ZIndex = 2147483647
+                        tex.Face = Enum.NormalId[face]
+                        tex.StudsPerTileU = 4
+                        tex.StudsPerTileV = 4
+                        tex.Parent = part
+                        texGroup[i] = tex
+                    end
+                    mcTexturesCache[part] = texGroup
+                end
+                
+                local fullTexId = "rbxassetid://" .. textureId
+                local partColor = bkp.Color
+                local partTrans = part.Transparency
+                for i = 1, 6 do
+                    local tex = texGroup[i]
+                    if tex and tex.Parent then
+                        if tex.Texture ~= fullTexId then tex.Texture = fullTexId end
+                        if tex.Color3 ~= partColor then tex.Color3 = partColor end
+                        if tex.Transparency ~= partTrans then tex.Transparency = partTrans end
                     end
                 end
             end
@@ -293,9 +244,6 @@ return function(env)
             if part.Material ~= targetMaterial then part.Material = targetMaterial end
             if part.Color ~= targetColor then part.Color = targetColor end
             if part.CastShadow ~= targetShadow then part.CastShadow = targetShadow end
-            if part:IsA("MeshPart") and part.TextureID ~= targetTextureID then 
-                part.TextureID = targetTextureID 
-            end
         end)
     end
 
@@ -370,9 +318,80 @@ return function(env)
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
+    -- NOVO SCRIPT LOCAL: REMOVE TEXTURES (NÃO DESTRUTIVO E REVERSÍVEL)
+    local removeTexturesEnabled = false
+    local removeTexturesConn = nil
+    local textureBackups = setmetatable({}, {__mode = "k"})
+
+    local function isMapAsset(v)
+        if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChildOfClass("Humanoid") then
+            return false
+        end
+        if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
+            return false
+        end
+        return true
+    end
+
+    local function applyRemoveTexture(v)
+        if not v or not v.Parent then return end
+        if not isMapAsset(v) then return end
+
+        if v:IsA("Decal") or v:IsA("Texture") then
+            if not textureBackups[v] then
+                textureBackups[v] = { Texture = v.Texture }
+            end
+            v.Texture = ""
+        elseif v:IsA("MeshPart") then
+            if not textureBackups[v] then
+                textureBackups[v] = { TextureID = v.TextureID }
+            end
+            v.TextureID = ""
+        elseif v:IsA("SpecialMesh") then
+            if not textureBackups[v] then
+                textureBackups[v] = { TextureId = v.TextureId }
+            end
+            v.TextureId = ""
+        end
+    end
+
+    local function restoreTextures()
+        for v, data in pairs(textureBackups) do
+            if v and v.Parent then
+                pcall(function()
+                    if v:IsA("Decal") or v:IsA("Texture") then
+                        v.Texture = data.Texture
+                    elseif v:IsA("MeshPart") then
+                        v.TextureID = data.TextureID
+                    elseif v:IsA("SpecialMesh") then
+                        v.TextureId = data.TextureId
+                    end
+                end)
+            end
+        end
+        table.clear(textureBackups)
+    end
+
     Library:CreateToggle(Page, "Remove Textures", false, function(state) 
         removeTexturesEnabled = state
-        batchProcess(cachedParts, refreshPartVisual)
+        if state then
+            local descendants = Workspace:GetDescendants()
+            batchProcess(descendants, applyRemoveTexture)
+
+            removeTexturesConn = Workspace.DescendantAdded:Connect(function(v)
+                task.defer(function()
+                    if removeTexturesEnabled then
+                        applyRemoveTexture(v)
+                    end
+                end)
+            end)
+        else
+            if removeTexturesConn then
+                removeTexturesConn:Disconnect()
+                removeTexturesConn = nil
+            end
+            restoreTextures()
+        end
     end)
 
     Library:CreateToggle(Page, "Minecraft Texture", false, function(state)
@@ -386,106 +405,110 @@ return function(env)
     -- ==========================================
     Library:CreateSection(Page, "FPS Settings", "Right")
     
+    -- SCRIPT INTEGRADO: FPS BOOSTER ENVIADO PELO USUÁRIO (INTEGRAÇÃO NATIVA)
     local fpsBoosterEnabled = false
-    local fpsDescAddedConn = nil
-
-    local badClasses = {
-        ["ParticleEmitter"] = true, ["Smoke"] = true, ["Fire"] = true, 
-        ["Sparkles"] = true, ["Trail"] = true, ["Decal"] = true, 
-        ["Texture"] = true, ["Beam"] = true
-    }
-
-    local function optimize(v)
-        if not v or not v.Parent then return end
-
-        -- PROTEÇÃO TOTAL: Ignora personagens, acessórios e ferramentas dos jogadores
-        if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
-            return 
-        end
-        
-        -- Ignora a Câmera e efeitos de UI
-        if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
-            return
-        end
-
-        local class = v.ClassName
-        
-        if badClasses[class] then
-            pcall(function() v:Destroy() end)
-        elseif v:IsA("BasePart") then
-            pcall(function()
-                v.Material = Enum.Material.Plastic
-                v.Reflectance = 0
-                v.CastShadow = false
-            end)
-        elseif v:IsA("MeshPart") then
-            pcall(function()
-                v.TextureID = ""
-                v.Material = Enum.Material.Plastic
-                v.CastShadow = false
-                v.CollisionFidelity = Enum.CollisionFidelity.Box
-            end)
-        elseif v:IsA("SpecialMesh") then
-            pcall(function()
-                v.TextureId = ""
-            end)
-        end
-    end
-
-    local function runFpsBooster()
-        pcall(function()
-            local s = UserSettings():GetService("UserGameSettings")
-            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
-            s.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
-        end)
-
-        local descendants = Workspace:GetDescendants()
-        local start = os.clock()
-        
-        for i = 1, #descendants do
-            if not fpsBoosterEnabled then break end
-            local v = descendants[i]
-            if v and v.Parent then
-                optimize(v)
-            end
-            
-            if i % 300 == 0 then
-                if os.clock() - start > 0.016 then
-                    task.wait()
-                    start = os.clock()
-                end
-            end
-        end
-
-        local t = Workspace:FindFirstChildOfClass("Terrain")
-        if t then
-            pcall(function()
-                t.WaterWaveSize = 0
-                t.WaterWaveSpeed = 0
-                t.WaterReflectance = 0
-                t.WaterTransparency = 0
-            end)
-        end
-    end
+    local fpsBoosterConn = nil
 
     Library:CreateToggle(Page, "FpsBooster", false, function(state) 
         fpsBoosterEnabled = state
         if state then
-            task.spawn(runFpsBooster)
-            if fpsDescAddedConn then fpsDescAddedConn:Disconnect() end
-            fpsDescAddedConn = Workspace.DescendantAdded:Connect(function(v)
-                if fpsBoosterEnabled then
-                    task.wait(0.5)
+            -- 1. Otimização Nativa (Sem mexer em luz/neblina)
+            pcall(function()
+                local s = UserSettings():GetService("UserGameSettings")
+                local settings = settings()
+                settings.Rendering.QualityLevel = Enum.QualityLevel.Level01
+                settings.Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+                s.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+            end)
+
+            -- 2. Lista de coisas para remover (Apenas visual pesado)
+            local badClasses = {
+                ["ParticleEmitter"] = true, ["Smoke"] = true, ["Fire"] = true, ["Sparkles"] = true, 
+                ["Trail"] = true, ["Decal"] = true, ["Texture"] = true, ["Beam"] = true 
+            }
+
+            -- 3. Função de Otimização Segura
+            local function optimize(v)
+                if not v or not v.Parent then return end
+                -- PROTEÇÃO TOTAL: Ignora personagens, acessórios e ferramentas dos jogadores
+                if v:FindFirstAncestorOfClass("Model") and v:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then 
+                    return 
+                end
+
+                -- Ignora a Câmera e efeitos de UI
+                if v:IsA("Camera") or v:IsA("GuiObject") or v:IsA("Highlight") then
+                    return
+                end
+
+                local class = v.ClassName
+
+                if badClasses[class] then
+                    pcall(function() v:Destroy() end)
+                elseif v:IsA("BasePart") then
+                    pcall(function()
+                        v.Material = Enum.Material.Plastic
+                        v.Reflectance = 0
+                        v.CastShadow = false
+                    end)
+                elseif v:IsA("MeshPart") then
+                    pcall(function()
+                        v.TextureID = ""
+                        v.Material = Enum.Material.Plastic
+                        v.CastShadow = false
+                        v.CollisionFidelity = Enum.CollisionFidelity.Box
+                    end)
+                elseif v:IsA("SpecialMesh") then
+                    pcall(function()
+                        v.TextureId = ""
+                    end)
+                end
+            end
+
+            -- 4. Varredura Ultra Rápida com Budget de Tempo (Não trava Mobile)
+            local function fastSweep()
+                local descendants = Workspace:GetDescendants()
+                local start = os.clock()
+
+                for i = 1, #descendants do
+                    if not fpsBoosterEnabled then break end
+                    local v = descendants[i]
                     if v and v.Parent then
                         optimize(v)
                     end
+                    
+                    if i % 300 == 0 then
+                        if os.clock() - start > 0.016 then
+                            task.wait()
+                            start = os.clock()
+                        end
+                    end
+                end
+            end
+
+            task.spawn(fastSweep)
+
+            -- 5. Monitorar novos itens (com pequeno delay de segurança)
+            fpsBoosterConn = Workspace.DescendantAdded:Connect(function(v)
+                task.wait(0.5)
+                if fpsBoosterEnabled and v and v.Parent then
+                    optimize(v)
                 end
             end)
+
+            -- Otimização leve de terreno (sem sethiddenproperty para não crashar)
+            local t = Workspace:FindFirstChildOfClass("Terrain")
+            if t then
+                pcall(function()
+                    t.WaterWaveSize = 0
+                    t.WaterWaveSpeed = 0
+                    t.WaterReflectance = 0
+                    t.WaterTransparency = 0
+                end)
+            end
         else
-            if fpsDescAddedConn then
-                fpsDescAddedConn:Disconnect()
-                fpsDescAddedConn = nil
+            if fpsBoosterConn then
+                fpsBoosterConn:Disconnect()
+                fpsBoosterConn = nil
             end
         end
     end)
@@ -1161,6 +1184,7 @@ return function(env)
         mDefaultBtn.MouseLeave:Connect(function() TweenService:Create(mDStr, TweenInfo.new(0.2), {Color=Color3.fromRGB(40,40,40)}):Play() TweenService:Create(defaultBtn, TweenInfo.new(0.2), {TextColor3=Theme.TextDark}):Play() end)
         mDefaultBtn.MouseButton1Click:Connect(function() UserConfigs["TexturesPage_MobileJump"] = "Default" EnableMobileButtonJump("Default") end)
 
+        -- [ IDs DA PARTE 1 ]
         local mJumpIDs_P1 = {
             "126321670529682", "77430663366893", "115979689020396", "101678026501268", 
             "100604012502918", "107988778180975", "106355869384286", "119823685069603"
@@ -1185,6 +1209,7 @@ return function(env)
             end)
         end
 
+        -- [ IDs SOLICITADOS PARA A PARTE 2 ]
         local mJumpIDs_P2 = {
             "70463296258416", "80555494674270", "74056211768119", "115091366896134", 
             "117864251880006", "130200330618832", "77364460442867"
