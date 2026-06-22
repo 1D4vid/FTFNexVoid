@@ -1,5 +1,4 @@
 return function(env)
-    -- Localização de APIs e Globais para ganho de performance (Luau Fast-path)
     local Instance_new = Instance.new
     local Color3_new = Color3.new
     local Color3_fromRGB = Color3.fromRGB
@@ -19,7 +18,6 @@ return function(env)
     local setmetatable = setmetatable
     local game = game
 
-    -- Importando as variáveis enviadas pelo script principal
     local Library = env.Library
     local Page = env.Page
     local Workspace = env.Workspace
@@ -42,6 +40,58 @@ return function(env)
 
     local GetPlayerFromCharacter = Players.GetPlayerFromCharacter
 
+    local function showNotification(text)
+        local sg = Instance_new("ScreenGui")
+        sg.Name = "VisualNotification"
+        sg.ResetOnSpawn = false
+        
+        local frame = Instance_new("Frame")
+        frame.Size = UDim2_new(0, 260, 0, 40)
+        frame.Position = UDim2_new(0.5, -130, 0, -50)
+        frame.BackgroundColor3 = Color3_fromRGB(20, 20, 20)
+        frame.BackgroundTransparency = 0.15
+        frame.Parent = sg
+        
+        local corner = Instance_new("UICorner")
+        corner.CornerRadius = UDim_new(0, 6)
+        corner.Parent = frame
+        
+        local stroke = Instance_new("UIStroke")
+        stroke.Color = Color3_fromRGB(45, 45, 45)
+        stroke.Thickness = 1
+        stroke.Parent = frame
+        
+        local label = Instance_new("TextLabel")
+        label.Size = UDim2_new(1, -20, 1, 0)
+        label.Position = UDim2_new(0, 10, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3_fromRGB(240, 240, 240)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 11
+        label.TextWrapped = true
+        label.Parent = frame
+        
+        local pGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+        if pGui then
+            sg.Parent = pGui
+        else
+            sg.Parent = game:GetService("CoreGui")
+        end
+        
+        local t1 = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2_new(0.5, -130, 0, 25)})
+        t1:Play()
+        
+        task_spawn(function()
+            task_wait(3)
+            local t2 = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2_new(0.5, -130, 0, -50)})
+            t2:Play()
+            t2.Completed:Connect(function()
+                sg:Destroy()
+            end)
+        end)
+    end
+
     local formatID = function(id)
         if type(id) == "number" and id > 0 then return "rbxassetid://" .. id
         elseif type(id) == "string" and id ~= "" and id ~= "0" then
@@ -50,21 +100,27 @@ return function(env)
         return nil
     end
 
-    -- Processador de performance baseado em Orçamento de Tempo (Frame Budget de 1.5ms)
     local function batchProcess(items, processFunc, onComplete)
         local total = #items
+        if total == 0 then
+            if onComplete then onComplete() end
+            return
+        end
         local index = 1
         
         local function run()
             local startTime = os_clock()
             while index <= total do
-                local item = items[index]
-                if item then
-                    processFunc(item)
+                for _ = 1, 100 do
+                    if index > total then break end
+                    local item = items[index]
+                    if item then
+                        processFunc(item)
+                    end
+                    index = index + 1
                 end
-                index = index + 1
                 
-                if os_clock() - startTime >= 0.0015 then
+                if os_clock() - startTime >= 0.004 then
                     task_wait()
                     startTime = os_clock()
                 end
@@ -74,7 +130,6 @@ return function(env)
         task_spawn(run)
     end
 
-    -- Criação otimizada do container da Grid
     local function createGridContainer(parentTarget)
         local bg = Instance_new("Frame")
         bg.Size = UDim2_new(1, -2, 0, 1)
@@ -116,7 +171,6 @@ return function(env)
         return wrapper
     end
 
-    -- Controle dinâmico de visibilidade do cursor (Otimizado sem escritas redundantes)
     local cursorLoopConn = nil
     local function updateMouseVisibility()
         local savedPC = UserConfigs["TexturesPage_Crosshair_PC"]
@@ -138,9 +192,6 @@ return function(env)
     if cursorLoopConn then cursorLoopConn:Disconnect() end
     cursorLoopConn = RunService.RenderStepped:Connect(updateMouseVisibility)
 
-    -- ==========================================
-    -- SISTEMA UNIFICADO DE RENDERIZAÇÃO DO MAPA
-    -- ==========================================
     local cachedParts = {}
     local cachedLights = {}
     
@@ -300,7 +351,7 @@ return function(env)
                 table_insert(cachedLights, v)
             end
             
-            if os_clock() - startTime >= 0.0015 then
+            if os_clock() - startTime >= 0.004 then
                 task_wait()
                 startTime = os_clock()
             end
@@ -323,22 +374,20 @@ return function(env)
     end)
 
 
-    -- ==========================================
-    -- MAP TEXTURES (Coluna Esquerda)
-    -- ==========================================
     Library:CreateSection(Page, "Map Textures", "Left")
 
     Library:CreateToggle(Page, "White Bricks", false, function(state)
         wbEnabled = state
+        if state then showNotification("Applying White Bricks texture...") end
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
     Library:CreateToggle(Page, "Snow Textures", false, function(state)
         snowEnabled = state
+        if state then showNotification("Applying Snow texture...") end
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
-    -- REMOVE TEXTURES OTIMIZADO
     local removeTexturesEnabled = false
     local removeTexturesConn = nil
     local textureBackups = setmetatable({}, {__mode = "k"})
@@ -407,6 +456,7 @@ return function(env)
     Library:CreateToggle(Page, "Remove Textures", false, function(state) 
         removeTexturesEnabled = state
         if state then
+            showNotification("Removing map textures, please wait...")
             local descendants = Workspace:GetDescendants()
             batchProcess(descendants, applyRemoveTexture)
 
@@ -428,16 +478,13 @@ return function(env)
 
     Library:CreateToggle(Page, "Minecraft Texture", false, function(state)
         mcEnabled = state
+        if state then showNotification("Applying Minecraft texture...") end
         batchProcess(cachedParts, refreshPartVisual)
     end)
 
 
-    -- ==========================================
-    -- FPS SETTINGS (Coluna Direita - Topo)
-    -- ==========================================
     Library:CreateSection(Page, "FPS Settings", "Right")
     
-    -- FPS BOOSTER REVERSÍVEL OTIMIZADO
     local fpsBoosterEnabled = false
     local fpsBoosterConn = nil
     local fpsBoosterBackups = setmetatable({}, {__mode = "k"})
@@ -446,6 +493,7 @@ return function(env)
     Library:CreateToggle(Page, "FpsBooster", false, function(state) 
         fpsBoosterEnabled = state
         if state then
+            showNotification("Boosting game performance, please wait...")
             local s = UserSettings():GetService("UserGameSettings")
             local settings = settings()
             
@@ -897,18 +945,13 @@ return function(env)
     end)
 
 
-    -- ==========================================================
-    -- DOUBLE JUMP EFFECTS P1 & P2
-    -- ==========================================================
     Library:CreateSection(Page, "Double Jump Effects (P1)", "Left")
     local targetParentDJ1 = GetParentTarget(Page)
     
     Library:CreateSection(Page, "Double Jump (P2)", "Left")
     local targetParentDJ2 = GetParentTarget(Page)
 
-    -- ==========================================================
-    -- CROSSHAIRS P1 & P2
-    -- ==========================================================
+
     Library:CreateSection(Page, "Crosshairs (P1)", "Right")
     Library:CreateSlider(Page, "Cursor Size", 10, 100, 24, UpdateCursorSizes)
     local targetParentCur1 = GetParentTarget(Page)
@@ -916,9 +959,7 @@ return function(env)
     Library:CreateSection(Page, "Crosshairs (P2)", "Right")
     local targetParentCur2 = GetParentTarget(Page)
 
-    -- ==========================================
-    -- POPULATE DOUBLE JUMP EFFECTS (Pré-filtragem Otimizada)
-    -- ==========================================
+
     local currentDoubleJumpConns = {}
     local originalTextures = setmetatable({}, {__mode = "k"})
     local OriginalSparkleColors = setmetatable({}, {__mode = "k"})
@@ -1147,9 +1188,6 @@ return function(env)
         end)
     end
 
-    -- ==========================================================
-    -- MOBILE BUTTON JUMP (P1 & P2)
-    -- ==========================================================
     if isMobile then
         Library:CreateSection(Page, "Mobile Button Jump (P1)", "Left")
         local targetParentMJ1 = GetParentTarget(Page)
@@ -1331,9 +1369,6 @@ return function(env)
         end
     end
 
-    -- ==========================================
-    -- POPULATE CROSSHAIRS
-    -- ==========================================
     local CursorList = {
         {Name = "Default", ID = "RESET"},
         {Name = "Use Cursor", ID = "15368174199"}, {Name = "Use Cursor", ID = "12701650945"},
@@ -1482,7 +1517,6 @@ return function(env)
     local usePCCursor = UserInputService.MouseEnabled
     if usePCCursor then CreateCursorSystem(false) else CreateCursorSystem(true) end
 
-    -- INICIALIZADOR DE SALVOS
     if UserConfigs["TexturesPage_DoubleJump"] then task_spawn(function() EnableDoubleJumpEffect(UserConfigs["TexturesPage_DoubleJump"]) end) end
     if isMobile and UserConfigs["TexturesPage_MobileJump"] then task_spawn(function() EnableMobileButtonJump(UserConfigs["TexturesPage_MobileJump"]) end) end
 
