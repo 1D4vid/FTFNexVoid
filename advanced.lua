@@ -1,6 +1,6 @@
 return function(env)
     -- Cache de Serviços e Funções Globais para Performance
-    local Library = env.Library
+    local Library = env.Page and env.Library or env.Library
     local Page = env.Page
     local Workspace = env.Workspace
     local Players = env.Players
@@ -818,8 +818,10 @@ return function(env)
     Library:CreateToggle(Page, "Runner Speed Boost", false, function(state)
         runnerSpeedBoostEnabled = state
         if state then
-            local ultimaEnergia = 1
-            local ultimoDecrescimo = 0 -- Timestamp da última alteração de energia
+            local ultimaEnergia = 100
+            local ultimoDecrescimo = 0
+            local velocidadeModificada = false -- Controla se a velocidade do Humanoid foi modificada pelo Runner
+            
             if conexaoRunnerBoost then conexaoRunnerBoost:Disconnect() end
             
             conexaoRunnerBoost = RunService.Stepped:Connect(function()
@@ -829,26 +831,45 @@ return function(env)
                     
                     local beastPowers = MeuPersonagem:FindFirstChild("BeastPowers")
                     local numberValue = beastPowers and beastPowers:FindFirstChildOfClass("NumberValue")
-                    if not numberValue then return end
                     
-                    local energiaAtual = numberValue.Value
-                    local agora = os_clock()
-                    
-                    if energiaAtual < ultimaEnergia then
-                        ultimoDecrescimo = agora
-                        local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
-                        if Humanoid then
-                            Humanoid.WalkSpeed = runnerSpeedVal
+                    if numberValue then
+                        local energiaAtual = numberValue.Value
+                        local agora = os_clock()
+                        
+                        -- Inicializa a última energia de forma dinâmica no primeiro frame para evitar surtos de velocidade
+                        if ultimaEnergia == 100 and energiaAtual ~= 100 then
+                            ultimaEnergia = energiaAtual
                         end
-                    elseif agora - ultimoDecrescimo > 0.25 then
-                        -- Se a energia não cair por mais de 0.25 segundos, restaura a velocidade normal/customizada
-                        local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
-                        if Humanoid then
-                            Humanoid.WalkSpeed = wsEnabled and wsValue or 16
+                        
+                        if energiaAtual < ultimaEnergia then
+                            ultimoDecrescimo = agora
+                            local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
+                            if Humanoid then
+                                Humanoid.WalkSpeed = runnerSpeedVal
+                                velocidadeModificada = true
+                            end
+                        elseif agora - ultimoDecrescimo > 0.25 then
+                            -- Apenas redefine a velocidade se ela tiver sido ativamente modificada por este loop
+                            if velocidadeModificada then
+                                local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
+                                if Humanoid then
+                                    Humanoid.WalkSpeed = wsEnabled and wsValue or 16
+                                end
+                                velocidadeModificada = false -- Retorna ao estado passivo (não interfere na fadiga/delay de pulo)
+                            end
                         end
+                        ultimaEnergia = energiaAtual
+                    else
+                        -- Caso o poder seja removido/desativado
+                        if velocidadeModificada then
+                            local Humanoid = MeuPersonagem:FindFirstChildWhichIsA("Humanoid")
+                            if Humanoid then
+                                Humanoid.WalkSpeed = wsEnabled and wsValue or 16
+                            end
+                            velocidadeModificada = false
+                        end
+                        ultimaEnergia = 100
                     end
-                    
-                    ultimaEnergia = energiaAtual
                 end)
             end)
         else
