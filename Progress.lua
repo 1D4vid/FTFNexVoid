@@ -129,6 +129,27 @@ return function(env)
 
     local mapChangedConn = nil
 
+    local function isAnyPlayerNear(instance, maxDist)
+        local root = instance:FindFirstChild("Screen") or instance.PrimaryPart
+        if not root then return false end
+        local pos = root.Position
+        local maxDistSq = maxDist * maxDist
+        for i = 1, #cachedPlayersList do
+            local char = cachedPlayersList[i].Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local hrpPos = hrp.Position
+                local dx = hrpPos.X - pos.X
+                local dy = hrpPos.Y - pos.Y
+                local dz = hrpPos.Z - pos.Z
+                if (dx*dx + dy*dy + dz*dz) < maxDistSq then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
     Library:CreateSection(Page, "Action Timers")
     
     Library:CreateToggle(Page, "Computer Progress", false, function(state)
@@ -310,7 +331,7 @@ return function(env)
 
             local savedProgress = 0
             local lastSize = -1
-            local updateInterval = 0.05 
+            local updateInterval = 0.1
             local accumulatedTime = 0
 
             local connection
@@ -367,25 +388,27 @@ return function(env)
                     savedProgress = 1
                 else
                     local highestTouch = 0
-                    if #cachedCharacters > 0 then
-                        for i = 1, #triggers do
-                            local part = triggers[i]
-                            if part and part:IsA("BasePart") and part.Parent then
-                                local success, touchingParts = pcall(function()
-                                    return Workspace:GetPartsInPart(part, globalOverlapParams)
-                                end)
-                                if success and touchingParts then
-                                    for j = 1, #touchingParts do
-                                        local character = touchingParts[j].Parent
-                                        local plr = Players:GetPlayerFromCharacter(character)
-                                        if plr then
-                                            local tpsm = plr:FindFirstChild("TempPlayerStatsModule")
-                                            if tpsm then
-                                                local ragdoll = tpsm:FindFirstChild("Ragdoll")
-                                                local ap = tpsm:FindFirstChild("ActionProgress")
-                                                if ragdoll and typeof(ragdoll.Value) == "boolean" and not ragdoll.Value then
-                                                    if ap and typeof(ap.Value) == "number" then
-                                                        highestTouch = math.max(highestTouch, ap.Value)
+                    if isAnyPlayerNear(tableModel, 15) then
+                        if #cachedCharacters > 0 then
+                            for i = 1, #triggers do
+                                local part = triggers[i]
+                                if part and part:IsA("BasePart") and part.Parent then
+                                    local success, touchingParts = pcall(function()
+                                        return Workspace:GetPartsInPart(part, globalOverlapParams)
+                                    end)
+                                    if success and touchingParts then
+                                        for j = 1, #touchingParts do
+                                            local character = touchingParts[j].Parent
+                                            local plr = Players:GetPlayerFromCharacter(character)
+                                            if plr then
+                                                local tpsm = plr:FindFirstChild("TempPlayerStatsModule")
+                                                if tpsm then
+                                                    local ragdoll = tpsm:FindFirstChild("Ragdoll")
+                                                    local ap = tpsm:FindFirstChild("ActionProgress")
+                                                    if ragdoll and typeof(ragdoll.Value) == "boolean" and not ragdoll.Value then
+                                                        if ap and typeof(ap.Value) == "number" then
+                                                            highestTouch = math.max(highestTouch, ap.Value)
+                                                        end
                                                     end
                                                 end
                                             end
@@ -746,11 +769,12 @@ return function(env)
 
             DoorProgHeartbeat = RunService.Heartbeat:Connect(function(dt)
                 accum = accum + dt
-                if accum < 0.05 then return end 
+                if accum < 0.1 then return end 
                 accum = 0
                 
                 table.clear(currentDoorInteractions)
 
+                local hasInteraction = false
                 for i = 1, #cachedPlayersList do
                     local player = cachedPlayersList[i]
                     local stats = player:FindFirstChild("TempPlayerStatsModule")
@@ -794,6 +818,7 @@ return function(env)
                                         
                                         local currentMax = currentDoorInteractions[closestDoor] or 0
                                         currentDoorInteractions[closestDoor] = math.max(currentMax, progress)
+                                        hasInteraction = true
                                     end
                                 end
                             end
@@ -803,6 +828,7 @@ return function(env)
                 
                 local cam = Workspace.CurrentCamera
                 local camPos = cam and cam.CFrame.Position or Vector3.new(0, 0, 0)
+                local doorMaxDistanceSq = doorMaxDistance * doorMaxDistance
 
                 for doorModel, data in pairs(trackedNormalDoors) do
                     if not doorModel.Parent or not data.Anchor or not data.Anchor.Parent then
@@ -817,9 +843,8 @@ return function(env)
                     local dy = anchorPos.Y - camPos.Y
                     local dz = anchorPos.Z - camPos.Z
                     local distSq = dx*dx + dy*dy + dz*dz
-                    local dist = math.sqrt(distSq)
 
-                    if dist > doorMaxDistance then
+                    if distSq > doorMaxDistanceSq then
                         if data.Billboard.Enabled then
                             data.Billboard.Enabled = false
                             data.Highlight.Enabled = false
@@ -1143,20 +1168,14 @@ return function(env)
                                 if currentProgress > 0 then
                                     local plrPos = hrp.Position
                                     local closestDoor = nil
-                                    local minDist = 5 
+                                    local minDistSq = 25
                                     
                                     for door, data in pairs(trackedExitDoors) do
-                                        if door.Parent then
-                                            local parts = data.DoorParts
-                                            for j = 1, #parts do
-                                                local part = parts[j]
-                                                if part.Parent then
-                                                    local dist = (part.Position - plrPos).Magnitude
-                                                    if dist < minDist then
-                                                        minDist = dist
-                                                        closestDoor = door
-                                                    end
-                                                end
+                                        if door.Parent and data.MainPart then
+                                            local distSq = (data.MainPart.Position - plrPos).Magnitudesquared
+                                            if distSq < minDistSq then
+                                                minDistSq = distSq
+                                                closestDoor = door
                                             end
                                         end
                                     end
@@ -1254,7 +1273,7 @@ return function(env)
                             if data.TextElement.TextColor3 ~= Color3.fromRGB(255, 255, 255) then data.TextElement.TextColor3 = Color3.fromRGB(255, 255, 255) end
                         end
                     end
-                    task.wait(0.12)
+                    task.wait(0.2)
                 end
             end)
         else
@@ -1277,7 +1296,14 @@ return function(env)
 
                     local roundActive = false
                     for i = 1, #cachedPlayersList do
-                        if cachedPlayersList[i]:FindFirstChild("TempPlayerStatsModule", true) then
+                        local p = cachedPlayersList[i]
+                        local cache = speedCache[p]
+                        local stats = cache and cache.Stats
+                        if not stats and p.Parent then
+                            stats = p:FindFirstChild("TempPlayerStatsModule", true)
+                            if cache then cache.Stats = stats end
+                        end
+                        if stats then
                             roundActive = true
                             break
                         end
@@ -1320,18 +1346,23 @@ return function(env)
                             local root = char and char:FindFirstChild("HumanoidRootPart")
                             local humanoid = char and char:FindFirstChildOfClass("Humanoid")
                             local head = char and char:FindFirstChild("Head")
-                            cache = {Char = char, Root = root, Humanoid = humanoid, Head = head}
+                            local stats = player:FindFirstChild("TempPlayerStatsModule", true)
+                            cache = {Char = char, Root = root, Humanoid = humanoid, Head = head, Stats = stats}
                             speedCache[player] = cache
                         end
 
                         local root = cache.Root
                         local humanoid = cache.Humanoid
                         local head = cache.Head
+                        local stats = cache.Stats
 
                         local showThisPlayer = true
                         if roundActive then
-                            local hasStats = player:FindFirstChild("TempPlayerStatsModule", true)
-                            if not hasStats then
+                            if not stats and player.Parent then
+                                stats = player:FindFirstChild("TempPlayerStatsModule", true)
+                                cache.Stats = stats
+                            end
+                            if not stats then
                                 showThisPlayer = false
                             end
                         end
@@ -1595,7 +1626,7 @@ return function(env)
         getupActive = state
         if state then
             local CONFIG_GETUP = { Duration = 28 }
-            local UI_UPDATE_INTERVAL = 0.033
+            local UI_UPDATE_INTERVAL = 0.05
 
             local colorGetUp = function(t)
                 local red = Color3.fromRGB(255, 0, 0)
@@ -1814,7 +1845,7 @@ return function(env)
                             end
                         end
                     end
-                    task.wait(0.15)
+                    task.wait(0.2)
                 end
             end)
             table.insert(getupConns, scanLoop)
@@ -1939,52 +1970,55 @@ return function(env)
                 end
             end)
 
-            BeastPowerConnection2 = RunService.RenderStepped:Connect(function()
-                if trackedPowerValue and trackedPowerValue.Parent then
-                    if not uiFrameBP.Visible then uiFrameBP.Visible = true end
-                    
-                    local percent = math.clamp(trackedPowerValue.Value, 0, 1)
-                    local percentInt = math.floor(percent * 100)
-                    local textStr = ""
-                    local textColor = Color3.fromRGB(255, 255, 255)
+            BeastPowerConnection2 = task.spawn(function()
+                while state do
+                    if trackedPowerValue and trackedPowerValue.Parent then
+                        if not uiFrameBP.Visible then uiFrameBP.Visible = true end
+                        
+                        local percent = math.clamp(trackedPowerValue.Value, 0, 1)
+                        local percentInt = math.floor(percent * 100)
+                        local textStr = ""
+                        local textColor = Color3.fromRGB(255, 255, 255)
 
-                    if percentInt >= 100 then
-                        textStr = "BeastPower is Full"
-                    else
-                        textStr = "BeastPower Back In: " .. percentInt .. "%"
-                    end
-                    
-                    if percent < lastPercent then
-                        isDraining = true 
-                    elseif percent > lastPercent then
-                        isDraining = false 
-                    end
-                    
-                    lastPercent = percent 
-                    
-                    if isDraining then
-                        textColor = Color3.fromRGB(255, 255, 255)
-                    else
-                        if percent >= 0.99 then
-                            textColor = Color3.fromRGB(50, 255, 50) 
-                        elseif percent >= 0.80 then
-                            textColor = Color3.fromRGB(255, 50, 50) 
+                        if percentInt >= 100 then
+                            textStr = "BeastPower is Full"
                         else
-                            textColor = Color3.fromRGB(255, 255, 255) 
+                            textStr = "BeastPower Back In: " .. percentInt .. "%"
                         end
-                    end
+                        
+                        if percent < lastPercent then
+                            isDraining = true 
+                        elseif percent > lastPercent then
+                            isDraining = false 
+                        end
+                        
+                        lastPercent = percent 
+                        
+                        if isDraining then
+                            textColor = Color3.fromRGB(255, 255, 255)
+                        else
+                            if percent >= 0.99 then
+                                textColor = Color3.fromRGB(50, 255, 50) 
+                            elseif percent >= 0.80 then
+                                textColor = Color3.fromRGB(255, 50, 50) 
+                            else
+                                textColor = Color3.fromRGB(255, 255, 255) 
+                            end
+                        end
 
-                    if uiLabelBP.Text ~= textStr then uiLabelBP.Text = textStr end
-                    if uiLabelBP.TextColor3 ~= textColor then uiLabelBP.TextColor3 = textColor end
-                else
-                    if uiFrameBP and uiFrameBP.Visible then uiFrameBP.Visible = false end
-                    lastPercent = 0 
-                    isDraining = false
+                        if uiLabelBP.Text ~= textStr then uiLabelBP.Text = textStr end
+                        if uiLabelBP.TextColor3 ~= textColor then uiLabelBP.TextColor3 = textColor end
+                    else
+                        if uiFrameBP and uiFrameBP.Visible then uiFrameBP.Visible = false end
+                        lastPercent = 0 
+                        isDraining = false
+                    end
+                    task.wait(0.1)
                 end
             end)
         else
             if BeastPowerConnection1 then task.cancel(BeastPowerConnection1); BeastPowerConnection1 = nil end
-            if BeastPowerConnection2 then BeastPowerConnection2:Disconnect(); BeastPowerConnection2 = nil end
+            if BeastPowerConnection2 then task.cancel(BeastPowerConnection2); BeastPowerConnection2 = nil end
             if uiFrameBP and uiFrameBP.Parent then uiFrameBP.Parent:Destroy() end
         end
     end)
@@ -2048,7 +2082,7 @@ return function(env)
                             end
                         end
                     end
-                    task.wait(0.25)
+                    task.wait(0.3)
                 end
             end)
         else
@@ -2141,41 +2175,39 @@ return function(env)
                 
                 local tempoInicio = os.clock()
                 local isRed = false
-                local conexao
 
-                conexao = RunService.RenderStepped:Connect(function()
-                    local vivo = vida and vida.Value > 0
-                    
-                    if not vivo or not isMapLoaded or not BeastSpawnActive then
-                        conexao:Disconnect()
-                        FadeOut()
-                        return
-                    end
-
-                    if IsGameActive and IsGameActive.Value == true then
-                        conexao:Disconnect()
-                        local targetSuccessText = "The Beast has been released!"
-                        if label.Text ~= targetSuccessText then label.Text = targetSuccessText end
-                        TweenColor(Color3.fromRGB(255, 255, 255))
-                        task.delay(3, FadeOut)
-                        return
-                    end
-
-                    local tempoRestante = 15 - (os.clock() - tempoInicio)
-
-                    if tempoRestante <= 0 then
-                        if label.Text ~= "Beast Spawns In: 0.0" then label.Text = "Beast Spawns In: 0.0" end
-                    else
-                        local targetTimerText = string.format("Beast Spawns In: %.1f", tempoRestante)
-                        if label.Text ~= targetTimerText then label.Text = targetTimerText end
-                        
-                        if tempoRestante <= 5 and not isRed then
-                            isRed = true
-                            TweenColor(Color3.fromRGB(255, 85, 85))
+                BeastSpawnRenderConn = task.spawn(function()
+                    while BeastSpawnActive and isMapLoaded do
+                        local vivo = vida and vida.Value > 0
+                        if not vivo then
+                            FadeOut()
+                            break
                         end
+
+                        if IsGameActive and IsGameActive.Value == true then
+                            local targetSuccessText = "The Beast has been released!"
+                            if label.Text ~= targetSuccessText then label.Text = targetSuccessText end
+                            TweenColor(Color3.fromRGB(255, 255, 255))
+                            task.delay(3, FadeOut)
+                            break
+                        end
+
+                        local tempoRestante = 15 - (os.clock() - tempoInicio)
+
+                        if tempoRestante <= 0 then
+                            if label.Text ~= "Beast Spawns In: 0.0" then label.Text = "Beast Spawns In: 0.0" end
+                        else
+                            local targetTimerText = string.format("Beast Spawns In: %.1f", tempoRestante)
+                            if label.Text ~= targetTimerText then label.Text = targetTimerText end
+                            
+                            if tempoRestante <= 5 and not isRed then
+                                isRed = true
+                                TweenColor(Color3.fromRGB(255, 85, 85))
+                            end
+                        end
+                        task.wait(0.1)
                     end
                 end)
-                BeastSpawnRenderConn = conexao
             end
 
             BeastSpawnLoopThread = task.spawn(function()
@@ -2201,12 +2233,12 @@ return function(env)
                         estadoAnterior = "PLAYING"
                     end
                     
-                    task.wait(0.1)
+                    task.wait(0.2)
                 end
             end)
         else
             BeastSpawnActive = false
-            if BeastSpawnRenderConn then BeastSpawnRenderConn:Disconnect(); BeastSpawnRenderConn = nil end
+            if BeastSpawnRenderConn then task.cancel(BeastSpawnRenderConn); BeastSpawnRenderConn = nil end
             if BeastSpawnLoopThread then task.cancel(BeastSpawnLoopThread); BeastSpawnLoopThread = nil end
             if CoreGui:FindFirstChild("ElegantBeastTimer") then
                 CoreGui.ElegantBeastTimer:Destroy()
