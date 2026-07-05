@@ -12,14 +12,12 @@ return function(env)
     local isMobile = env.isMobile
     local UserInputService = game:GetService("UserInputService")
 
-    -- Cache de busca para evitar varreduras desnecessárias nas modificações da Library
     local originalCreateInput = Library.CreateInput
     Library.CreateInput = function(self, targetPage, Text, Default, Callback)
         local childrenBefore = targetPage:GetChildren()
         originalCreateInput(self, targetPage, Text, Default, Callback)
         local childrenAfter = targetPage:GetChildren()
         
-        -- Encontra apenas o novo contêiner adicionado ao invés de buscar na página inteira
         local newContainer
         for _, child in ipairs(childrenAfter) do
             if not table.find(childrenBefore, child) then
@@ -135,7 +133,6 @@ return function(env)
     local spoofedOthers = {}
     local othersOriginalData = {}
 
-    -- Otimização: Cache de caracteres para evitar buscas recorrentes com FindFirstChild/IsDescendantOf
     local characterCache = {}
     local function addCharToCache(char) characterCache[char] = true end
     local function removeCharFromCache(char) characterCache[char] = nil end
@@ -149,7 +146,6 @@ return function(env)
         p.CharacterRemoving:Connect(removeCharFromCache)
     end)
 
-    -- Variáveis e mecânicas internas de Touch Sensitivity
     local touchSensEnabled = false
     local touchSensValue = 1.0
     local hookActive = false
@@ -175,7 +171,6 @@ return function(env)
     end
     setupCameraHook()
 
-    -- Otimização: Remove Black Screen (Modificação limpa de conexões)
     local removeBlackScreenEnabled = false
     local blackoutConn = nil
     local blackoutCharConn = nil
@@ -238,7 +233,6 @@ return function(env)
         end
     end
 
-    -- Otimização: Cache de nomes de jogadores para evitar loops em GetPlayers() na substituição de texto
     local hidePlayerNamesEnabled = false
     local playerNamesConnections = {}
     local originalHeadDisplayTypes = {}
@@ -357,7 +351,6 @@ return function(env)
         end
     end
 
-    -- Otimização: Cam Blur (Uso de referência fixa ao invés de recriação de instância)
     local camBlurEnabled = false
     local motionBlur = nil
     local camBlurConn = nil
@@ -408,7 +401,6 @@ return function(env)
         end
     end
 
-    -- Otimização: Players Cam (Uso de tabelas fracas e remoção de redundância ancestral)
     local playersCamEnabled = false
     local spectateConnection = nil
     local targetPlayer = nil
@@ -472,7 +464,6 @@ return function(env)
         local sz = part.Size
         if sz.X < 0.1 or sz.Y < 0.1 or sz.Z < 0.1 then return false end
         
-        -- Otimização: Removida a varredura IsDescendantOf(spectateGui) já que elementos do Workspace nunca pertencem à UI
         local current = part.Parent
         while current and current ~= workspace do
             if playerCharacters[current] then return false end
@@ -945,7 +936,6 @@ return function(env)
         end
     end
 
-    -- [SPOOFING SYSTEM: INALTERADO CONFORME PEDIDO]
     local function patchElement(e)
         if not e or not e:IsA("GuiObject") then return end
         if not (e:IsA("TextLabel") or e:IsA("TextButton") or e:IsA("TextBox")) then return end
@@ -1217,8 +1207,6 @@ return function(env)
         end
     end
 
-    -- [FIM DA SEÇÃO INALTERADA]
-
     local stretchConnection = nil
 
     Library:CreateSection(Page, "Camera & UI", "Left")
@@ -1227,7 +1215,6 @@ return function(env)
         FovVal = v 
     end)
     
-    -- Otimização: Apenas altera a propriedade FieldOfView se ela for diferente do valor pretendido
     RunService.RenderStepped:Connect(function() 
         local cam = workspace.CurrentCamera
         if cam and cam.FieldOfView ~= FovVal then 
@@ -1299,7 +1286,6 @@ return function(env)
         end 
     end)
 
-    -- Otimização: Hide Leaves (Detecção de cores inline e verificação de personagem baseada em cache)
     Library:CreateToggle(Page, "Hide Leaves (Only Homestead)", false, function(state) 
         if state then
             local function isGreen(color)
@@ -1315,7 +1301,6 @@ return function(env)
                     local mat = part.Material
                     local name = part.Name:lower()
                     
-                    -- Verifica de maneira eficiente se a parte pertence a um personagem
                     local current = part.Parent
                     local isCharPart = false
                     while current and current ~= workspace do
@@ -1368,7 +1353,6 @@ return function(env)
         setupCamBlur(state)
     end)
 
-    -- [SEÇÕES DE SPOOFING: INALTERADAS CONFORME PEDIDO]
     Library:CreateSection(Page, "Visual Name/Level", "Right")
     Library:CreateToggle(Page, "Enable Visuals", false, function(state) 
         spoofVisualsEnabled = state
@@ -1466,7 +1450,6 @@ return function(env)
         end
     end)
 
-    -- Restaura as funções originais da biblioteca
     Library.CreateInput = originalCreateInput
     Library.CreateDropdown = originalCreateDropdown
     Library.CreatePlayerDropdown = originalCreatePlayerDropdown
